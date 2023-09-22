@@ -1,6 +1,6 @@
 module stable_coin_factory::kasa_manager {
     use std::ascii::String;
-    // use std::vector;
+    use std::debug;
     
     use sui::object::{Self, UID, ID};
     use sui::transfer;
@@ -13,6 +13,8 @@ module stable_coin_factory::kasa_manager {
     use sui::package::{Self, Publisher};
 
     use tokens::rusd_stable_coin::{Self, RUSD_STABLE_COIN, RUSDStableCoinStorage};
+    use library::kasa::{calculate_asset_percentage};
+    use library::math::d_fdiv;
 
     friend stable_coin_factory::kasa_operations;
 
@@ -30,7 +32,32 @@ module stable_coin_factory::kasa_manager {
     struct Kasa has key, store {
         id: UID,
         collateral_amount: u64,
-        debt_amount: u64
+        debt_amount: u64,
+        percentages: KasaPercentages
+    }
+
+    /// Keeps track of the collateral and debt percentages of a Kasa
+    /// 
+    /// # Fields
+    /// 
+    /// * `collateral_percentage` - the percentage of collateral the user has deposited
+    /// * `debt_percentage` - the percentage of debt the user has borrowed
+    struct KasaPercentages has store {
+        id: UID,
+        collateral_percentage: u256,
+        debt_percentage: u256
+    }
+
+    /// Keeps track of the riskiest Kasa based on collateral ratio
+    /// 
+    /// # Fields
+    /// 
+    /// * `account_address` - the address of the Account module
+    /// * `collateral_ratio` - the collateral ratio of the Kasa
+    struct RiskiestKasa has key {
+        id: UID,
+        account_address: address,
+        collateral_ratio: u64
     }
 
     /// Storage for the KasaManager module
@@ -100,22 +127,33 @@ module stable_coin_factory::kasa_manager {
         );
         let stable_coin_amount = coin::value(&stable_coin);
 
+        // Update the total collateral balance of the protocol
+        balance::join(&mut kasa_manager_storage.collateral_balance, collateral_balance);
+        // Update the total debt balance of the protocol
+        kasa_manager_storage.debt_balance = kasa_manager_storage.debt_balance + stable_coin_amount;
+
+        // Get the total collateral and debt balances of the protocol
+        let (total_collateral_amount, total_debt_amount) = get_protocol_balances(kasa_manager_storage);
+
+        // Calculate the collateral and debt percentages for the Kasa
+        let kasa_percentages = KasaPercentages {
+            id: object::new(ctx),
+            collateral_percentage: calculate_asset_percentage(collateral_amount, total_collateral_amount),
+            debt_percentage: calculate_asset_percentage(stable_coin_amount, total_debt_amount)
+        };
+
         // Create a new Kasa object
         let kasa_uid = object::new(ctx);
         let kasa_id = object::uid_to_inner(&kasa_uid);
         let kasa = Kasa {
             id: kasa_uid,
             collateral_amount,
-            debt_amount
+            debt_amount,
+            percentages: kasa_percentages
         };
 
         // Add the Kasa object to the kasa_table
         object_table::add(&mut kasa_manager_storage.kasa_table, account_address, kasa);
-
-        // Update the total collateral balance of the protocol
-        balance::join(&mut kasa_manager_storage.collateral_balance, collateral_balance);
-        // Update the total debt balance of the protocol
-        kasa_manager_storage.debt_balance = kasa_manager_storage.debt_balance + stable_coin_amount;
 
         transfer::public_transfer(stable_coin, account_address);
 
@@ -136,15 +174,20 @@ module stable_coin_factory::kasa_manager {
     /// * `account_address` - the address of the Account module
     /// * `amount` - the amount to increase the collateral by
     public(friend) fun increase_collateral(kasa_manager_storage: &mut KasaManagerStorage, account_address: address, collateral: Coin<SUI>) {
-        // TODO: Where do we transfer the collateral to?
         let amount = coin::value<SUI>(&collateral);
-
-        // Update Kasa object
-        let kasa = borrow_kasa(kasa_manager_storage, account_address);
-        kasa.collateral_amount = kasa.collateral_amount + amount;
 
         // Update total collateral balance of the protocol
         coin::put(&mut kasa_manager_storage.collateral_balance, collateral);
+
+        // Calculate the collateral percentage for the Kasa
+        let kasa = get_kasa(kasa_manager_storage, account_address);
+        let (total_collateral_amount, _) = get_protocol_balances(kasa_manager_storage);
+        let kasa_collateral_percentage = calculate_asset_percentage(kasa.collateral_amount + amount, total_collateral_amount);
+
+        // Update Kasa object - collateral amount and collateral percentage
+        let kasa = borrow_kasa(kasa_manager_storage, account_address);
+        kasa.collateral_amount = kasa.collateral_amount + amount;
+        kasa.percentages.collateral_percentage = kasa_collateral_percentage;
     }
     
     /// Decreases the collateral amount of the user
@@ -155,11 +198,18 @@ module stable_coin_factory::kasa_manager {
     /// * `account_address` - the address of the Account module
     /// * `amount` - the amount to decrease the collateral by
     public(friend) fun decrease_collateral(kasa_manager_storage: &mut KasaManagerStorage, account_address: address, amount: u64, ctx: &mut TxContext) {
-        let kasa = borrow_kasa(kasa_manager_storage, account_address);
-        kasa.collateral_amount = kasa.collateral_amount - amount;
-
         // Update total collateral balance of the protocol
         let collateral = coin::take(&mut kasa_manager_storage.collateral_balance, amount, ctx);
+        
+        // Calculate the collateral percentage for the Kasa
+        let kasa = get_kasa(kasa_manager_storage, account_address);
+        let (total_collateral_amount, _) = get_protocol_balances(kasa_manager_storage);
+        let kasa_collateral_percentage = calculate_asset_percentage(kasa.collateral_amount - amount, total_collateral_amount);
+        
+        // Update Kasa object - collateral amount and collateral percentage
+        let kasa = borrow_kasa(kasa_manager_storage, account_address);
+        kasa.collateral_amount = kasa.collateral_amount + amount;
+        kasa.percentages.collateral_percentage = kasa_collateral_percentage;
 
         // Transfer the collateral back to the user
         transfer::public_transfer(collateral, account_address);
@@ -179,6 +229,19 @@ module stable_coin_factory::kasa_manager {
         amount: u64,
         ctx: &mut TxContext
     ) {
+        // Update the total debt balance of the protocol
+        kasa_manager_storage.debt_balance = kasa_manager_storage.debt_balance + amount;
+
+        // Calculate the debt percentage for the Kasa
+        let kasa = get_kasa(kasa_manager_storage, account_address);
+        let (_, total_debt_amount) = get_protocol_balances(kasa_manager_storage);
+        let kasa_debt_percentage = calculate_asset_percentage(kasa.debt_amount + amount, total_debt_amount);
+
+        // Update Kasa object - debt amount and debt percentage
+        let kasa = borrow_kasa(kasa_manager_storage, account_address);
+        kasa.debt_amount = kasa.debt_amount + amount;
+        kasa.percentages.debt_percentage = kasa_debt_percentage;
+
         // Mint the rUSD to the user
         let rusd = rusd_stable_coin::mint(
             rusd_stable_coin_storage,
@@ -187,13 +250,6 @@ module stable_coin_factory::kasa_manager {
             ctx
         );
         transfer::public_transfer(rusd, account_address);
-
-        // Update the Kasa object
-        let kasa = borrow_kasa(kasa_manager_storage, account_address);
-        kasa.debt_amount = kasa.debt_amount + amount;
-
-        // Update the total debt balance of the protocol
-        kasa_manager_storage.debt_balance = kasa_manager_storage.debt_balance + amount;
     }
 
     /// Decreases the debt amount of the user
@@ -212,11 +268,18 @@ module stable_coin_factory::kasa_manager {
     ) {
         let amount = coin::value(&debt_coin);
 
-        let kasa = borrow_kasa(kasa_manager_storage, account_address);
-        kasa.debt_amount = kasa.debt_amount - amount;
-
         // // Update the total debt balance of the protocol
         kasa_manager_storage.debt_balance = kasa_manager_storage.debt_balance - amount;
+
+        // Calculate the debt percentage for the Kasa
+        let kasa = get_kasa(kasa_manager_storage, account_address);
+        let (_, total_debt_amount) = get_protocol_balances(kasa_manager_storage);
+        let kasa_debt_percentage = calculate_asset_percentage(kasa.debt_amount - amount, total_debt_amount);
+
+        // Update Kasa object - debt amount and debt percentage
+        let kasa = borrow_kasa(kasa_manager_storage, account_address);
+        kasa.debt_amount = kasa.debt_amount - amount;
+        kasa.percentages.debt_percentage = kasa_debt_percentage;
 
         // Burn the rUSD from the user
         rusd_stable_coin::burn(
@@ -225,6 +288,26 @@ module stable_coin_factory::kasa_manager {
             debt_coin
         );
     }
+
+    /// Redeems stable coin for collateral from the protocol
+    /// 
+    /// # Arguments
+    /// 
+    /// * `kasa_manager_storage` - the KasaManagerStorage object
+    /// * `rusd_stable_coin_storage` - the RUSDStableCoinStorage object
+    /// * `account_address` - the address of the Account module
+    /// * `stable_coin` - the amount of stable coin to redeem
+    // entry public fun redeem_stable_coin(
+    //     kasa_manager_storage: &mut KasaManagerStorage,
+    //     rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
+    //     account_address: address,
+    //     stable_coin: Coin<RUSD_STABLE_COIN>,
+    //     ctx: &mut TxContext
+    // ) {
+    //     // TODO: Check out linked table
+
+    //     // TODO: We need a way to find the riskiest Kasa and write it down
+    // }
 
     // =================== Queries ===================
 
@@ -249,10 +332,22 @@ module stable_coin_factory::kasa_manager {
     /// 
     /// * `kasa_manager_storage` - the KasaManagerStorage object
     /// * `account_address` - the address of the Account module
-    public fun get_kasa_amounts(kasa_manager_storage: &mut KasaManagerStorage, account_address: address): (u64, u64) {
+    public fun get_kasa_asset_amounts(kasa_manager_storage: &mut KasaManagerStorage, account_address: address): (u64, u64) {
         let kasa = borrow_kasa(kasa_manager_storage, account_address);
         (kasa.collateral_amount, kasa.debt_amount)
     }
+
+    /// Gets the percentages for a Kasa
+    /// 
+    /// # Arguments
+    /// 
+    /// * `kasa_manager_storage` - the KasaManagerStorage object
+    /// * `account_address` - the address of the Account module
+    public fun get_kasa_asset_percentages(kasa_manager_storage: &mut KasaManagerStorage, account_address: address): (u256, u256) {
+        let kasa = borrow_kasa(kasa_manager_storage, account_address);
+        (kasa.percentages.collateral_percentage, kasa.percentages.debt_percentage)
+    }
+    
     
     /// Gets the protocol balances from the KasaManagerStorage object.
     /// 
@@ -291,7 +386,17 @@ module stable_coin_factory::kasa_manager {
     fun borrow_kasa(kasa_manager_store: &mut KasaManagerStorage, account_address: address): &mut Kasa {
         object_table::borrow_mut(&mut kasa_manager_store.kasa_table, account_address)
     }
-    
+
+    /// Gets the Kasa from the KasaManagerStorage
+    ///
+    /// # Arguments
+    /// 
+    /// * `kasa_manager_storage` - the KasaManagerStorage object
+    /// * `account_address` - the address of the Account module
+    fun get_kasa(kasa_manager_store: &mut KasaManagerStorage, account_address: address): &Kasa {
+        object_table::borrow(&mut kasa_manager_store.kasa_table, account_address)
+    }
+
     #[test_only]
     public fun init_for_testing(ctx: &mut TxContext) {
         init(KASA_MANAGER {}, ctx);
