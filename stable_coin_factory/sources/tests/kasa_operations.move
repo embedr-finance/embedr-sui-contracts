@@ -508,6 +508,8 @@ module stable_coin_factory::kasa_operations_tests {
 
     // =================== Repay Loan ===================
 
+    // TODO: Add happy path test
+
     #[test]
     #[expected_failure(abort_code = kasa_operations::ERROR_KASA_NOT_FOUND)]
     fun test_repay_loan_kasa_not_found() {
