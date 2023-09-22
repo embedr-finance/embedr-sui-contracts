@@ -1,5 +1,19 @@
 module library::kasa {
+    use library::math::{d_fdiv};
 
+    /// Calculates the asset percentage of a Kasa
+    /// Can be used for both collateral and debt.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `amount` - the amount of asset.
+    /// * `total__amount` - the total amount of assets.
+    public fun calculate_asset_percentage(
+        amount: u64,
+        total_amount: u64,
+    ): u256 {
+        d_fdiv(amount * 100, total_amount)
+    }
 
     /// Calculates the collateral ratio for a given collateral amount, debt amount and collateral price.
     /// 

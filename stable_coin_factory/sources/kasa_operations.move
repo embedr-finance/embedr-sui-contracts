@@ -119,7 +119,7 @@ module stable_coin_factory::kasa_operations {
         assert!(amount != 0, ERROR_INVALID_COLLATERAL_AMOUNT);
 
         // Check for collateral ratio validity
-        let (kasa_collateral_amount, kasa_debt_amount) = kasa_manager::get_kasa_amounts(
+        let (kasa_collateral_amount, kasa_debt_amount) = kasa_manager::get_kasa_asset_amounts(
             kasa_manager_storage,
             account_address,
         );
@@ -164,7 +164,7 @@ module stable_coin_factory::kasa_operations {
         assert!(amount != 0, ERROR_INVALID_DEBT_AMOUNT);
 
         // Check for collateral ratio validity
-        let (kasa_collateral_amount, kasa_debt_amount) = kasa_manager::get_kasa_amounts(
+        let (kasa_collateral_amount, kasa_debt_amount) = kasa_manager::get_kasa_asset_amounts(
             kasa_manager_storage,
             account_address,
         );
@@ -247,7 +247,7 @@ module stable_coin_factory::kasa_operations {
         ctx: &TxContext
     ): (u64, u64) {
         let account_address = tx_context::sender(ctx);
-        kasa_manager::get_kasa_amounts(
+        kasa_manager::get_kasa_asset_amounts(
             kasa_manager_storage,
             account_address,
         )

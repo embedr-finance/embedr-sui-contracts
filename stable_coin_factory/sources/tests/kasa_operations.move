@@ -1,5 +1,7 @@
 #[test_only]
 module stable_coin_factory::kasa_operations_tests {
+    use std::debug;
+
     use sui::test_scenario::{Self as test, next_tx, Scenario, ctx};
     use sui::test_utils::{assert_eq};
     use sui::coin::{burn_for_testing, mint_for_testing, Coin};
@@ -19,22 +21,32 @@ module stable_coin_factory::kasa_operations_tests {
             kasa_manager::init_for_testing(ctx(test));
             rusd_stable_coin::init_for_testing(ctx(test));
         };
+
+        next_tx(test, admin);
+        {
+            let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+            let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
+            let rusd_stable_coin_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
+
+            let id = kasa_manager::get_publisher_id(&kasa_manager_storage);
+            rusd_stable_coin::add_manager(
+                &rusd_stable_coin_admin_cap,
+                &mut rusd_stable_coin_storage,
+                id
+            );
+
+            test::return_shared(kasa_manager_storage);
+            test::return_shared(rusd_stable_coin_storage);
+            test::return_to_address(admin, rusd_stable_coin_admin_cap);
+        };
     }
 
-    fun setup_open_kasa(test: &mut Scenario, collateral_amount: u64, debt_amount: u64): (KasaManagerStorage, RUSDStableCoinStorage, RUSDStableCoinAdminCap) {
+    fun setup_open_kasa(test: &mut Scenario, collateral_amount: u64, debt_amount: u64): (KasaManagerStorage, RUSDStableCoinStorage) {
         let (admin, _) = people();
         let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
         let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
-        let rusd_stable_coin_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
 
         let collateral = mint_for_testing<SUI>(collateral_amount, ctx(test));
-
-        let id = kasa_manager::get_publisher_id(&kasa_manager_storage);
-        rusd_stable_coin::add_manager(
-            &rusd_stable_coin_admin_cap,
-            &mut rusd_stable_coin_storage,
-            id
-        );
 
         kasa_operations::open_kasa(
             &mut kasa_manager_storage,
@@ -44,7 +56,7 @@ module stable_coin_factory::kasa_operations_tests {
             ctx(test)
         );
 
-        (kasa_manager_storage, rusd_stable_coin_storage, rusd_stable_coin_admin_cap)
+        (kasa_manager_storage, rusd_stable_coin_storage)
     }
 
     // =================== Open Kasa ===================
@@ -61,16 +73,8 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
             let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
-            let rusd_stable_coin_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
 
             let collateral = mint_for_testing<SUI>(1000, ctx(test));
-
-            let id = kasa_manager::get_publisher_id(&kasa_manager_storage);
-            rusd_stable_coin::add_manager(
-                &rusd_stable_coin_admin_cap,
-                &mut rusd_stable_coin_storage,
-                id
-            );
 
             kasa_operations::open_kasa(
                 &mut kasa_manager_storage,
@@ -88,9 +92,59 @@ module stable_coin_factory::kasa_operations_tests {
             assert_eq(collateral_balance, 1000);
             assert_eq(debt_balance, 5000);
 
+            let (collateral_percentage, debt_percentage) = kasa_manager::get_kasa_asset_percentages(&mut kasa_manager_storage, admin);
+            assert_eq(collateral_percentage, 100000000000000000000);
+            assert_eq(debt_percentage, 100000000000000000000);
+
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
+        };
+        test::end(scenario);
+    }
+
+    #[test]
+    fun test_open_multiple_kasa_happy_path() {
+        let scenario = scenario();
+        let (admin, _) = people();
+        let test = &mut scenario;
+
+        start_kasa_manager(test);
+
+        next_tx(test, admin);
+        {
+            let (
+                kasa_manager_storage,
+                rusd_stable_coin_storage
+            ) = setup_open_kasa(test, 1000, 5000);
+
+            test::return_shared(kasa_manager_storage);
+            test::return_shared(rusd_stable_coin_storage);
+        };
+        
+        next_tx(test, @0x1234);
+        {
+            let (
+                kasa_manager_storage,
+                rusd_stable_coin_storage
+            ) = setup_open_kasa(test, 1000, 5000);
+
+            test::return_shared(kasa_manager_storage);
+            test::return_shared(rusd_stable_coin_storage);
+        };
+
+        next_tx(test, @0x2345);
+        {
+            let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+
+            let (collateral_percentage, debt_percentage) = kasa_manager::get_kasa_asset_percentages(&mut kasa_manager_storage, admin);
+            assert_eq(collateral_percentage, 50000000000000000000);
+            assert_eq(debt_percentage, 50000000000000000000);
+
+            let (collateral_percentage, debt_percentage) = kasa_manager::get_kasa_asset_percentages(&mut kasa_manager_storage, @0x1234);
+            assert_eq(collateral_percentage, 50000000000000000000);
+            assert_eq(debt_percentage, 50000000000000000000);
+
+            test::return_shared(kasa_manager_storage);
         };
         test::end(scenario);
     }
@@ -108,8 +162,7 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1000, 5000);
 
             let collateral = mint_for_testing<SUI>(1000, ctx(test));
@@ -123,7 +176,6 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
         test::end(scenario);
     }
@@ -141,13 +193,11 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 0, 5000);
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
         test::end(scenario);
     }
@@ -165,13 +215,11 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1000, 0);
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
         test::end(scenario);
     }
@@ -189,13 +237,11 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1, 5000);
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
         test::end(scenario);
     }
@@ -214,8 +260,7 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1000, 5000);
 
             let collateral = mint_for_testing<SUI>(800, ctx(test));
@@ -235,7 +280,6 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
         test::end(scenario);
     }
@@ -253,13 +297,11 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1000, 5000);
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
 
         next_tx(test, @0x1234);
@@ -289,8 +331,7 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1000, 5000);
 
             let collateral = mint_for_testing<SUI>(0, ctx(test));
@@ -302,7 +343,6 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
         test::end(scenario);
     }
@@ -322,13 +362,11 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1000, 5000);
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
 
         next_tx(test, @0x1234);
@@ -357,8 +395,7 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1000, 5000);
 
             kasa_operations::withdraw_collateral(
@@ -369,7 +406,6 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
         test::end(scenario);
     }
@@ -387,8 +423,7 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1000, 5000);
 
             kasa_operations::withdraw_collateral(
@@ -399,7 +434,6 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
         test::end(scenario);
     }
@@ -419,13 +453,11 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1000, 5000);
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
 
         next_tx(test, @0x1234);
@@ -457,8 +489,7 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1000, 5000);
 
             kasa_operations::borrow_loan(
@@ -470,7 +501,6 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
         test::end(scenario);
     }
@@ -488,8 +518,7 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1000, 5000);
 
             kasa_operations::borrow_loan(
@@ -501,7 +530,6 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
         test::end(scenario);
     }
@@ -521,13 +549,11 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1000, 5000);
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
 
         next_tx(test, @0x1234);
@@ -560,8 +586,7 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let (
                 kasa_manager_storage,
-                rusd_stable_coin_storage,
-                rusd_stable_coin_admin_cap
+                rusd_stable_coin_storage
             ) = setup_open_kasa(test, 1000, 5000);
 
             let coin = mint_for_testing<RUSD_STABLE_COIN>(0, ctx(test));
@@ -574,7 +599,6 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(rusd_stable_coin_storage);
-            test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
         test::end(scenario);
     }
