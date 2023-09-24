@@ -5,7 +5,7 @@ module stable_coin_factory::kasa_operations {
 
     use stable_coin_factory::kasa_manager::{Self, KasaManagerStorage};
     use tokens::rusd_stable_coin::{RUSDStableCoinStorage, RUSD_STABLE_COIN};
-    use library::kasa::{calculate_collateral_ratio, is_icr_valid};
+    use library::kasa::{is_icr_valid};
 
     const COLLATERAL_PRICE: u64 = 1850;
 
@@ -83,7 +83,6 @@ module stable_coin_factory::kasa_operations {
         ctx: &mut TxContext
     ) {
         let account_address = tx_context::sender(ctx);
-        let collateral_amount = coin::value(&collateral);
 
         // Check for existing kasa
         assert!(kasa_manager::has_kasa(kasa_manager_storage, account_address), ERROR_KASA_NOT_FOUND);
@@ -230,8 +229,7 @@ module stable_coin_factory::kasa_operations {
             kasa_manager_storage,
             rusd_stable_coin_storage,
             account_address,
-            debt_coin,
-            ctx
+            debt_coin
         );
     }
 

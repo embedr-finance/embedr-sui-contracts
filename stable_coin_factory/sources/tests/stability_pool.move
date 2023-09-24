@@ -1,10 +1,8 @@
 #[test_only]
 module stable_coin_factory::stability_pool_tests {
-    use sui::test_scenario::{Self as test, next_tx, Scenario, ctx};
+    use sui::test_scenario::{Self as test, next_tx};
     use sui::test_utils::{assert_eq};
     use sui::coin::{Self, Coin};
-    use sui::sui::{SUI};
-    use sui::balance;
 
     use stable_coin_factory::test_helpers::{init_stable_coin_factory, open_kasa};
     use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage};
@@ -14,7 +12,7 @@ module stable_coin_factory::stability_pool_tests {
     #[test]
     fun test_deposit_happy_path() {
         let scenario = scenario();
-        let (admin, user) = people();
+        let (_, user) = people();
         let test = &mut scenario;
 
         init_stable_coin_factory(test);
@@ -46,7 +44,7 @@ module stable_coin_factory::stability_pool_tests {
     #[test]
     fun test_withdraw_happy_path() {
         let scenario = scenario();
-        let (admin, user) = people();
+        let (_, user) = people();
         let test = &mut scenario;
 
         init_stable_coin_factory(test);

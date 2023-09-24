@@ -2,15 +2,13 @@
 module stable_coin_factory::kasa_operations_tests {
     use sui::test_scenario::{Self as test, next_tx, Scenario, ctx};
     use sui::test_utils::{assert_eq};
-    use sui::coin::{burn_for_testing, mint_for_testing, Coin};
+    use sui::coin::{mint_for_testing};
     use sui::sui::{SUI};
-    use sui::balance;
 
     use stable_coin_factory::kasa_manager::{Self, KasaManagerStorage};
     use stable_coin_factory::kasa_operations;
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSDStableCoinAdminCap, RUSD_STABLE_COIN};
     use library::test_utils::{people, scenario};
-    use library::foo::{Self, FooStorage};
 
     fun start_kasa_manager(test: &mut Scenario) {
         let (admin, _) = people();

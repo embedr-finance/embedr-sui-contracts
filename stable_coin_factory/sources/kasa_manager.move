@@ -1,10 +1,10 @@
 module stable_coin_factory::kasa_manager {
-    use std::ascii::String;
+    // use std::ascii::String;
     // use std::vector;
     
     use sui::object::{Self, UID, ID};
     use sui::transfer;
-    use sui::tx_context::{Self, TxContext};
+    use sui::tx_context::{TxContext};
     use sui::event;
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
@@ -207,8 +207,7 @@ module stable_coin_factory::kasa_manager {
         kasa_manager_storage: &mut KasaManagerStorage,
         rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
         account_address: address,
-        debt_coin: Coin<RUSD_STABLE_COIN>,
-        ctx: &mut TxContext
+        debt_coin: Coin<RUSD_STABLE_COIN>
     ) {
         let amount = coin::value(&debt_coin);
 
