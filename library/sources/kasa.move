@@ -1,6 +1,4 @@
 module library::kasa {
-
-
     /// Calculates the collateral ratio for a given collateral amount, debt amount and collateral price.
     /// 
     /// # Arguments
@@ -17,9 +15,11 @@ module library::kasa {
         debt_amount: u64,
         collateral_price: u64,
     ): u64 {
-        let collateral_value = collateral_amount * collateral_price;
+        // TODO: Change the calculation logic
+        // In case of decimal values, the calculation will be incorrect
+        let collateral_value = collateral_amount * collateral_price * 100;
         let collateral_ratio = collateral_value / debt_amount;
-        collateral_ratio * 100
+        collateral_ratio
     }
 
     /// Checks if the collateral ratio is valid for given parameters.
