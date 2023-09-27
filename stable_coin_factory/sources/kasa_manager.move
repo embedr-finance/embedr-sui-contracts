@@ -1,7 +1,4 @@
 module stable_coin_factory::kasa_manager {
-    // use std::ascii::String;
-    // use std::vector;
-    
     use sui::object::{Self, UID, ID};
     use sui::transfer;
     use sui::tx_context::{TxContext};
@@ -9,10 +6,13 @@ module stable_coin_factory::kasa_manager {
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
     use sui::balance::{Self, Balance};
-    use sui::object_table::{Self, ObjectTable};
+    use sui::table::{Self, Table};
     use sui::package::{Self, Publisher};
 
+    use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage};
     use tokens::rusd_stable_coin::{Self, RUSD_STABLE_COIN, RUSDStableCoinStorage};
+    use stable_coin_factory::liquidation_assets_distributor;
+    use library::kasa::{is_icr_valid};
 
     friend stable_coin_factory::kasa_operations;
 
@@ -27,8 +27,7 @@ module stable_coin_factory::kasa_manager {
     /// 
     /// * `collateral_amount` - the amount of collateral the user has deposited
     /// * `debt_amount` - the amount of debt the user has borrowed
-    struct Kasa has key, store {
-        id: UID,
+    struct Kasa has store, drop {
         collateral_amount: u64,
         debt_amount: u64
     }
@@ -41,7 +40,7 @@ module stable_coin_factory::kasa_manager {
     /// * `debt_balance` - total debt balance of the protocol
     struct KasaManagerStorage has key {
         id: UID,
-        kasa_table: ObjectTable<address, Kasa>,
+        kasa_table: Table<address, Kasa>,
         collateral_balance: Balance<SUI>,
         debt_balance: u64,
         publisher: Publisher
@@ -51,7 +50,6 @@ module stable_coin_factory::kasa_manager {
 
     /// Defines the event for when a Kasa is created
     struct KasaCreated has copy, drop {
-        kasa_id: ID,
         account_address: address,
         collateral_amount: u64,
         debt_amount: u64
@@ -63,7 +61,7 @@ module stable_coin_factory::kasa_manager {
     fun init(witness: KASA_MANAGER, ctx: &mut TxContext) {
         transfer::share_object(KasaManagerStorage {
             id: object::new(ctx),
-            kasa_table: object_table::new(ctx),
+            kasa_table: table::new(ctx),
             collateral_balance: balance::zero(),
             debt_balance: 0,
             publisher: package::claim<KASA_MANAGER>(witness, ctx)
@@ -101,16 +99,13 @@ module stable_coin_factory::kasa_manager {
         let stable_coin_amount = coin::value(&stable_coin);
 
         // Create a new Kasa object
-        let kasa_uid = object::new(ctx);
-        let kasa_id = object::uid_to_inner(&kasa_uid);
         let kasa = Kasa {
-            id: kasa_uid,
             collateral_amount,
             debt_amount
         };
 
         // Add the Kasa object to the kasa_table
-        object_table::add(&mut kasa_manager_storage.kasa_table, account_address, kasa);
+        table::add(&mut kasa_manager_storage.kasa_table, account_address, kasa);
 
         // Update the total collateral balance of the protocol
         balance::join(&mut kasa_manager_storage.collateral_balance, collateral_balance);
@@ -119,13 +114,12 @@ module stable_coin_factory::kasa_manager {
 
         transfer::public_transfer(stable_coin, account_address);
 
-        // Emit the KasaOpened event
+        // Emit event
         event::emit(KasaCreated {
-            kasa_id,
             account_address,
             collateral_amount,
             debt_amount
-        });
+        })
     }
 
     /// Increases the collateral amount of the user
@@ -225,6 +219,63 @@ module stable_coin_factory::kasa_manager {
         );
     }
 
+    entry public fun liquidate_single(
+        kasa_manager_storage: &mut KasaManagerStorage,
+        stability_pool_storage: &mut StabilityPoolStorage,
+        rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
+        account_address: address,
+        ctx: &mut TxContext
+    ) {
+        let kasa = read_kasa(kasa_manager_storage, account_address);
+
+        // If the ICR is valid, return
+        if (is_icr_valid(false, kasa.collateral_amount, kasa.debt_amount, 1600)) return;
+
+        // Kasa to be liquidated
+        let kasa = remove_kasa(kasa_manager_storage, account_address);
+
+        // Create a new liquidation object
+        let liquidation = liquidation_assets_distributor::register_liquidation(ctx);
+
+        // Get the total stake amount from the stability pool
+        let stability_pool_stake_amount = stability_pool::get_total_stake_amount(stability_pool_storage);
+
+        // If the stability pool has enough stake amount to cover the debt amount
+        if (stability_pool_stake_amount > kasa.debt_amount) {
+            // Remove collateral from the collateral balance
+            let collateral = coin::take(&mut kasa_manager_storage.collateral_balance, kasa.collateral_amount, ctx);
+
+            // Decrease the stability pool balance
+            let stable_coin = stability_pool::liquidation(
+                stability_pool_storage,
+                coin::value(&collateral),
+                kasa.debt_amount,
+                ctx
+            );
+            // Burn the stable coin
+            tokens::rusd_stable_coin::burn(
+                rusd_stable_coin_storage,
+                &kasa_manager_storage.publisher,
+                stable_coin
+            );
+
+            // Decrease the debt balance of the protocol
+            kasa_manager_storage.debt_balance = kasa_manager_storage.debt_balance - kasa.debt_amount;
+
+            // TODO: Think about what to do here
+            // Transfer the collateral to the liquidation
+            liquidation_assets_distributor::set_stability_pool_assets(
+                &mut liquidation,
+                collateral
+            );
+        } else if (stability_pool_stake_amount == kasa.debt_amount) {
+
+        };
+
+        // Share the liquidation with the liquidation assets distributor
+        liquidation_assets_distributor::share_liquidation(liquidation);
+    }
+
     // =================== Queries ===================
 
     /// Checks if there is a kasa with a specific account address
@@ -237,8 +288,8 @@ module stable_coin_factory::kasa_manager {
     /// # Returns
     ///
     /// * `bool` - `true` if a kasa exists with the given account address, `false` otherwise
-    public fun has_kasa(kasa_manager_storage: &mut KasaManagerStorage, account_address: address): bool {
-        object_table::contains(&kasa_manager_storage.kasa_table, account_address)
+    public fun has_kasa(kasa_manager_storage: &KasaManagerStorage, account_address: address): bool {
+        table::contains(&kasa_manager_storage.kasa_table, account_address)
     }
     
 
@@ -288,7 +339,21 @@ module stable_coin_factory::kasa_manager {
     /// * `kasa_manager_storage` - the KasaManagerStorage object
     /// * `account_address` - the address of the Account module
     fun borrow_kasa(kasa_manager_store: &mut KasaManagerStorage, account_address: address): &mut Kasa {
-        object_table::borrow_mut(&mut kasa_manager_store.kasa_table, account_address)
+        table::borrow_mut(&mut kasa_manager_store.kasa_table, account_address)
+    }
+
+    /// Reads the Kasa from the KasaManagerStorage
+    /// 
+    /// # Arguments
+    /// 
+    /// * `kasa_manager_storage` - the KasaManagerStorage object
+    /// * `account_address` - the address of the Account module
+    fun read_kasa(kasa_manager_store: &KasaManagerStorage, account_address: address): &Kasa {
+        table::borrow(&kasa_manager_store.kasa_table, account_address)
+    }
+
+    fun remove_kasa(kasa_manager_store: &mut KasaManagerStorage, account_address: address): Kasa {
+        table::remove(&mut kasa_manager_store.kasa_table, account_address)
     }
     
     #[test_only]
