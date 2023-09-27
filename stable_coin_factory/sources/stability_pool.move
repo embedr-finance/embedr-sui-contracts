@@ -78,13 +78,14 @@ module stable_coin_factory::stability_pool {
     // =================== Initializer ===================
 
     fun init(ctx: &mut TxContext) {
+        // Initialize the storage for the stability pool
         transfer::share_object(StabilityPoolStorage {
             id: object::new(ctx),
             stake_table: table::new(ctx),
             stake_balance: balance::zero(),
             snapshot: StabilityPoolSnapshot {
                 p: double_scalar(),
-                s: 0,
+                s: 0, // Unused variable
                 epoch: 0,
                 scale: 0
             },
@@ -93,9 +94,15 @@ module stable_coin_factory::stability_pool {
                 stake: 0
             }
         });
+
+        // Initialize the epoch to scale to sum table
+        let s = table::new(ctx);
+        let s_inner = table::new(ctx);
+        table::add(&mut s_inner, 0, 0);
+        table::add(&mut s, 0, s_inner);
         transfer::share_object(StabilityPoolEpochScaleSum {
             id: object::new(ctx),
-            s: table::new(ctx)
+            s
         });
     }
 
@@ -109,6 +116,7 @@ module stable_coin_factory::stability_pool {
     /// * `stable_coin` - the stable coin to be staked
     entry public fun deposit(
         stability_pool_storage: &mut StabilityPoolStorage,
+        stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum,
         stable_coin: Coin<RUSD_STABLE_COIN>,
         ctx: &mut TxContext
     ) {
@@ -117,6 +125,11 @@ module stable_coin_factory::stability_pool {
 
         // Create a new stake for the account if it doesn't exist
         if (!check_stake_exists(stability_pool_storage, account_address)) {
+            let s = epoch_to_scale_to_sum(
+                stability_pool_epoch_scale_sum,
+                stability_pool_storage.snapshot.epoch,
+                stability_pool_storage.snapshot.scale
+            );
             table::add(
                 &mut stability_pool_storage.stake_table,
                 account_address, 
@@ -125,7 +138,7 @@ module stable_coin_factory::stability_pool {
                     amount: 0,
                     snapshot: StabilityPoolSnapshot {
                         p: stability_pool_storage.snapshot.p,
-                        s: stability_pool_storage.snapshot.s,
+                        s,
                         epoch: 0,
                         scale: 0
                     }
@@ -198,6 +211,7 @@ module stable_coin_factory::stability_pool {
     /// The stable coin that was taken from the total balance
     public(friend) fun liquidation(
         stability_pool_storage: &mut StabilityPoolStorage,
+        stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum,
         collateral_gain_amount: u64,
         stake_offset_amount: u64,
         ctx: &mut TxContext
@@ -212,17 +226,19 @@ module stable_coin_factory::stability_pool {
 
         // TODO: Return error if stake_offset_amount is higher than total_stake_amount
 
-        let (collateral_gain_per_stake, stake_offset_per_stake) = calculateRewardsPerStake(
+        let (collateral_gain_per_stake, stake_offset_per_stake) = calculate_rewards_per_stake(
             stability_pool_storage,
             (collateral_gain_amount as u256),
             (stake_offset_amount as u256),
             (total_stake_amount as u256),
         );
 
-        updateStorageSnapshot(
+        update_storage_snapshot(
             stability_pool_storage,
+            stability_pool_epoch_scale_sum,
             collateral_gain_per_stake,
-            stake_offset_per_stake
+            stake_offset_per_stake,
+            ctx
         );
 
         // Take the stable coin from the total balance
@@ -311,7 +327,7 @@ module stable_coin_factory::stability_pool {
     /// # Returns
     /// 
     /// The rewards per stake and the stake offset per stake
-    fun calculateRewardsPerStake(
+    fun calculate_rewards_per_stake(
         stability_pool_storage: &mut StabilityPoolStorage,
         collateral_gain_amount: u256,
         stake_offset_amount: u256,
@@ -337,15 +353,27 @@ module stable_coin_factory::stability_pool {
     }
 
     // Updates the snapshot of the stability pool
-    fun updateStorageSnapshot(
+    fun update_storage_snapshot(
         stability_pool_storage: &mut StabilityPoolStorage,
+        stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum,
         collateral_gain_per_stake: u256,
-        stake_offset_per_stake: u256
+        stake_offset_per_stake: u256,
+        ctx: &mut TxContext
     ) {
         let product_factor = double_scalar() - stake_offset_per_stake;
 
         let marginal_collateral_gain = d_fmul_u256(collateral_gain_per_stake, (stability_pool_storage.snapshot.p as u256));
-        stability_pool_storage.snapshot.s = stability_pool_storage.snapshot.s + marginal_collateral_gain;
+        let s = epoch_to_scale_to_sum(
+            stability_pool_epoch_scale_sum,
+            stability_pool_storage.snapshot.epoch,
+            stability_pool_storage.snapshot.scale
+        );
+        update_epoch_scale_sum_value(
+            stability_pool_epoch_scale_sum,
+            stability_pool_storage.snapshot.epoch,
+            stability_pool_storage.snapshot.scale,
+            s + marginal_collateral_gain
+        );
 
         // Stability pool was emptied
         // Increment the epoch and reset the p value and scale
@@ -353,6 +381,14 @@ module stable_coin_factory::stability_pool {
             stability_pool_storage.snapshot.epoch = stability_pool_storage.snapshot.epoch + 1;
             stability_pool_storage.snapshot.p = double_scalar();
             stability_pool_storage.snapshot.scale = 0;
+            
+            // Initialize the table for sum
+            initialize_epoch_scale_sum_epoch(
+                stability_pool_epoch_scale_sum,
+                stability_pool_storage.snapshot.epoch,
+                ctx
+            );
+
 
         // If product factor reduces P below the scale boundary
         // Increment the scale
@@ -385,6 +421,32 @@ module stable_coin_factory::stability_pool {
                 double_scalar()
             );
         };
+    }
+
+    fun epoch_to_scale_to_sum(stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum, epoch: u64, scale: u64): u256 {
+        if (!table::contains(&stability_pool_epoch_scale_sum.s, epoch)) return 0;
+        let scale_sum = table::borrow(&stability_pool_epoch_scale_sum.s, epoch);
+        if (!table::contains(scale_sum, scale)) return 0;
+        let sum = table::borrow(scale_sum, scale);
+        *sum
+    }
+
+    fun update_epoch_scale_sum_value(stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum, epoch: u64, scale: u64, value: u256) {
+        let sum = table::remove(
+            table::borrow_mut(&mut stability_pool_epoch_scale_sum.s, epoch),
+            scale
+        );
+        table::add(
+            table::borrow_mut(&mut stability_pool_epoch_scale_sum.s, epoch),
+            scale,
+            sum + value
+        );
+    }
+
+    fun initialize_epoch_scale_sum_epoch(stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum, epoch: u64, ctx: &mut TxContext){
+        let table = table::new(ctx);
+        table::add(&mut table, 0, 0);
+        table::add(&mut stability_pool_epoch_scale_sum.s, epoch, table);
     }
 
     /// Check if a stake exists for a given account address in the stability pool.

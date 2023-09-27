@@ -9,10 +9,11 @@ module stable_coin_factory::kasa_manager {
     use sui::table::{Self, Table};
     use sui::package::{Self, Publisher};
 
-    use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage};
+    use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage, StabilityPoolEpochScaleSum};
     use tokens::rusd_stable_coin::{Self, RUSD_STABLE_COIN, RUSDStableCoinStorage};
     use stable_coin_factory::liquidation_assets_distributor;
     use library::kasa::{is_icr_valid};
+    use library::utils::logger;
 
     friend stable_coin_factory::kasa_operations;
 
@@ -222,6 +223,7 @@ module stable_coin_factory::kasa_manager {
     entry public fun liquidate_single(
         kasa_manager_storage: &mut KasaManagerStorage,
         stability_pool_storage: &mut StabilityPoolStorage,
+        stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum,
         rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
         account_address: address,
         ctx: &mut TxContext
@@ -241,13 +243,14 @@ module stable_coin_factory::kasa_manager {
         let stability_pool_stake_amount = stability_pool::get_total_stake_amount(stability_pool_storage);
 
         // If the stability pool has enough stake amount to cover the debt amount
-        if (stability_pool_stake_amount > kasa.debt_amount) {
+        if (stability_pool_stake_amount >= kasa.debt_amount) {
             // Remove collateral from the collateral balance
             let collateral = coin::take(&mut kasa_manager_storage.collateral_balance, kasa.collateral_amount, ctx);
 
             // Decrease the stability pool balance
             let stable_coin = stability_pool::liquidation(
                 stability_pool_storage,
+                stability_pool_epoch_scale_sum,
                 coin::value(&collateral),
                 kasa.debt_amount,
                 ctx
@@ -268,8 +271,6 @@ module stable_coin_factory::kasa_manager {
                 &mut liquidation,
                 collateral
             );
-        } else if (stability_pool_stake_amount == kasa.debt_amount) {
-
         };
 
         // Share the liquidation with the liquidation assets distributor
