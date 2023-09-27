@@ -36,8 +36,6 @@ module stable_coin_factory::test_helpers {
     }
 
     public fun open_kasa(test: &mut Scenario, account_address: address, collateral_amount: u64, debt_amount: u64) {
-        let (admin, _) = people();
-        
         let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
         let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
 
