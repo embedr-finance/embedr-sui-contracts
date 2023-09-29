@@ -1,14 +1,13 @@
 module stable_coin_factory::kasa_manager_tests {
     use sui::test_scenario::{Self as test, next_tx};
     use sui::test_utils::{assert_eq};
-    use sui::coin::{Self, Coin};
 
     use stable_coin_factory::test_helpers::{init_stable_coin_factory, open_kasa, deposit_to_stability_pool};
     use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage, StabilityPoolEpochScaleSum};
     use stable_coin_factory::kasa_manager::{Self, KasaManagerStorage};
-    use tokens::rusd_stable_coin::{RUSD_STABLE_COIN, RUSDStableCoinStorage};
+    use tokens::rusd_stable_coin::RUSDStableCoinStorage;
     use library::test_utils::{people, scenario};
-    use library::utils::logger;
+    // use library::utils::logger;
 
     #[test]
     fun test_liquidate_single_happy_path() {
@@ -131,4 +130,9 @@ module stable_coin_factory::kasa_manager_tests {
         };
         test::end(scenario);
     }
+
+    // #[test]
+    // fun test_liquidate_batch_happy_path() {
+
+    // }
 }

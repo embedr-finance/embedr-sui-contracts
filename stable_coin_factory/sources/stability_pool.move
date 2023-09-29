@@ -7,8 +7,8 @@ module stable_coin_factory::stability_pool {
     use sui::coin::{Self, Coin};
 
     use tokens::rusd_stable_coin::{RUSD_STABLE_COIN};
-    use library::math::{scalar, double_scalar, d_fmul, d_fdiv, mul_div, d_fdiv_u256, d_fmul_u256};
-    use library::utils::logger;
+    use library::math::{scalar, double_scalar, d_fdiv_u256, d_fmul_u256};
+    // use library::utils::logger;
 
     friend stable_coin_factory::kasa_manager;
 
@@ -46,7 +46,7 @@ module stable_coin_factory::stability_pool {
     /// 
     /// * `p` - value to calculate the compounded stake amount
     /// * `epoch` - stability pool depletion epoch
-    /// * `scale` - ??
+    /// * `scale` - decimal shift of the p value
     struct StabilityPoolSnapshot has store, drop {
         p: u256,
         s: u256,
