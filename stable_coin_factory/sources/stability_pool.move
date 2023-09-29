@@ -6,6 +6,7 @@ module stable_coin_factory::stability_pool {
     use sui::transfer;
     use sui::coin::{Self, Coin};
 
+    use stable_coin_factory::liquidation_assets_distributor::{Self, CollateralGains};
     use tokens::rusd_stable_coin::{RUSD_STABLE_COIN};
     use library::math::{scalar, double_scalar, d_fdiv_u256, d_fmul_u256};
     // use library::utils::logger;
@@ -54,16 +55,6 @@ module stable_coin_factory::stability_pool {
         scale: u64
     }
 
-    /// StabilityPoolEpochScaleSum represents the sum of collateral gains for each epoch and scale
-    /// 
-    /// # Fields
-    /// 
-    /// * `s` - sum of collateral gains for each epoch and scale
-    struct StabilityPoolEpochScaleSum has key, store {
-        id: UID,
-        s: Table<u64, Table<u64, u256>>,
-    }
-
     /// OffsetErrors represents the errors in the collateral gain and stake offset
     /// 
     /// # Fields
@@ -94,16 +85,6 @@ module stable_coin_factory::stability_pool {
                 stake: 0
             }
         });
-
-        // Initialize the epoch to scale to sum table
-        let s = table::new(ctx);
-        let s_inner = table::new(ctx);
-        table::add(&mut s_inner, 0, 0);
-        table::add(&mut s, 0, s_inner);
-        transfer::share_object(StabilityPoolEpochScaleSum {
-            id: object::new(ctx),
-            s
-        });
     }
 
     // =================== Entries ===================
@@ -116,7 +97,7 @@ module stable_coin_factory::stability_pool {
     /// * `stable_coin` - the stable coin to be staked
     entry public fun deposit(
         stability_pool_storage: &mut StabilityPoolStorage,
-        stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum,
+        collateral_gains: &mut CollateralGains,
         stable_coin: Coin<RUSD_STABLE_COIN>,
         ctx: &mut TxContext
     ) {
@@ -125,8 +106,8 @@ module stable_coin_factory::stability_pool {
 
         // Create a new stake for the account if it doesn't exist
         if (!check_stake_exists(stability_pool_storage, account_address)) {
-            let s = epoch_to_scale_to_sum(
-                stability_pool_epoch_scale_sum,
+            let s = liquidation_assets_distributor::get_collateral_gains_sum(
+                collateral_gains,
                 stability_pool_storage.snapshot.epoch,
                 stability_pool_storage.snapshot.scale
             );
@@ -211,7 +192,7 @@ module stable_coin_factory::stability_pool {
     /// The stable coin that was taken from the total balance
     public(friend) fun liquidation(
         stability_pool_storage: &mut StabilityPoolStorage,
-        stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum,
+        collateral_gains: &mut CollateralGains,
         collateral_gain_amount: u64,
         stake_offset_amount: u64,
         ctx: &mut TxContext
@@ -235,7 +216,7 @@ module stable_coin_factory::stability_pool {
 
         update_storage_snapshot(
             stability_pool_storage,
-            stability_pool_epoch_scale_sum,
+            collateral_gains,
             collateral_gain_per_stake,
             stake_offset_per_stake,
             ctx
@@ -355,7 +336,7 @@ module stable_coin_factory::stability_pool {
     // Updates the snapshot of the stability pool
     fun update_storage_snapshot(
         stability_pool_storage: &mut StabilityPoolStorage,
-        stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum,
+        collateral_gains: &mut CollateralGains,
         collateral_gain_per_stake: u256,
         stake_offset_per_stake: u256,
         ctx: &mut TxContext
@@ -363,13 +344,13 @@ module stable_coin_factory::stability_pool {
         let product_factor = double_scalar() - stake_offset_per_stake;
 
         let marginal_collateral_gain = d_fmul_u256(collateral_gain_per_stake, (stability_pool_storage.snapshot.p as u256));
-        let s = epoch_to_scale_to_sum(
-            stability_pool_epoch_scale_sum,
+        let s = liquidation_assets_distributor::get_collateral_gains_sum(
+            collateral_gains,
             stability_pool_storage.snapshot.epoch,
             stability_pool_storage.snapshot.scale
         );
-        update_epoch_scale_sum_value(
-            stability_pool_epoch_scale_sum,
+        liquidation_assets_distributor::update_collateral_gains_sum(
+            collateral_gains,
             stability_pool_storage.snapshot.epoch,
             stability_pool_storage.snapshot.scale,
             s + marginal_collateral_gain
@@ -383,8 +364,8 @@ module stable_coin_factory::stability_pool {
             stability_pool_storage.snapshot.scale = 0;
             
             // Initialize the table for sum
-            initialize_epoch_scale_sum_epoch(
-                stability_pool_epoch_scale_sum,
+            liquidation_assets_distributor::initialize_collateral_gains(
+                collateral_gains,
                 stability_pool_storage.snapshot.epoch,
                 ctx
             );
@@ -421,32 +402,6 @@ module stable_coin_factory::stability_pool {
                 double_scalar()
             );
         };
-    }
-
-    fun epoch_to_scale_to_sum(stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum, epoch: u64, scale: u64): u256 {
-        if (!table::contains(&stability_pool_epoch_scale_sum.s, epoch)) return 0;
-        let scale_sum = table::borrow(&stability_pool_epoch_scale_sum.s, epoch);
-        if (!table::contains(scale_sum, scale)) return 0;
-        let sum = table::borrow(scale_sum, scale);
-        *sum
-    }
-
-    fun update_epoch_scale_sum_value(stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum, epoch: u64, scale: u64, value: u256) {
-        let sum = table::remove(
-            table::borrow_mut(&mut stability_pool_epoch_scale_sum.s, epoch),
-            scale
-        );
-        table::add(
-            table::borrow_mut(&mut stability_pool_epoch_scale_sum.s, epoch),
-            scale,
-            sum + value
-        );
-    }
-
-    fun initialize_epoch_scale_sum_epoch(stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum, epoch: u64, ctx: &mut TxContext){
-        let table = table::new(ctx);
-        table::add(&mut table, 0, 0);
-        table::add(&mut stability_pool_epoch_scale_sum.s, epoch, table);
     }
 
     /// Check if a stake exists for a given account address in the stability pool.

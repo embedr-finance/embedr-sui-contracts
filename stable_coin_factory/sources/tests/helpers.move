@@ -6,7 +6,8 @@ module stable_coin_factory::test_helpers {
 
     use stable_coin_factory::kasa_manager::{Self, KasaManagerStorage};
     use stable_coin_factory::kasa_operations;
-    use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage, StabilityPoolEpochScaleSum};
+    use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage};
+    use stable_coin_factory::liquidation_assets_distributor::{Self, CollateralGains};
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSDStableCoinAdminCap, RUSD_STABLE_COIN};
     use library::test_utils::{people};
 
@@ -16,7 +17,9 @@ module stable_coin_factory::test_helpers {
         {
             kasa_manager::init_for_testing(ctx(test));
             stability_pool::init_for_testing(ctx(test));
+            liquidation_assets_distributor::init_for_testing(ctx(test));
             rusd_stable_coin::init_for_testing(ctx(test));
+
         };
         next_tx(test, admin);
         {
@@ -59,17 +62,17 @@ module stable_coin_factory::test_helpers {
         next_tx(test, account_address);
         {
             let stability_pool_storage = test::take_shared<StabilityPoolStorage>(test);
-            let stability_pool_epoch_scale_sum = test::take_shared<StabilityPoolEpochScaleSum>(test);
+            let collateral_gains = test::take_shared<CollateralGains>(test);
             let stable_coin = test::take_from_sender<Coin<RUSD_STABLE_COIN>>(test);
             let coin_to_stake = coin::split(&mut stable_coin, amount, test::ctx(test));
             stability_pool::deposit(
                 &mut stability_pool_storage,
-                &mut stability_pool_epoch_scale_sum,
+                &mut collateral_gains,
                 coin_to_stake,
                 test::ctx(test),
             );
             test::return_shared(stability_pool_storage);
-            test::return_shared(stability_pool_epoch_scale_sum);
+            test::return_shared(collateral_gains);
             test::return_to_sender(test, stable_coin);
         };
     }

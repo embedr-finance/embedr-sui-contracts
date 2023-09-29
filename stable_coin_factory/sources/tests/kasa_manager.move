@@ -3,8 +3,9 @@ module stable_coin_factory::kasa_manager_tests {
     use sui::test_utils::{assert_eq};
 
     use stable_coin_factory::test_helpers::{init_stable_coin_factory, open_kasa, deposit_to_stability_pool};
-    use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage, StabilityPoolEpochScaleSum};
+    use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage};
     use stable_coin_factory::kasa_manager::{Self, KasaManagerStorage};
+    use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use tokens::rusd_stable_coin::RUSDStableCoinStorage;
     use library::test_utils::{people, scenario};
     // use library::utils::logger;
@@ -33,13 +34,13 @@ module stable_coin_factory::kasa_manager_tests {
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
             let stability_pool_storage = test::take_shared<StabilityPoolStorage>(test);
-            let stability_pool_epoch_scale_sum = test::take_shared<StabilityPoolEpochScaleSum>(test);
+            let collateral_gains = test::take_shared<CollateralGains>(test);
             let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
 
             kasa_manager::liquidate_single(
                 &mut kasa_manager_storage,
                 &mut stability_pool_storage,
-                &mut stability_pool_epoch_scale_sum,
+                &mut collateral_gains,
                 &mut rusd_stable_coin_storage,
                 user,
                 test::ctx(test)
@@ -60,7 +61,7 @@ module stable_coin_factory::kasa_manager_tests {
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(stability_pool_storage);
-            test::return_shared(stability_pool_epoch_scale_sum);
+            test::return_shared(collateral_gains);
             test::return_shared(rusd_stable_coin_storage);
         };
         next_tx(test, @0x1234);
@@ -101,13 +102,13 @@ module stable_coin_factory::kasa_manager_tests {
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
             let stability_pool_storage = test::take_shared<StabilityPoolStorage>(test);
-            let stability_pool_epoch_scale_sum = test::take_shared<StabilityPoolEpochScaleSum>(test);
+            let collateral_gains = test::take_shared<CollateralGains>(test);
             let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
 
             kasa_manager::liquidate_single(
                 &mut kasa_manager_storage,
                 &mut stability_pool_storage,
-                &mut stability_pool_epoch_scale_sum,
+                &mut collateral_gains,
                 &mut rusd_stable_coin_storage,
                 user,
                 test::ctx(test)
@@ -125,7 +126,7 @@ module stable_coin_factory::kasa_manager_tests {
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(stability_pool_storage);
-            test::return_shared(stability_pool_epoch_scale_sum);
+            test::return_shared(collateral_gains);
             test::return_shared(rusd_stable_coin_storage);
         };
         test::end(scenario);

@@ -11,9 +11,9 @@ module stable_coin_factory::kasa_manager {
     use sui::table::{Self, Table};
     use sui::package::{Self, Publisher};
 
-    use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage, StabilityPoolEpochScaleSum};
+    use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage};
+    use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use tokens::rusd_stable_coin::{Self, RUSD_STABLE_COIN, RUSDStableCoinStorage};
-    use stable_coin_factory::liquidation_assets_distributor;
     use library::kasa::is_icr_valid;
     // use library::utils::logger;
 
@@ -228,13 +228,13 @@ module stable_coin_factory::kasa_manager {
     /// 
     /// * `kasa_manager_storage` - the KasaManagerStorage object
     /// * `stability_pool_storage` - the StabilityPoolStorage object
-    /// * `stability_pool_epoch_scale_sum` - the StabilityPoolEpochScaleSum object
+    /// * `collateral_gains` - the CollateralGains object
     /// * `rusd_stable_coin_storage` - the RUSDStableCoinStorage object
     /// * `account_address` - the address of the Account module
     entry public fun liquidate_single(
         kasa_manager_storage: &mut KasaManagerStorage,
         stability_pool_storage: &mut StabilityPoolStorage,
-        stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum,
+        collateral_gains: &mut CollateralGains,
         rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
         account_address: address,
         ctx: &mut TxContext
@@ -245,7 +245,7 @@ module stable_coin_factory::kasa_manager {
         liquidate_kasas(
             kasa_manager_storage,
             stability_pool_storage,
-            stability_pool_epoch_scale_sum,
+            collateral_gains,
             rusd_stable_coin_storage,
             account_addresses,
             ctx
@@ -258,13 +258,13 @@ module stable_coin_factory::kasa_manager {
     /// 
     /// * `kasa_manager_storage` - the KasaManagerStorage object
     /// * `stability_pool_storage` - the StabilityPoolStorage object
-    /// * `stability_pool_epoch_scale_sum` - the StabilityPoolEpochScaleSum object
+    /// * `collateral_gains` - the CollateralGains object
     /// * `rusd_stable_coin_storage` - the RUSDStableCoinStorage object
     /// * `account_addresses` - the vector of account addresses
     entry public fun liquidate_batch(
         kasa_manager_storage: &mut KasaManagerStorage,
         stability_pool_storage: &mut StabilityPoolStorage,
-        stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum,
+        collateral_gains: &mut CollateralGains,
         rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
         account_addresses: vector<address>,
         ctx: &mut TxContext
@@ -272,7 +272,7 @@ module stable_coin_factory::kasa_manager {
         liquidate_kasas(
             kasa_manager_storage,
             stability_pool_storage,
-            stability_pool_epoch_scale_sum,
+            collateral_gains,
             rusd_stable_coin_storage,
             account_addresses,
             ctx
@@ -340,13 +340,13 @@ module stable_coin_factory::kasa_manager {
     /// 
     /// * `kasa_manager_storage` - the KasaManagerStorage object
     /// * `stability_pool_storage` - the StabilityPoolStorage object
-    /// * `stability_pool_epoch_scale_sum` - the StabilityPoolEpochScaleSum object
+    /// * `collateral_gains` - the CollateralGains object
     /// * `rusd_stable_coin_storage` - the RUSDStableCoinStorage object
     /// * `account_addresses` - the vector of account addresses
     fun liquidate_kasas(
         kasa_manager_storage: &mut KasaManagerStorage,
         stability_pool_storage: &mut StabilityPoolStorage,
-        stability_pool_epoch_scale_sum: &mut StabilityPoolEpochScaleSum,
+        collateral_gains: &mut CollateralGains,
         rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
         account_addresses: vector<address>,
         ctx: &mut TxContext
@@ -362,9 +362,6 @@ module stable_coin_factory::kasa_manager {
             // Kasa to be liquidated
             let kasa = remove_kasa(kasa_manager_storage, account_address);
 
-            // Create a new liquidation object
-            let liquidation = liquidation_assets_distributor::register_liquidation(ctx);
-
             // Get the total stake amount from the stability pool
             let stability_pool_stake_amount = stability_pool::get_total_stake_amount(stability_pool_storage);
 
@@ -376,7 +373,7 @@ module stable_coin_factory::kasa_manager {
                 // Decrease the stability pool balance
                 let stable_coin = stability_pool::liquidation(
                     stability_pool_storage,
-                    stability_pool_epoch_scale_sum,
+                    collateral_gains,
                     coin::value(&collateral),
                     kasa.debt_amount,
                     ctx
@@ -391,16 +388,9 @@ module stable_coin_factory::kasa_manager {
                 // Decrease the debt balance of the protocol
                 kasa_manager_storage.debt_balance = kasa_manager_storage.debt_balance - kasa.debt_amount;
 
-                // TODO: Think about what to do here
-                // Transfer the collateral to the liquidation
-                liquidation_assets_distributor::set_stability_pool_assets(
-                    &mut liquidation,
-                    collateral
-                );
+                // TODO: Transfer the collateral to the liquidation assets distributor
+                transfer::public_transfer(collateral, account_address); // FIXME: This is just for testing
             };
-
-            // Share the liquidation with the liquidation assets distributor
-            liquidation_assets_distributor::share_liquidation(liquidation);
         };
 
         vector::destroy_empty(account_addresses);
