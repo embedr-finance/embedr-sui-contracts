@@ -366,7 +366,10 @@ module stable_coin_factory::kasa_manager {
             let stability_pool_stake_amount = stability_pool::get_total_stake_amount(stability_pool_storage);
 
             // If the stability pool has enough stake amount to cover the debt amount
-            if (stability_pool_stake_amount >= kasa.debt_amount) {
+            if (
+                stability_pool_stake_amount != 0 &&
+                stability_pool_stake_amount >= kasa.debt_amount
+            ) {
                 // Remove collateral from the collateral balance
                 let collateral = coin::take(&mut kasa_manager_storage.collateral_balance, kasa.collateral_amount, ctx);
 
@@ -374,7 +377,7 @@ module stable_coin_factory::kasa_manager {
                 let stable_coin = stability_pool::liquidation(
                     stability_pool_storage,
                     collateral_gains,
-                    coin::value(&collateral),
+                    collateral,
                     kasa.debt_amount,
                     ctx
                 );
@@ -387,9 +390,6 @@ module stable_coin_factory::kasa_manager {
 
                 // Decrease the debt balance of the protocol
                 kasa_manager_storage.debt_balance = kasa_manager_storage.debt_balance - kasa.debt_amount;
-
-                // TODO: Transfer the collateral to the liquidation assets distributor
-                transfer::public_transfer(collateral, account_address); // FIXME: This is just for testing
             };
         };
 

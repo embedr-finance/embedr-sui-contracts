@@ -5,6 +5,7 @@ module stable_coin_factory::stability_pool {
     use sui::tx_context::{Self, TxContext};
     use sui::transfer;
     use sui::coin::{Self, Coin};
+    use sui::sui::SUI;
 
     use stable_coin_factory::liquidation_assets_distributor::{Self, CollateralGains};
     use tokens::rusd_stable_coin::{RUSD_STABLE_COIN};
@@ -193,23 +194,22 @@ module stable_coin_factory::stability_pool {
     public(friend) fun liquidation(
         stability_pool_storage: &mut StabilityPoolStorage,
         collateral_gains: &mut CollateralGains,
-        collateral_gain_amount: u64,
+        collateral: Coin<SUI>,
         stake_offset_amount: u64,
         ctx: &mut TxContext
     ): Coin<RUSD_STABLE_COIN> {
         // Get the total stake balance
         let total_stake_amount = get_total_stake_amount(stability_pool_storage);
 
-        // TODO: Return if total_stake_amount is 0
-        // TODO: Return if amount is 0
-        if (total_stake_amount == 0) return coin::zero(ctx);
-        if (stake_offset_amount == 0) return coin::zero(ctx);
+        // TODO: Check if we need to uncomment these lines?
+        // if (total_stake_amount == 0) return coin::zero<RUSD_STABLE_COIN>(ctx);
+        // if (stake_offset_amount == 0) return coin::zero<RUSD_STABLE_COIN>(ctx);
 
         // TODO: Return error if stake_offset_amount is higher than total_stake_amount
 
-        let (collateral_gain_per_stake, stake_offset_per_stake) = calculate_rewards_per_stake(
+        let (_collateral_gain_per_stake, stake_offset_per_stake) = calculate_rewards_per_stake(
             stability_pool_storage,
-            (collateral_gain_amount as u256),
+            &collateral,
             (stake_offset_amount as u256),
             (total_stake_amount as u256),
         );
@@ -217,7 +217,8 @@ module stable_coin_factory::stability_pool {
         update_storage_snapshot(
             stability_pool_storage,
             collateral_gains,
-            collateral_gain_per_stake,
+            collateral,
+            // collateral_gain_per_stake,
             stake_offset_per_stake,
             ctx
         );
@@ -310,24 +311,30 @@ module stable_coin_factory::stability_pool {
     /// The rewards per stake and the stake offset per stake
     fun calculate_rewards_per_stake(
         stability_pool_storage: &mut StabilityPoolStorage,
-        collateral_gain_amount: u256,
+        collateral: &Coin<SUI>,
         stake_offset_amount: u256,
         total_stake_amount: u256
     ): (u256, u256) {
+        let collateral_gain_amount = (coin::value(collateral) as u256);
+
         let collateral_gain_per_stake;
         let stake_offset_per_stake;
 
-        let collateral_numerator = d_fmul_u256(collateral_gain_amount, double_scalar()) + stability_pool_storage.last_error_offsets.collateral;
+        let collateral_numerator =
+            d_fmul_u256(collateral_gain_amount, double_scalar()) + stability_pool_storage.last_error_offsets.collateral;
         collateral_gain_per_stake = d_fdiv_u256(collateral_numerator, total_stake_amount);
-        stability_pool_storage.last_error_offsets.collateral = collateral_numerator - d_fmul_u256(collateral_gain_per_stake, total_stake_amount);
+        stability_pool_storage.last_error_offsets.collateral =
+            collateral_numerator - d_fmul_u256(collateral_gain_per_stake, total_stake_amount);
 
         if (stake_offset_amount == total_stake_amount) {
             stake_offset_per_stake = double_scalar();
             stability_pool_storage.last_error_offsets.stake = 0;
         } else {
-            let stake_numerator = d_fmul_u256(stake_offset_amount, double_scalar()) - stability_pool_storage.last_error_offsets.stake;
+            let stake_numerator =
+                d_fmul_u256(stake_offset_amount, double_scalar()) - stability_pool_storage.last_error_offsets.stake;
             stake_offset_per_stake = d_fdiv_u256(stake_numerator, total_stake_amount);
-            stability_pool_storage.last_error_offsets.stake = d_fmul_u256(stake_offset_per_stake, total_stake_amount) - stake_numerator;
+            stability_pool_storage.last_error_offsets.stake =
+                d_fmul_u256(stake_offset_per_stake, total_stake_amount) - stake_numerator;
         };
 
         (collateral_gain_per_stake, stake_offset_per_stake)
@@ -337,23 +344,27 @@ module stable_coin_factory::stability_pool {
     fun update_storage_snapshot(
         stability_pool_storage: &mut StabilityPoolStorage,
         collateral_gains: &mut CollateralGains,
-        collateral_gain_per_stake: u256,
+        collateral: Coin<SUI>,
+        // collateral_gain_per_stake: u256,
         stake_offset_per_stake: u256,
         ctx: &mut TxContext
     ) {
         let product_factor = double_scalar() - stake_offset_per_stake;
 
-        let marginal_collateral_gain = d_fmul_u256(collateral_gain_per_stake, (stability_pool_storage.snapshot.p as u256));
-        let s = liquidation_assets_distributor::get_collateral_gains_sum(
-            collateral_gains,
-            stability_pool_storage.snapshot.epoch,
-            stability_pool_storage.snapshot.scale
-        );
-        liquidation_assets_distributor::update_collateral_gains_sum(
+        // TODO: Check if we need these lines
+        // let marginal_collateral_gain =
+        //     d_fmul_u256(collateral_gain_per_stake, (stability_pool_storage.snapshot.p as u256));
+        // let s = liquidation_assets_distributor::get_collateral_gains_sum(
+        //     collateral_gains,
+        //     stability_pool_storage.snapshot.epoch,
+        //     stability_pool_storage.snapshot.scale
+        // );
+        liquidation_assets_distributor::update_collateral_gains_balance(
             collateral_gains,
             stability_pool_storage.snapshot.epoch,
             stability_pool_storage.snapshot.scale,
-            s + marginal_collateral_gain
+            collateral
+            // s + marginal_collateral_gain
         );
 
         // Stability pool was emptied

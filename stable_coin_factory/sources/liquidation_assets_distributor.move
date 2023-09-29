@@ -3,6 +3,9 @@ module stable_coin_factory::liquidation_assets_distributor {
     use sui::tx_context::{TxContext};
     use sui::transfer;
     use sui::table::{Self, Table};
+    use sui::sui::SUI;
+    use sui::coin::{Self, Coin};
+    use sui::balance::{Self, Balance};
 
     friend stable_coin_factory::stability_pool;
 
@@ -14,7 +17,7 @@ module stable_coin_factory::liquidation_assets_distributor {
     /// * `s` - sum of collateral gains for each epoch and scale
     struct CollateralGains has key, store {
         id: UID,
-        sum_table: Table<u64, Table<u64, u256>>,
+        sum_table: Table<u64, Table<u64, Balance<SUI>>>,
     }
 
     // =================== Initializer ===================
@@ -24,7 +27,7 @@ module stable_coin_factory::liquidation_assets_distributor {
         // Epoch is 0, scale is 0, sum is 0
         let sum_table = table::new(ctx);
         let inner = table::new(ctx);
-        table::add(&mut inner, 0, 0);
+        table::add(&mut inner, 0, balance::zero());
         table::add(&mut sum_table, 0, inner);
         transfer::share_object(CollateralGains {
             id: object::new(ctx),
@@ -42,11 +45,11 @@ module stable_coin_factory::liquidation_assets_distributor {
     /// * `epoch` - the epoch to initialize
     public(friend) fun initialize_collateral_gains(collateral_gains: &mut CollateralGains, epoch: u64, ctx: &mut TxContext) {
         let table = table::new(ctx);
-        table::add(&mut table, 0, 0);
+        table::add(&mut table, 0, balance::zero());
         table::add(&mut collateral_gains.sum_table, epoch, table);
     }
 
-    /// Updates the sum of collateral gains for the given epoch and scale.
+    /// Updates the balance of collateral gains for the given epoch and scale.
     /// 
     /// # Arguments
     /// 
@@ -54,16 +57,17 @@ module stable_coin_factory::liquidation_assets_distributor {
     /// * `epoch` - the epoch to update
     /// * `scale` - the scale to update
     /// * `value` - the value to update
-    public(friend) fun update_collateral_gains_sum(collateral_gains: &mut CollateralGains, epoch: u64, scale: u64, value: u256) {
-        let sum = table::remove(
+    public(friend) fun update_collateral_gains_balance(
+        collateral_gains: &mut CollateralGains,
+        epoch: u64,
+        scale: u64,
+        collateral: Coin<SUI>
+    ) {
+        let balance = table::borrow_mut(
             table::borrow_mut(&mut collateral_gains.sum_table, epoch),
             scale
         );
-        table::add(
-            table::borrow_mut(&mut collateral_gains.sum_table, epoch),
-            scale,
-            sum + value
-        );
+        balance::join(balance, coin::into_balance(collateral));
     }
 
     // =================== Queries ===================
@@ -88,8 +92,8 @@ module stable_coin_factory::liquidation_assets_distributor {
         // If the scale does not exist, return 0
         if (!table::contains(scale_sum, scale)) return 0;
 
-        let sum = table::borrow(scale_sum, scale);
-        *sum
+        let balance = table::borrow(scale_sum, scale);
+        (balance::value(balance) as u256)
     }
 
     #[test_only]
