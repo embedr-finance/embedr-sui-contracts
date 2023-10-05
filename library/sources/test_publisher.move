@@ -14,7 +14,6 @@ module library::foo {
   }
 
   fun init(witness: FOO, ctx: &mut TxContext) {
-
     transfer::share_object(
       FooStorage {
         id: object::new(ctx),
