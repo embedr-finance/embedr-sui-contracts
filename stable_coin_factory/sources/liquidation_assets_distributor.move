@@ -8,7 +8,7 @@ module stable_coin_factory::liquidation_assets_distributor {
     use sui::balance::{Self, Balance};
 
     use library::math::{d_fdiv_u256, d_fmul_u256, scalar, double_scalar};
-    use library::utils::logger;
+    // use library::utils::logger;
 
     friend stable_coin_factory::stability_pool;
 
