@@ -3,7 +3,7 @@ name = "embedr_protocol_stable_coin_factory"
 version = "0.0.1"
 
 [dependencies]
-# FIXME: rev should be the latest devnet branch
+# FIXME: rev should be the latest devnet branch -> framework/devnet
 MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "b09ef4e" }
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "b09ef4e" }
 EmbedrProtocolLibrary = { local = "../library" }
