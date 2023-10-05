@@ -131,14 +131,27 @@ module stable_coin_factory::stability_pool {
         // Compounded stake amount for the account
         // Takes into account the change in global and snapshot p value
         let compounded_stake = get_stake_amount(stability_pool_storage, account_address) + amount;
-        let protocol_p_value = stability_pool_storage.snapshot.p;
 
-        // Borrow and update the stake for the account
+        // Borrow the stake for the account
         let stake = borrow_stake(stability_pool_storage, account_address);
+
+        // Send the collateral gains to the account
+        liquidation_assets_distributor::send_collateral_gains(
+            collateral_gains,
+            account_address,
+            stake.snapshot.epoch,
+            stake.snapshot.scale,
+            stake.snapshot.p,
+            stake.snapshot.s,
+            stake.amount,
+            ctx
+        );
+
+        // Update the stake for the account
         stake.amount = compounded_stake;
 
-        // Update the snapshot p value
-        stake.snapshot.p = protocol_p_value;
+        // Update user snapshots with protocol snapshots
+        update_account_snapshots(stability_pool_storage, collateral_gains, account_address);
 
         // Update the total stake balance
         coin::put(&mut stability_pool_storage.stake_balance, stable_coin);
@@ -152,6 +165,7 @@ module stable_coin_factory::stability_pool {
     /// * `amount` - the amount of stable coin to be withdrawn
     entry public fun withdraw(
         stability_pool_storage: &mut StabilityPoolStorage,
+        collateral_gains: &mut CollateralGains,
         amount: u64,
         ctx: &mut TxContext
     ) {
@@ -163,10 +177,26 @@ module stable_coin_factory::stability_pool {
 
         // Borrow and update the stake for the account
         let stake = borrow_stake(stability_pool_storage, account_address);
+        
+        // Send the collateral gains to the account
+        liquidation_assets_distributor::send_collateral_gains(
+            collateral_gains,
+            account_address,
+            stake.snapshot.epoch,
+            stake.snapshot.scale,
+            stake.snapshot.p,
+            stake.snapshot.s,
+            stake.amount,
+            ctx
+        );
+        
+        // Update the stake for the account
         stake.amount = compounded_stake;
 
         // Remove the stake for the account if the stake amount is 0
-        if (stake.amount == 0) remove_stake(stability_pool_storage, account_address);
+        // Else update the snapshots for the account
+        if (stake.amount == 0) remove_stake(stability_pool_storage, account_address)
+        else update_account_snapshots(stability_pool_storage, collateral_gains, account_address);
 
         // Update the total stake balance
         let stable_coin = coin::take(
@@ -174,7 +204,7 @@ module stable_coin_factory::stability_pool {
             amount,
             ctx
         );
-        
+
         // Transfer the stable coin back to the user
         transfer::public_transfer(stable_coin, account_address);
     }  
@@ -207,7 +237,7 @@ module stable_coin_factory::stability_pool {
 
         // TODO: Return error if stake_offset_amount is higher than total_stake_amount
 
-        let (_collateral_gain_per_stake, stake_offset_per_stake) = calculate_rewards_per_stake(
+        let (collateral_gain_per_stake, stake_offset_per_stake) = calculate_rewards_per_stake(
             stability_pool_storage,
             &collateral,
             (stake_offset_amount as u256),
@@ -217,9 +247,9 @@ module stable_coin_factory::stability_pool {
         update_storage_snapshot(
             stability_pool_storage,
             collateral_gains,
-            collateral,
-            // collateral_gain_per_stake,
+            collateral_gain_per_stake,
             stake_offset_per_stake,
+            collateral,
             ctx
         );
 
@@ -275,13 +305,6 @@ module stable_coin_factory::stability_pool {
 
         (compounded_stake as u64)
     }
-
-    // public fun get_collateral_gain(
-    //     stability_pool_storage: &mut StabilityPoolStorage,
-    //     account_address: address
-    // ): u64 {
-    //     let first_portion = 
-    // }
 
     /// Returns the total amount of tokens staked in the stability pool.
     /// 
@@ -344,27 +367,24 @@ module stable_coin_factory::stability_pool {
     fun update_storage_snapshot(
         stability_pool_storage: &mut StabilityPoolStorage,
         collateral_gains: &mut CollateralGains,
-        collateral: Coin<SUI>,
-        // collateral_gain_per_stake: u256,
+        collateral_gain_per_stake: u256,
         stake_offset_per_stake: u256,
+        collateral: Coin<SUI>,
         ctx: &mut TxContext
     ) {
         let product_factor = double_scalar() - stake_offset_per_stake;
 
-        // TODO: Check if we need these lines
-        // let marginal_collateral_gain =
-        //     d_fmul_u256(collateral_gain_per_stake, (stability_pool_storage.snapshot.p as u256));
-        // let s = liquidation_assets_distributor::get_collateral_gains_sum(
-        //     collateral_gains,
-        //     stability_pool_storage.snapshot.epoch,
-        //     stability_pool_storage.snapshot.scale
-        // );
+        let marginal_collateral_gain=
+            d_fmul_u256(
+                collateral_gain_per_stake,
+                (stability_pool_storage.snapshot.p as u256)
+            );
         liquidation_assets_distributor::update_collateral_gains_balance(
             collateral_gains,
             stability_pool_storage.snapshot.epoch,
             stability_pool_storage.snapshot.scale,
+            marginal_collateral_gain,
             collateral
-            // s + marginal_collateral_gain
         );
 
         // Stability pool was emptied
@@ -413,6 +433,34 @@ module stable_coin_factory::stability_pool {
                 double_scalar()
             );
         };
+    }
+
+    /// Updates the snapshots of an account's stake.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `stability_pool_storage` - the storage for the stability pool
+    /// * `collateral_gains` - the CollateralGains object
+    /// * `stake` - the stake to update the snapshots for
+    fun update_account_snapshots(
+        stability_pool_storage: &mut StabilityPoolStorage,
+        collateral_gains: &mut CollateralGains,
+        account_address: address,
+    ) {
+        let protocol_p_value = stability_pool_storage.snapshot.p;
+        let protocol_scale = stability_pool_storage.snapshot.scale;
+        let protocol_epoch = stability_pool_storage.snapshot.epoch;
+
+        let stake = borrow_stake(stability_pool_storage, account_address);
+
+        stake.snapshot.p = protocol_p_value;
+        stake.snapshot.s = liquidation_assets_distributor::get_collateral_gains_sum(
+            collateral_gains,
+            protocol_epoch,
+            protocol_scale
+        );
+        stake.snapshot.epoch = protocol_epoch;
+        stake.snapshot.scale = protocol_scale;
     }
 
     /// Check if a stake exists for a given account address in the stability pool.

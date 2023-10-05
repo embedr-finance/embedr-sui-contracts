@@ -76,9 +76,11 @@ module stable_coin_factory::stability_pool_tests {
         next_tx(test, user);
         {
             let stability_pool_storage = test::take_shared<StabilityPoolStorage>(test);
+            let collateral_gains = test::take_shared<CollateralGains>(test);
 
             stability_pool::withdraw(
                 &mut stability_pool_storage,
+                &mut collateral_gains,
                 3400,
                 test::ctx(test),
             );
@@ -87,6 +89,7 @@ module stable_coin_factory::stability_pool_tests {
 
             stability_pool::withdraw(
                 &mut stability_pool_storage,
+                &mut collateral_gains,
                 1600,
                 test::ctx(test),
             );
@@ -94,6 +97,7 @@ module stable_coin_factory::stability_pool_tests {
             assert_eq(stability_pool::get_total_stake_amount(&stability_pool_storage), 0);
 
             test::return_shared(stability_pool_storage);
+            test::return_shared(collateral_gains);
         };
         next_tx(test, user);
         {

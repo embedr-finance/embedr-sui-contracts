@@ -7,6 +7,9 @@ module stable_coin_factory::liquidation_assets_distributor {
     use sui::coin::{Self, Coin};
     use sui::balance::{Self, Balance};
 
+    use library::math::{d_fdiv_u256, d_fmul_u256, scalar, double_scalar};
+    use library::utils::logger;
+
     friend stable_coin_factory::stability_pool;
 
     /// CollateralGains represents the sum of collateral gains for each epoch and scale in Stability Pool
@@ -17,7 +20,8 @@ module stable_coin_factory::liquidation_assets_distributor {
     /// * `s` - sum of collateral gains for each epoch and scale
     struct CollateralGains has key, store {
         id: UID,
-        sum_table: Table<u64, Table<u64, Balance<SUI>>>,
+        sum_table: Table<u64, Table<u64, u256>>,
+        balance: Balance<SUI>
     }
 
     // =================== Initializer ===================
@@ -27,11 +31,12 @@ module stable_coin_factory::liquidation_assets_distributor {
         // Epoch is 0, scale is 0, sum is 0
         let sum_table = table::new(ctx);
         let inner = table::new(ctx);
-        table::add(&mut inner, 0, balance::zero());
+        table::add(&mut inner, 0, 0);
         table::add(&mut sum_table, 0, inner);
         transfer::share_object(CollateralGains {
             id: object::new(ctx),
-            sum_table
+            sum_table,
+            balance: balance::zero()
         });
     }
 
@@ -45,7 +50,7 @@ module stable_coin_factory::liquidation_assets_distributor {
     /// * `epoch` - the epoch to initialize
     public(friend) fun initialize_collateral_gains(collateral_gains: &mut CollateralGains, epoch: u64, ctx: &mut TxContext) {
         let table = table::new(ctx);
-        table::add(&mut table, 0, balance::zero());
+        table::add(&mut table, 0, 0);
         table::add(&mut collateral_gains.sum_table, epoch, table);
     }
 
@@ -56,18 +61,59 @@ module stable_coin_factory::liquidation_assets_distributor {
     /// * `collateral_gains` - the CollateralGains object to update
     /// * `epoch` - the epoch to update
     /// * `scale` - the scale to update
+    /// * `gain` - the amount of collateral gains to add
     /// * `value` - the value to update
     public(friend) fun update_collateral_gains_balance(
         collateral_gains: &mut CollateralGains,
         epoch: u64,
         scale: u64,
+        gain: u256,
         collateral: Coin<SUI>
     ) {
-        let balance = table::borrow_mut(
+        let sum = table::remove(
             table::borrow_mut(&mut collateral_gains.sum_table, epoch),
             scale
         );
-        balance::join(balance, coin::into_balance(collateral));
+        table::add(
+            table::borrow_mut(&mut collateral_gains.sum_table, epoch),
+            scale,
+            sum + gain
+        );
+        coin::put(&mut collateral_gains.balance, collateral);
+    }
+
+    public(friend) fun send_collateral_gains(
+        collateral_gains: &mut CollateralGains,
+        account_address: address,
+        epoch: u64,
+        scale: u64,
+        p: u256,
+        s: u256,
+        stake: u64,
+        ctx: &mut TxContext
+    ) {
+        let first_portion = get_collateral_gains_sum(collateral_gains, epoch, scale) - s;
+        let second_portion = d_fdiv_u256(get_collateral_gains_sum(collateral_gains, epoch, scale + 1), scalar());
+
+        if (stake == 0) return;
+        if (first_portion + second_portion == 0) return;
+
+        let collateral_gain = d_fdiv_u256(
+            d_fdiv_u256(
+                d_fmul_u256(
+                    (stake as u256),
+                    first_portion + second_portion
+                ),
+                p
+            ),
+            double_scalar()
+        );
+
+        let collateral = coin::from_balance(
+            balance::split(&mut collateral_gains.balance, (collateral_gain as u64)),
+            ctx
+        );
+        transfer::public_transfer(collateral, account_address);
     }
 
     // =================== Queries ===================
@@ -92,8 +138,8 @@ module stable_coin_factory::liquidation_assets_distributor {
         // If the scale does not exist, return 0
         if (!table::contains(scale_sum, scale)) return 0;
 
-        let balance = table::borrow(scale_sum, scale);
-        (balance::value(balance) as u256)
+        let sum = table::borrow(scale_sum, scale);
+        *sum
     }
 
     #[test_only]

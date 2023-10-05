@@ -1,6 +1,8 @@
 module stable_coin_factory::kasa_manager_tests {
     use sui::test_scenario::{Self as test, next_tx};
     use sui::test_utils::{assert_eq};
+    use sui::coin::{Self, Coin};
+    use sui::sui::SUI;
 
     use stable_coin_factory::test_helpers::{init_stable_coin_factory, open_kasa, deposit_to_stability_pool};
     use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage};
@@ -70,10 +72,15 @@ module stable_coin_factory::kasa_manager_tests {
         };
         next_tx(test, @0x1234);
         {
-            let stability_pool_storage = test::take_shared<StabilityPoolStorage>(test);
+            let collateral = test::take_from_sender<Coin<SUI>>(test);
+            assert_eq(coin::value(&collateral), 3_000000000);
+
+            let stability_pool_storage = test::take_shared<StabilityPoolStorage>(test);   
             let stake = stability_pool::get_stake_amount(&stability_pool_storage, @0x1234);
             assert_eq(stake, 6_300_000000000);
+            
             test::return_shared(stability_pool_storage);
+            test::return_to_sender(test, collateral);
         };
         test::end(scenario);
     }
