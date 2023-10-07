@@ -279,6 +279,31 @@ module stable_coin_factory::kasa_manager {
         );
     }
 
+    /// Redeems RUSD stable coins for collateral
+    /// 
+    /// # Arguments
+    /// 
+    /// * `kasa_manager_storage` - the KasaManagerStorage object
+    /// * `rusd_stable_coin_storage` - the RUSDStableCoinStorage object
+    /// * `amount` - the amount of RUSD stable coins to redeem
+    entry public fun redeem(
+        kasa_manager_storage: &mut KasaManagerStorage,
+        rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
+        amount: u64,
+        ctx: &mut TxContext
+    ) {
+        // TODO: Disable this method for 14 days after release
+        // TODO: IF TCR < 110% throw error
+        // TODO: Do not redeem Kasas with ICR < MCR => ICR must be >= to 110%
+
+        // Get the riskiest Kasas in ascending order
+        // Fully or partially redeem the Kasas until the amount is reached
+
+        // In terms of fully redemption, send the surplus collateral to
+        // Collateral Surplus
+        // liquidation assets distributor -> Change the name to asset_distributor
+    }
+
     // =================== Queries ===================
 
     /// Checks if there is a kasa with a specific account address
