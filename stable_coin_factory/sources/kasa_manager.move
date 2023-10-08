@@ -14,7 +14,7 @@ module stable_coin_factory::kasa_manager {
     use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage};
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use tokens::rusd_stable_coin::{Self, RUSD_STABLE_COIN, RUSDStableCoinStorage};
-    use library::kasa::is_icr_valid;
+    use library::kasa::{is_icr_valid, calculate_nominal_collateral_ratio};
     // use library::utils::logger;
 
     friend stable_coin_factory::kasa_operations;
@@ -327,6 +327,7 @@ module stable_coin_factory::kasa_manager {
     /// * `kasa_manager_storage` - the KasaManagerStorage object
     /// * `account_address` - the address of the Account module
     public fun get_kasa_amounts(kasa_manager_storage: &mut KasaManagerStorage, account_address: address): (u64, u64) {
+        // TODO: Check for pending rewards and add them to the amounts
         let kasa = borrow_kasa(kasa_manager_storage, account_address);
         (kasa.collateral_amount, kasa.debt_amount)
     }
@@ -357,6 +358,24 @@ module stable_coin_factory::kasa_manager {
         object::id(&storage.publisher)
     }
 
+    /// Gets the nominal collateral ratio for a given Kasa.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `kasa_manager_storage` - the KasaManagerStorage object
+    /// * `account_address` - the address of the Account module
+    ///
+    /// # Returns
+    ///
+    /// The nominal collateral ratio
+    public fun get_nominal_collateral_ratio(
+        kasa_manager_storage: &mut KasaManagerStorage,
+        account_address: address
+    ): u256 {
+        let (collateral_amount, debt_amount) = get_kasa_amounts(kasa_manager_storage, account_address);
+        calculate_nominal_collateral_ratio(collateral_amount, debt_amount)
+    }
+
     // =================== Helpers ===================
 
     /// Liquidates all the kasas in the given vector
@@ -382,7 +401,7 @@ module stable_coin_factory::kasa_manager {
             let kasa = read_kasa(kasa_manager_storage, account_address);
 
             // If the ICR is valid, return
-            if (is_icr_valid(false, kasa.collateral_amount, kasa.debt_amount, 1600)) return;
+            if (is_icr_valid(false, kasa.collateral_amount, kasa.debt_amount, 1600_000000000)) return;
 
             // Kasa to be liquidated
             let kasa = remove_kasa(kasa_manager_storage, account_address);

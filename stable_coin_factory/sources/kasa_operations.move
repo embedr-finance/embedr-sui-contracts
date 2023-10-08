@@ -7,7 +7,7 @@ module stable_coin_factory::kasa_operations {
     use tokens::rusd_stable_coin::{RUSDStableCoinStorage, RUSD_STABLE_COIN};
     use library::kasa::{is_icr_valid};
 
-    const COLLATERAL_PRICE: u64 = 1800;
+    const COLLATERAL_PRICE: u64 = 1800_000000000;
 
     // =================== Errors ===================
 

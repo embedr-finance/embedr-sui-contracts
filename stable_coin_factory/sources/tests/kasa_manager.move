@@ -22,15 +22,15 @@ module stable_coin_factory::kasa_manager_tests {
 
         next_tx(test, user);
         {   
-            open_kasa(test, user, 3_000000000, 4_500_000000000);
+            open_kasa(test, user, 3_000000000, 4500_000000000);
         };
         next_tx(test, @0x1234);
         {   
-            open_kasa(test, @0x1234, 15_000000000, 20_000_000000000);
+            open_kasa(test, @0x1234, 15_000000000, 20000_000000000);
         };
         next_tx(test, @0x1234);
         {
-            deposit_to_stability_pool(test, @0x1234, 10_000_000000000);
+            deposit_to_stability_pool(test, @0x1234, 10000_000000000);
         };
         next_tx(test, admin);
         {
@@ -53,13 +53,13 @@ module stable_coin_factory::kasa_manager_tests {
 
             let (total_collateral_amount, total_debt_amount) = kasa_manager::get_protocol_balances(&kasa_manager_storage);
             assert_eq(total_collateral_amount, 15_000000000);
-            assert_eq(total_debt_amount, 20_000_000000000);
+            assert_eq(total_debt_amount, 20000_000000000);
 
             let stability_pool_total_stake = stability_pool::get_total_stake_amount(&stability_pool_storage);
-            assert_eq(stability_pool_total_stake, 5_500_000000000);
+            assert_eq(stability_pool_total_stake, 5500_000000000);
 
             let stake = stability_pool::get_stake_amount(&stability_pool_storage, @0x1234);
-            assert_eq(stake, 5_500_000000000);
+            assert_eq(stake, 5500_000000000);
 
             test::return_shared(kasa_manager_storage);
             test::return_shared(stability_pool_storage);
@@ -77,7 +77,7 @@ module stable_coin_factory::kasa_manager_tests {
 
             let stability_pool_storage = test::take_shared<StabilityPoolStorage>(test);   
             let stake = stability_pool::get_stake_amount(&stability_pool_storage, @0x1234);
-            assert_eq(stake, 6_300_000000000);
+            assert_eq(stake, 6300_000000000);
             
             test::return_shared(stability_pool_storage);
             test::return_to_sender(test, collateral);
@@ -95,15 +95,15 @@ module stable_coin_factory::kasa_manager_tests {
 
         next_tx(test, user);
         {   
-            open_kasa(test, user, 3_000000000, 4_500_000000000);
+            open_kasa(test, user, 3_000000000, 4500_000000000);
         };
         next_tx(test, @0x1234);
         {   
-            open_kasa(test, @0x1234, 15_000000000, 20_000_000000000);
+            open_kasa(test, @0x1234, 15_000000000, 20000_000000000);
         };
         next_tx(test, @0x1234);
         {
-            deposit_to_stability_pool(test, @0x1234, 4_500_000000000);
+            deposit_to_stability_pool(test, @0x1234, 4500_000000000);
         };
         next_tx(test, admin);
         {
@@ -126,7 +126,7 @@ module stable_coin_factory::kasa_manager_tests {
 
             let (total_collateral_amount, total_debt_amount) = kasa_manager::get_protocol_balances(&kasa_manager_storage);
             assert_eq(total_collateral_amount, 15_000000000);
-            assert_eq(total_debt_amount, 20_000_000000000);
+            assert_eq(total_debt_amount, 20000_000000000);
 
             let stability_pool_total_stake = stability_pool::get_total_stake_amount(&stability_pool_storage);
             assert_eq(stability_pool_total_stake, 0);
