@@ -47,8 +47,8 @@ module stable_coin_factory::sorted_kasas {
     // =================== Entries ===================
 
     entry public fun insert(
-        sorted_kasas_storage: &mut SortedKasasStorage,
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasas_storage: &mut SortedKasasStorage,
         id: address,
         nicr: u256,
         prev_id: Option<address>,
@@ -58,8 +58,8 @@ module stable_coin_factory::sorted_kasas {
         // TODO: Make sure only kasa manager module can call this contract
 
         insert_node(
-            sorted_kasas_storage,
             kasa_manager_storage,
+            sorted_kasas_storage,
             id,
             nicr,
             prev_id,
@@ -81,8 +81,8 @@ module stable_coin_factory::sorted_kasas {
     }
 
     entry public fun reinsert(
-        sorted_kasas_storage: &mut SortedKasasStorage,
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasas_storage: &mut SortedKasasStorage,
         id: address,
         nicr: u256,
         prev_id: Option<address>,
@@ -102,8 +102,8 @@ module stable_coin_factory::sorted_kasas {
         );
 
         insert_node(
-            sorted_kasas_storage,
             kasa_manager_storage,
+            sorted_kasas_storage,
             id,
             nicr,
             prev_id,
@@ -114,16 +114,16 @@ module stable_coin_factory::sorted_kasas {
     // =================== Queries ===================
 
     public fun check_insert_position(
-        sorted_kasas_storage: &mut SortedKasasStorage,
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasas_storage: &mut SortedKasasStorage,
         nicr: u256,
         prev_id: Option<address>,
         next_id: Option<address>,
         _ctx: &mut TxContext
     ): bool {
         check_node_position(
-            sorted_kasas_storage,
             kasa_manager_storage,
+            sorted_kasas_storage,
             nicr,
             prev_id,
             next_id
@@ -131,16 +131,16 @@ module stable_coin_factory::sorted_kasas {
     }
 
     public fun find_insert_position(
-        sorted_kasas_storage: &mut SortedKasasStorage,
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasas_storage: &mut SortedKasasStorage,
         nicr: u256,
         prev_id: Option<address>,
         next_id: Option<address>,
         _ctx: &mut TxContext
     ): (Option<address>, Option<address>) {
         find_node_position(
-            sorted_kasas_storage,
             kasa_manager_storage,
+            sorted_kasas_storage,
             nicr,
             prev_id,
             next_id
@@ -186,8 +186,8 @@ module stable_coin_factory::sorted_kasas {
     }
 
     fun insert_node(
-        sorted_kasas_storage: &mut SortedKasasStorage,
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasas_storage: &mut SortedKasasStorage,
         id: address,
         nicr: u256,
         prev_id: Option<address>,
@@ -206,16 +206,16 @@ module stable_coin_factory::sorted_kasas {
         // Check for the insert positon
         if (
             !check_node_position(
-                sorted_kasas_storage,
                 kasa_manager_storage,
+                sorted_kasas_storage,
                 nicr,
                 prev_id,
                 next_id
             )
         ) {
             (prev_id, next_id) = find_node_position(
-                sorted_kasas_storage,
                 kasa_manager_storage,
+                sorted_kasas_storage,
                 nicr,
                 prev_id,
                 next_id
@@ -320,8 +320,8 @@ module stable_coin_factory::sorted_kasas {
     }
 
     fun check_node_position(
-        sorted_kasas_storage: &mut SortedKasasStorage,
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasas_storage: &mut SortedKasasStorage,
         nicr: u256,
         prev_id: Option<address>,
         next_id: Option<address>,
@@ -362,8 +362,8 @@ module stable_coin_factory::sorted_kasas {
     }
 
     fun find_node_position(
-        sorted_kasas_storage: &mut SortedKasasStorage,
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasas_storage: &mut SortedKasasStorage,
         nicr: u256,
         prev_id: Option<address>,
         next_id: Option<address>,
@@ -401,24 +401,24 @@ module stable_coin_factory::sorted_kasas {
         if (option::is_none(&prev_id) && option::is_none(&next_id)) {
             // No hint - descend list starting from head
             return descend_list(
-                sorted_kasas_storage,
                 kasa_manager_storage,
+                sorted_kasas_storage,
                 nicr,
                 option::destroy_some(head)
             )
         } else if (option::is_none(&prev_id)) {
             // No `prev_id` for hint - ascend list starting from `next_id`
             return ascend_list(
-                sorted_kasas_storage,
                 kasa_manager_storage,
+                sorted_kasas_storage,
                 nicr,
                 option::destroy_some(next_id)
             )
         } else if (option::is_none(&next_id)) {
             // No `next_id` for hint - descend list starting from `prev_id`
             return descend_list(
-                sorted_kasas_storage,
                 kasa_manager_storage,
+                sorted_kasas_storage,
                 nicr,
                 option::destroy_some(prev_id)
             )
@@ -426,16 +426,16 @@ module stable_coin_factory::sorted_kasas {
 
         // Descend list starting from `prev_id`
         descend_list(
-            sorted_kasas_storage,
             kasa_manager_storage,
+            sorted_kasas_storage,
             nicr,
             option::destroy_some(prev_id)
         )
     }
 
     fun descend_list(
-        sorted_kasas_storage: &mut SortedKasasStorage,
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasas_storage: &mut SortedKasasStorage,
         nicr: u256,
         start_id: address,
     ): (Option<address>, Option<address>) {
@@ -458,8 +458,8 @@ module stable_coin_factory::sorted_kasas {
         while(
             option::is_some(&prev_id) &&
             !check_node_position(
-                sorted_kasas_storage,
                 kasa_manager_storage,
+                sorted_kasas_storage,
                 nicr,
                 prev_id,
                 next_id
@@ -479,8 +479,8 @@ module stable_coin_factory::sorted_kasas {
     }
 
     fun ascend_list(
-        sorted_kasas_storage: &mut SortedKasasStorage,
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasas_storage: &mut SortedKasasStorage,
         nicr: u256,
         start_id: address,
     ): (Option<address>, Option<address>) {
@@ -503,8 +503,8 @@ module stable_coin_factory::sorted_kasas {
         while(
             option::is_some(&next_id) &&
             !check_node_position(
-                sorted_kasas_storage,
                 kasa_manager_storage,
+                sorted_kasas_storage,
                 nicr,
                 prev_id,
                 next_id

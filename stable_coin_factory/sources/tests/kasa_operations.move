@@ -206,12 +206,14 @@ module stable_coin_factory::kasa_operations_tests {
         next_tx(test, admin);
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+            let sorted_kasas_storage = test::take_shared<SortedKasasStorage>(test);
             let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let rusd_stable_coin_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
 
             let collateral = mint_for_testing<SUI>(800_000000000, ctx(test));
             kasa_operations::deposit_collateral(
                 &mut kasa_manager_storage,
+                &mut sorted_kasas_storage,
                 collateral,
                 ctx(test)
             );
@@ -225,6 +227,7 @@ module stable_coin_factory::kasa_operations_tests {
             assert_eq(debt_balance, 5000_000000000);
 
             test::return_shared(kasa_manager_storage);
+            test::return_shared(sorted_kasas_storage);
             test::return_shared(rusd_stable_coin_storage);
             test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
@@ -247,13 +250,16 @@ module stable_coin_factory::kasa_operations_tests {
         next_tx(test, @0x1234);
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+            let sorted_kasa_storage = test::take_shared<SortedKasasStorage>(test);
             let collateral = mint_for_testing<SUI>(800_000000000, ctx(test));
             kasa_operations::deposit_collateral(
                 &mut kasa_manager_storage,
+                &mut sorted_kasa_storage,
                 collateral,
                 ctx(test)
             );
             test::return_shared(kasa_manager_storage);
+            test::return_shared(sorted_kasa_storage);
         };
         test::end(scenario);
     }
@@ -274,17 +280,20 @@ module stable_coin_factory::kasa_operations_tests {
         next_tx(test, admin);
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+            let sorted_kasas_storage = test::take_shared<SortedKasasStorage>(test);
             let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let rusd_stable_coin_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
 
             let collateral = mint_for_testing<SUI>(0, ctx(test));
             kasa_operations::deposit_collateral(
                 &mut kasa_manager_storage,
+                &mut sorted_kasas_storage,
                 collateral,
                 ctx(test)
             );
 
             test::return_shared(kasa_manager_storage);
+            test::return_shared(sorted_kasas_storage);
             test::return_shared(rusd_stable_coin_storage);
             test::return_to_address(admin, rusd_stable_coin_admin_cap);
         };
@@ -309,12 +318,15 @@ module stable_coin_factory::kasa_operations_tests {
         next_tx(test, @0x1234);
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+            let sorted_kasas_storage = test::take_shared<SortedKasasStorage>(test);
             kasa_operations::withdraw_collateral(
                 &mut kasa_manager_storage,
+                &mut sorted_kasas_storage,
                 500,
                 ctx(test)
             );
             test::return_shared(kasa_manager_storage);
+            test::return_shared(sorted_kasas_storage);
         };
         test::end(scenario);
     }
@@ -335,14 +347,17 @@ module stable_coin_factory::kasa_operations_tests {
         next_tx(test, admin);
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+            let sorted_kasas_storage = test::take_shared<SortedKasasStorage>(test);
 
             kasa_operations::withdraw_collateral(
                 &mut kasa_manager_storage,
+                &mut sorted_kasas_storage,
                 0,
                 ctx(test)
             );
 
             test::return_shared(kasa_manager_storage);
+            test::return_shared(sorted_kasas_storage);
         };
         test::end(scenario);
     }
@@ -363,14 +378,17 @@ module stable_coin_factory::kasa_operations_tests {
         next_tx(test, admin);
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+            let sorted_kasas_storage = test::take_shared<SortedKasasStorage>(test);
 
             kasa_operations::withdraw_collateral(
                 &mut kasa_manager_storage,
+                &mut sorted_kasas_storage,
                 999_000000000,
                 ctx(test)
             );
 
             test::return_shared(kasa_manager_storage);
+            test::return_shared(sorted_kasas_storage);
         };
         test::end(scenario);
     }
@@ -393,14 +411,17 @@ module stable_coin_factory::kasa_operations_tests {
         next_tx(test, @0x1234);
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+            let sorted_kasas_storage = test::take_shared<SortedKasasStorage>(test);
             let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
             kasa_operations::borrow_loan(
                 &mut kasa_manager_storage,
+                &mut sorted_kasas_storage,
                 &mut rusd_stable_coin_storage,
                 500,
                 ctx(test)
             );
             test::return_shared(kasa_manager_storage);
+            test::return_shared(sorted_kasas_storage);
             test::return_shared(rusd_stable_coin_storage);
         };
         test::end(scenario);
@@ -422,16 +443,19 @@ module stable_coin_factory::kasa_operations_tests {
         next_tx(test, admin);
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+            let sorted_kasas_storage = test::take_shared<SortedKasasStorage>(test);
             let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
 
             kasa_operations::borrow_loan(
                 &mut kasa_manager_storage,
+                &mut sorted_kasas_storage,
                 &mut rusd_stable_coin_storage,
                 0,
                 ctx(test)
             );
 
             test::return_shared(kasa_manager_storage);
+            test::return_shared(sorted_kasas_storage);
             test::return_shared(rusd_stable_coin_storage);
         };
         test::end(scenario);
@@ -453,16 +477,19 @@ module stable_coin_factory::kasa_operations_tests {
         next_tx(test, admin);
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+            let sorted_kasas_storage = test::take_shared<SortedKasasStorage>(test);
             let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
 
             kasa_operations::borrow_loan(
                 &mut kasa_manager_storage,
+                &mut sorted_kasas_storage,
                 &mut rusd_stable_coin_storage,
                 2000000_000000000,
                 ctx(test)
             );
 
             test::return_shared(kasa_manager_storage);
+            test::return_shared(sorted_kasas_storage);
             test::return_shared(rusd_stable_coin_storage);
         };
         test::end(scenario);
@@ -488,15 +515,18 @@ module stable_coin_factory::kasa_operations_tests {
         next_tx(test, @0x1234);
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+            let sorted_kasas_storage = test::take_shared<SortedKasasStorage>(test);
             let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let coin = mint_for_testing<RUSD_STABLE_COIN>(500_000000000, ctx(test));
             kasa_operations::repay_loan(
                 &mut kasa_manager_storage,
+                &mut sorted_kasas_storage,
                 &mut rusd_stable_coin_storage,
                 coin,
                 ctx(test)
             );
             test::return_shared(kasa_manager_storage);
+            test::return_shared(sorted_kasas_storage);
             test::return_shared(rusd_stable_coin_storage);
         };
         test::end(scenario);
@@ -518,17 +548,20 @@ module stable_coin_factory::kasa_operations_tests {
         next_tx(test, admin);
         {
             let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+            let sorted_kasas_storage = test::take_shared<SortedKasasStorage>(test);
             let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
 
             let coin = mint_for_testing<RUSD_STABLE_COIN>(0, ctx(test));
             kasa_operations::repay_loan(
                 &mut kasa_manager_storage,
+                &mut sorted_kasas_storage,
                 &mut rusd_stable_coin_storage,
                 coin,
                 ctx(test)
             );
 
             test::return_shared(kasa_manager_storage);
+            test::return_shared(sorted_kasas_storage);
             test::return_shared(rusd_stable_coin_storage);
         };
         test::end(scenario);

@@ -1,5 +1,5 @@
 module stable_coin_factory::kasa_operations {
-    use std::option;
+    use std::option::{Self, Option};
 
     use sui::tx_context::{Self, TxContext};
     use sui::coin::{Self, Coin};
@@ -76,8 +76,8 @@ module stable_coin_factory::kasa_operations {
 
         // TODO: Get prev_id and next_id as a parameter
         sorted_kasas::insert(
-            sorted_kasa_storage,
             kasa_manager_storage,
+            sorted_kasa_storage,
             account_address,
             calculate_nominal_collateral_ratio(collateral_amount, debt_amount),
             option::none(),
@@ -95,6 +95,7 @@ module stable_coin_factory::kasa_operations {
     /// * `ctx` - transaction context
     entry public fun deposit_collateral(
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasa_storage: &mut SortedKasasStorage,
         collateral: Coin<SUI>,
         ctx: &mut TxContext
     ) {
@@ -110,7 +111,16 @@ module stable_coin_factory::kasa_operations {
             kasa_manager_storage,
             account_address,
             collateral
-        )
+        );
+
+        reinsert_kasa_to_list(
+            kasa_manager_storage,
+            sorted_kasa_storage,
+            account_address,
+            option::none(),
+            option::none(),
+            ctx
+        );
     }
 
     /// Withdraws collateral from the Kasa.
@@ -122,6 +132,7 @@ module stable_coin_factory::kasa_operations {
     /// * `ctx` - transaction context
     entry public fun withdraw_collateral(
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasa_storage: &mut SortedKasasStorage,
         amount: u64,
         ctx: &mut TxContext
     ) {
@@ -153,7 +164,16 @@ module stable_coin_factory::kasa_operations {
             account_address,
             amount,
             ctx
-        )
+        );
+
+        reinsert_kasa_to_list(
+            kasa_manager_storage,
+            sorted_kasa_storage,
+            account_address,
+            option::none(),
+            option::none(),
+            ctx
+        );
     }
 
     /// Borrows rUSD from the protocol.
@@ -166,6 +186,7 @@ module stable_coin_factory::kasa_operations {
     /// * `ctx` - transaction context
     entry public fun borrow_loan(
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasa_storage: &mut SortedKasasStorage,
         rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
         amount: u64,
         ctx: &mut TxContext
@@ -199,7 +220,16 @@ module stable_coin_factory::kasa_operations {
             account_address,
             amount,
             ctx
-        )
+        );
+
+        reinsert_kasa_to_list(
+            kasa_manager_storage,
+            sorted_kasa_storage,
+            account_address,
+            option::none(),
+            option::none(),
+            ctx
+        );
     }
 
     /// Repays the loan to the protocol.
@@ -212,6 +242,7 @@ module stable_coin_factory::kasa_operations {
     /// * `ctx` - transaction context
     entry public fun repay_loan(
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasa_storage: &mut SortedKasasStorage,
         rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
         debt_coin: Coin<RUSD_STABLE_COIN>,
         ctx: &mut TxContext
@@ -247,6 +278,15 @@ module stable_coin_factory::kasa_operations {
             account_address,
             debt_coin
         );
+
+        reinsert_kasa_to_list(
+            kasa_manager_storage,
+            sorted_kasa_storage,
+            account_address,
+            option::none(),
+            option::none(),
+            ctx
+        )
     }
 
     // =================== Queries ===================
@@ -264,6 +304,34 @@ module stable_coin_factory::kasa_operations {
         kasa_manager::get_kasa_amounts(
             kasa_manager_storage,
             account_address,
+        )
+    }
+
+    // =================== Helpers ===================
+
+    fun reinsert_kasa_to_list(
+        kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasa_storage: &mut SortedKasasStorage,
+        account_address: address,
+        prev_id: Option<address>,
+        next_id: Option<address>,
+        ctx: &mut TxContext
+    ) {
+        let (current_collateral_amount, current_debt_amount) = kasa_manager::get_kasa_amounts(
+            kasa_manager_storage,
+            account_address,
+        );
+        sorted_kasas::reinsert(
+            kasa_manager_storage,
+            sorted_kasa_storage,
+            account_address,
+            calculate_nominal_collateral_ratio(
+                current_collateral_amount,
+                current_debt_amount
+            ),
+            prev_id,
+            next_id,
+            ctx
         )
     }
 }
