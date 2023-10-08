@@ -1,11 +1,15 @@
 module stable_coin_factory::kasa_operations {
+    use std::option;
+
     use sui::tx_context::{Self, TxContext};
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
 
     use stable_coin_factory::kasa_manager::{Self, KasaManagerStorage};
+    use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
     use tokens::rusd_stable_coin::{RUSDStableCoinStorage, RUSD_STABLE_COIN};
-    use library::kasa::{is_icr_valid};
+    use library::kasa::{is_icr_valid, calculate_collateral_ratio, calculate_nominal_collateral_ratio};
+    // use library::utils::logger;
 
     const COLLATERAL_PRICE: u64 = 1800_000000000;
 
@@ -34,6 +38,7 @@ module stable_coin_factory::kasa_operations {
     /// * `debt_amount` - debt amount to be borrowed
     entry public fun open_kasa(
         kasa_manager_storage: &mut KasaManagerStorage,
+        sorted_kasa_storage: &mut SortedKasasStorage,
         rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
         collateral: Coin<SUI>,
         debt_amount: u64,
@@ -68,6 +73,17 @@ module stable_coin_factory::kasa_operations {
             debt_amount,
             ctx
         );
+
+        // TODO: Get prev_id and next_id as a parameter
+        sorted_kasas::insert(
+            sorted_kasa_storage,
+            kasa_manager_storage,
+            account_address,
+            calculate_nominal_collateral_ratio(collateral_amount, debt_amount),
+            option::none(),
+            option::none(),
+            ctx
+        )
     }
 
     /// Deposits collateral into the Kasa.

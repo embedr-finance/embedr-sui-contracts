@@ -8,6 +8,7 @@ module stable_coin_factory::test_helpers {
     use stable_coin_factory::kasa_operations;
     use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage};
     use stable_coin_factory::liquidation_assets_distributor::{Self, CollateralGains};
+    use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSDStableCoinAdminCap, RUSD_STABLE_COIN};
     use library::test_utils::{people};
 
@@ -19,7 +20,7 @@ module stable_coin_factory::test_helpers {
             stability_pool::init_for_testing(ctx(test));
             liquidation_assets_distributor::init_for_testing(ctx(test));
             rusd_stable_coin::init_for_testing(ctx(test));
-
+            sorted_kasas::init_for_testing(ctx(test));
         };
         next_tx(test, admin);
         {
@@ -40,6 +41,7 @@ module stable_coin_factory::test_helpers {
 
     public fun open_kasa(test: &mut Scenario, account_address: address, collateral_amount: u64, debt_amount: u64) {
         let kasa_manager_storage = test::take_shared<KasaManagerStorage>(test);
+        let sorted_kasas_storage = test::take_shared<SortedKasasStorage>(test);
         let rusd_stable_coin_storage = test::take_shared<RUSDStableCoinStorage>(test);
 
         next_tx(test, account_address);
@@ -47,6 +49,7 @@ module stable_coin_factory::test_helpers {
             let collateral = mint_for_testing<SUI>(collateral_amount, ctx(test));
             kasa_operations::open_kasa(
                 &mut kasa_manager_storage,
+                &mut sorted_kasas_storage,
                 &mut rusd_stable_coin_storage,
                 collateral,
                 debt_amount,
@@ -55,6 +58,7 @@ module stable_coin_factory::test_helpers {
         };
 
         test::return_shared(kasa_manager_storage);
+        test::return_shared(sorted_kasas_storage);
         test::return_shared(rusd_stable_coin_storage);
     }
 
