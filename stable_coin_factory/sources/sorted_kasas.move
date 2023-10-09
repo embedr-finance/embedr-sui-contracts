@@ -38,7 +38,7 @@ module stable_coin_factory::sorted_kasas {
             id: object::new(ctx),
             head: option::none(),
             tail: option::none(),
-            max_size: 100,
+            max_size: 1000000,
             size: 0,
             node_table: table::new(ctx)
         });
