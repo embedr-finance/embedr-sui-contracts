@@ -6,7 +6,7 @@ module stable_coin_factory::sorted_kasas {
     use sui::tx_context::TxContext;
     use sui::transfer;
 
-    use stable_coin_factory::kasa_manager::{Self, KasaManagerStorage};
+    use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage};
     // use library::utils::logger;
 
     // =================== Errors ===================
@@ -15,6 +15,8 @@ module stable_coin_factory::sorted_kasas {
     const ERROR_EXISTING_ITEM: u64 = 2;
     // const ERROR_INVALID: u64 = 3;
     const ERROR_RATIO: u64 = 3;
+
+    // =================== Storage ===================
 
     struct Node has store, drop {
         exists: bool,
@@ -333,14 +335,14 @@ module stable_coin_factory::sorted_kasas {
         } else if (option::is_none(&prev_id) && option::is_some(&next_id)) {
             // `(null, next_id)` is a valid insert position if `next_id` is the head of the list
             res = sorted_kasas_storage.head == next_id &&
-                nicr >= kasa_manager::get_nominal_collateral_ratio(
+                nicr >= kasa_storage::get_nominal_collateral_ratio(
                     kasa_manager_storage,
                     option::destroy_some(next_id)
                 )
         } else if (option::is_none(&next_id) && option::is_some(&prev_id)) {
             // `(prev_id, null)` is a valid insert position if `prev_id` is the tail of the list
             res = sorted_kasas_storage.tail == prev_id &&
-                nicr <= kasa_manager::get_nominal_collateral_ratio(
+                nicr <= kasa_storage::get_nominal_collateral_ratio(
                     kasa_manager_storage,
                     option::destroy_some(prev_id)
                 )
@@ -349,11 +351,11 @@ module stable_coin_factory::sorted_kasas {
                     &mut sorted_kasas_storage.node_table,
                     option::destroy_some(prev_id)
                 ).next_id == next_id &&
-                kasa_manager::get_nominal_collateral_ratio(
+                kasa_storage::get_nominal_collateral_ratio(
                     kasa_manager_storage,
                     option::destroy_some(prev_id)
                 ) >= nicr &&
-                nicr >= kasa_manager::get_nominal_collateral_ratio(
+                nicr >= kasa_storage::get_nominal_collateral_ratio(
                     kasa_manager_storage,
                     option::destroy_some(next_id)
                 )
@@ -375,7 +377,7 @@ module stable_coin_factory::sorted_kasas {
         if (option::is_some(&prev_id)) {
             if (
                 !contains(sorted_kasas_storage, option::destroy_some(prev_id)) ||
-                nicr > kasa_manager::get_nominal_collateral_ratio(
+                nicr > kasa_storage::get_nominal_collateral_ratio(
                     kasa_manager_storage,
                     option::destroy_some(prev_id)
                 )
@@ -388,7 +390,7 @@ module stable_coin_factory::sorted_kasas {
         if (option::is_some(&next_id)) {
             if (
                 !contains(sorted_kasas_storage, option::destroy_some(next_id)) ||
-                nicr > kasa_manager::get_nominal_collateral_ratio(
+                nicr > kasa_storage::get_nominal_collateral_ratio(
                     kasa_manager_storage,
                     option::destroy_some(next_id)
                 )
@@ -442,7 +444,7 @@ module stable_coin_factory::sorted_kasas {
         // If `start_id` is the head, check if the insert position is before the head
         if (
             option::destroy_some(sorted_kasas_storage.head) == start_id &&
-            nicr >= kasa_manager::get_nominal_collateral_ratio(
+            nicr >= kasa_storage::get_nominal_collateral_ratio(
                 kasa_manager_storage,
                 start_id
             )
@@ -487,7 +489,7 @@ module stable_coin_factory::sorted_kasas {
         // If `start_id` is the tail, check if the insert position is after the tail
         if (
             option::destroy_some(sorted_kasas_storage.tail) == start_id &&
-            nicr <= kasa_manager::get_nominal_collateral_ratio(
+            nicr <= kasa_storage::get_nominal_collateral_ratio(
                 kasa_manager_storage,
                 start_id
             )
