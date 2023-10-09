@@ -9,6 +9,7 @@ module tokens::rusd_stable_coin {
     use sui::package::{Publisher};
     use sui::tx_context;
     use sui::vec_set::{Self, VecSet};
+    use sui::table::{Self, Table};
 
     // =================== Errors ===================
 
@@ -23,6 +24,7 @@ module tokens::rusd_stable_coin {
     struct RUSDStableCoinStorage has key {
         id: UID,
         supply: Supply<RUSD_STABLE_COIN>,
+        balances: Table<address, u64>,
         managers: VecSet<ID> // List of minters for this stable coin
     }
 
@@ -51,6 +53,7 @@ module tokens::rusd_stable_coin {
             RUSDStableCoinStorage {
                 id: object::new(ctx),
                 supply,
+                balances: table::new(ctx),
                 managers: vec_set::empty()
             },
         );
@@ -62,7 +65,7 @@ module tokens::rusd_stable_coin {
         transfer::public_freeze_object(metadata);
     }
 
-    // =================== Functions ===================
+    // =================== Entries ===================
 
     /// Mints new stable coins and transfers them to the recipient
     /// 
@@ -75,11 +78,19 @@ module tokens::rusd_stable_coin {
     public fun mint(
         storage: &mut RUSDStableCoinStorage,
         publisher: &Publisher,
+        recipient: address,
         amount: u64,
         ctx: &mut TxContext
     ): Coin<RUSD_STABLE_COIN> {
         // Check if the publisher is allowed to mint
         assert!(is_authorized(storage, object::id(publisher)), ERROR_UNAUTHORIZED);
+
+        // Increase user balance by the amount
+        increase_account_balance(
+            storage,
+            recipient,
+            amount
+        );
 
         // Create the coin object and return it
         coin::from_balance(
@@ -100,10 +111,17 @@ module tokens::rusd_stable_coin {
     public fun burn(
         storage: &mut RUSDStableCoinStorage,
         publisher: &Publisher,
+        recipient: address,
         asset: Coin<RUSD_STABLE_COIN>
     ) {
         // Check if the publisher is allowed to burn
         assert!(is_authorized(storage, object::id(publisher)), ERROR_UNAUTHORIZED);
+
+        decrease_account_balance(
+            storage,
+            recipient,
+            coin::value(&asset)
+        );
 
         // Burn the asset
         balance::decrease_supply(
@@ -111,8 +129,6 @@ module tokens::rusd_stable_coin {
             coin::into_balance(asset)
         );
     }
-
-    // =================== Entries ===================
 
     /// Transfers the given amount of stable coins to the recipient
     /// 
@@ -156,6 +172,23 @@ module tokens::rusd_stable_coin {
         balance::supply_value(&storage.supply)
     }
 
+    /// Returns the balance of the given address
+    /// 
+    /// # Arguments
+    /// 
+    /// * `storage` - The storage object
+    /// * `address` - The address to check
+    /// 
+    /// # Returns
+    /// 
+    /// * `u64` - the current balance
+    public fun get_balance(storage: &RUSDStableCoinStorage, address: address): u64 {
+        if (!table::contains(&storage.balances, address)) {
+            return 0
+        };
+        *table::borrow(&storage.balances, address)
+    }
+
     // =================== Helpers ===================
 
     /// Checks if the given ID is a manager for this stable coin
@@ -170,6 +203,34 @@ module tokens::rusd_stable_coin {
     /// * `true` if the ID is a manager
     public fun is_authorized(storage: &RUSDStableCoinStorage, id: ID): bool {
         vec_set::contains(&storage.managers, &id)
+    }
+
+    /// Increases the balance of the given recipient by the given amount
+    /// 
+    /// # Arguments
+    /// 
+    /// * `storage` - The storage object
+    /// * `recipient` - The address of the recipient
+    /// * `amount` - The amount to increase the balance by
+    fun increase_account_balance(storage: &mut RUSDStableCoinStorage, recipient: address, amount: u64) {
+        if(table::contains(&storage.balances, recipient)) {
+            let existing_balance = table::remove(&mut storage.balances, recipient);
+            table::add(&mut storage.balances, recipient, existing_balance + amount);
+        } else {
+            table::add(&mut storage.balances, recipient, amount);
+        };
+    }
+
+    /// Decreases the balance of the given recipient by the given amount
+    /// 
+    /// # Arguments
+    /// 
+    /// * `storage` - The storage object
+    /// * `recipient` - The address of the recipient
+    /// * `amount` - The amount to decrease the balance by
+    fun decrease_account_balance(storage: &mut RUSDStableCoinStorage, recipient: address, amount: u64) {
+        let existing_balance = table::remove(&mut storage.balances, recipient);
+        table::add(&mut storage.balances, recipient, existing_balance - amount);
     }
 
     #[test_only]

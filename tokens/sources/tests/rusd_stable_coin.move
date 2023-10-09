@@ -36,8 +36,17 @@ module tokens::rusd_stable_coin_tests {
 
             rusd_stable_coin::add_manager(&admin_cap, &mut rusd_stable_coin_storage, id);
 
-            let coin = rusd_stable_coin::mint(&mut rusd_stable_coin_storage, publisher, 100, ctx(test));
+            let coin = rusd_stable_coin::mint(
+                &mut rusd_stable_coin_storage,
+                publisher,
+                admin,
+                100,
+                ctx(test)
+            );
             assert_eq(burn<RUSD_STABLE_COIN>(coin), 100);
+
+            let balance = rusd_stable_coin::get_balance(&rusd_stable_coin_storage, admin);
+            assert_eq(balance, 100);
 
             test::return_shared(rusd_stable_coin_storage);
             test::return_shared(foo_storage);
@@ -62,7 +71,13 @@ module tokens::rusd_stable_coin_tests {
 
             let publisher = foo::get_publisher(&foo_storage);
 
-            let coin = rusd_stable_coin::mint(&mut rusd_stable_coin_storage, publisher, 100, ctx(test));
+            let coin = rusd_stable_coin::mint(
+                &mut rusd_stable_coin_storage,
+                publisher,
+                admin,
+                100,
+                ctx(test)
+            );
             assert_eq(burn<RUSD_STABLE_COIN>(coin), 100);
 
             test::return_shared(rusd_stable_coin_storage);
@@ -90,12 +105,21 @@ module tokens::rusd_stable_coin_tests {
 
             rusd_stable_coin::add_manager(&admin_cap, &mut rusd_stable_coin_storage, id);
 
-            let coin = rusd_stable_coin::mint(&mut rusd_stable_coin_storage, publisher, 100, ctx(test));
+            let coin = rusd_stable_coin::mint(
+                &mut rusd_stable_coin_storage,
+                publisher,
+                admin,
+                100,
+                ctx(test)
+            );
             assert_eq(rusd_stable_coin::get_supply(&rusd_stable_coin_storage), 100);
 
-            rusd_stable_coin::burn(&mut rusd_stable_coin_storage, publisher, coin);
+            rusd_stable_coin::burn(&mut rusd_stable_coin_storage, publisher, admin, coin);
 
             assert_eq(rusd_stable_coin::get_supply(&rusd_stable_coin_storage), 0);
+
+            let balance = rusd_stable_coin::get_balance(&rusd_stable_coin_storage, admin);
+            assert_eq(balance, 0);
 
             test::return_shared(rusd_stable_coin_storage);
             test::return_shared(foo_storage);
