@@ -7,7 +7,7 @@ module stable_coin_factory::kasa_storage {
     use sui::balance::{Self, Balance};
     use sui::table::{Self, Table};
 
-    use library::kasa::calculate_nominal_collateral_ratio;
+    use library::kasa::{calculate_nominal_collateral_ratio, calculate_collateral_ratio};
 
     // =================== Initialization ===================
 
@@ -112,6 +112,15 @@ module stable_coin_factory::kasa_storage {
     ): u256 {
         let (collateral_amount, debt_amount) = get_kasa_amounts(storage, account_address);
         calculate_nominal_collateral_ratio(collateral_amount, debt_amount)
+    }
+
+    public fun get_collateral_ratio(
+        storage: &mut KasaManagerStorage,
+        account_address: address,
+        collateral_price: u64
+    ): u256 {
+        let (collateral_amount, debt_amount) = get_kasa_amounts(storage, account_address);
+        calculate_collateral_ratio(collateral_amount, debt_amount, collateral_price)
     }
 
     #[test_only]
