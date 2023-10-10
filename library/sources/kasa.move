@@ -4,9 +4,12 @@ module library::kasa {
 
     const NOMINAL_PRECISION: u256 = 100000000000000000000; // 1e20
 
+    /// Minimum collateral ratio for a single Kasa
     const MINIMUM_COLLATERAL_RATIO: u256 = 1100000000;
 
-    const RECOVERY_MODE_COLLATERAL_RATIO: u256 = 1500000000;
+    /// Critical system collateral ratio
+    /// If the system collateral ratio falls below this value, the system enters recovery mode
+    const CRITICAL_SYSTEM_COLLATERAL_RATIO: u256 = 1500000000;
 
     /// Calculates the collateral ratio for a given collateral amount, debt amount and collateral price.
     /// 
@@ -69,14 +72,14 @@ module library::kasa {
         collateral_price: u64,
     ): bool {
         let ratio = calculate_collateral_ratio(collateral_amount, debt_amount, collateral_price);
-        if (is_recovery_mode) ratio >= RECOVERY_MODE_COLLATERAL_RATIO else ratio >= MINIMUM_COLLATERAL_RATIO
+        if (is_recovery_mode) ratio >= CRITICAL_SYSTEM_COLLATERAL_RATIO else ratio >= MINIMUM_COLLATERAL_RATIO
     }
 
     public fun get_minimum_collateral_ratio(): u256 {
         MINIMUM_COLLATERAL_RATIO
     }
 
-    public fun get_recovery_mode_collateral_ratio(): u256 {
-        RECOVERY_MODE_COLLATERAL_RATIO
+    public fun get_critical_system_collateral_ratio(): u256 {
+        CRITICAL_SYSTEM_COLLATERAL_RATIO
     }
 }
