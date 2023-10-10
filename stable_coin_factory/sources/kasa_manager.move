@@ -1,5 +1,5 @@
 module stable_coin_factory::kasa_manager {
-    use std::option::Option;
+    use std::option::{Self, Option};
     use std::vector;
 
     use sui::object::{Self, UID, ID};
@@ -15,16 +15,19 @@ module stable_coin_factory::kasa_manager {
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
     use tokens::rusd_stable_coin::{Self, RUSD_STABLE_COIN, RUSDStableCoinStorage};
-    use library::kasa::is_icr_valid;
+    use library::kasa::{is_icr_valid, get_minimum_collateral_ratio};
     // use library::utils::logger;
 
     friend stable_coin_factory::kasa_operations;
+
+    const COLLATERAL_PRICE: u64 = 1800_000000000;
 
     // =================== Errors ===================
 
     const ERROR_LIST_FULL: u64 = 1;
     const ERROR_EXISTING_ITEM: u64 = 2;
     const ERROR_: u64 = 3;
+    const ERROR_UNABLE_TO_REDEEM: u64 = 4;
 
     // =================== Storage ===================
 
@@ -104,7 +107,11 @@ module stable_coin_factory::kasa_manager {
         })
     }
 
-    public(friend) fun increase_collateral(km_storage: &mut KasaManagerStorage, account_address: address, collateral: Coin<SUI>) {
+    public(friend) fun increase_collateral(
+        km_storage: &mut KasaManagerStorage,
+        account_address: address,
+        collateral: Coin<SUI>
+    ) {
         // TODO: Where do we transfer the collateral to?
         let amount = coin::value<SUI>(&collateral);
 
@@ -115,7 +122,12 @@ module stable_coin_factory::kasa_manager {
         kasa_storage::increase_total_collateral_balance(km_storage, coin::into_balance<SUI>(collateral));
     }
     
-    public(friend) fun decrease_collateral(km_storage: &mut KasaManagerStorage, account_address: address, amount: u64, ctx: &mut TxContext) {
+    public(friend) fun decrease_collateral(
+        km_storage: &mut KasaManagerStorage,
+        account_address: address,
+        amount: u64,
+        ctx: &mut TxContext
+    ) {
         // Update Kasa object
         kasa_storage::decrease_kasa_collateral_amount(km_storage, account_address, amount);
 
@@ -198,23 +210,25 @@ module stable_coin_factory::kasa_manager {
         );
     }
 
-    // entry public fun liquidate_batch(
-    //     km_storage: &mut KasaManagerStorage,
-    //     sp_storage: &mut StabilityPoolStorage,
-    //     collateral_gains: &mut CollateralGains,
-    //     rsc_storage: &mut RUSDStableCoinStorage,
-    //     account_addresses: vector<address>,
-    //     ctx: &mut TxContext
-    // ) {
-    //     liquidate_kasas(
-    //         kasa_manager_storage,
-    //         stability_pool_storage,
-    //         collateral_gains,
-    //         rusd_stable_coin_storage,
-    //         account_addresses,
-    //         ctx
-    //     );
-    // }
+    entry public fun liquidate_batch(
+        km_publisher: &KasaManagerPublisher,
+        km_storage: &mut KasaManagerStorage,
+        sp_storage: &mut StabilityPoolStorage,
+        collateral_gains: &mut CollateralGains,
+        rsc_storage: &mut RUSDStableCoinStorage,
+        account_addresses: vector<address>,
+        ctx: &mut TxContext
+    ) {
+        liquidate_kasas(
+            km_publisher,
+            km_storage,
+            sp_storage,
+            collateral_gains,
+            rsc_storage,
+            account_addresses,
+            ctx
+        );
+    }
 
     /// Redeems RUSD stable coins for collateral
     /// 
@@ -224,41 +238,36 @@ module stable_coin_factory::kasa_manager {
     /// * `rusd_stable_coin_storage` - the RUSDStableCoinStorage object
     /// * `amount` - the amount of RUSD stable coins to redeem
     entry public fun redeem(
+        km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
         rsc_storage: &mut RUSDStableCoinStorage,
-        amount: u64,
+        stable_coin: Coin<RUSD_STABLE_COIN>,
         first_redemption_hint: Option<address>,
         upper_partial_redemption_hint: Option<address>,
         lower_partial_redemption_hint: Option<address>,
         partial_redemption_hint_nicr: u256,
         ctx: &mut TxContext
     ) {
+        let stable_coin_amount = coin::value(&stable_coin);
+
         // TODO: Disable this method for 14 days after release
         // TODO: IF TCR < 110% throw error
         // TODO: Do not redeem Kasas with ICR < MCR => ICR must be >= to 110%
         // TODO: Check the actual code and fork the assert statements
 
-        // Get the collateral price
-        // Check for the sender's Kasa rUSD balance ??
-        // Check if first redemption hint is valid
-            // If it is valid, first redemption hint is the current borrower
-            // If it's not valid, traverse the list and find the first Kasa with ICR >= MCR
-        // Loop through the Kasas starting from the lowest collateral ratio until amount is exchanged for collateral
-            // At every iteration - calculate the pending rewards and apply them before making the redemption
-            // 
-        // Require if the total collateral to send is different than zero
-        // Calculate the redemption fee from the collateral amount
-        // Send the collateral (total - fee) to sender
-        // Burn rUSD tokens and decrease the total debt balance of the protocol
-
         let (_, total_debt_amount) = kasa_storage::get_total_balances(km_storage);
 
-        let (_, sender_debt_amount) = kasa_storage::get_kasa_amounts(km_storage, tx_context::sender(ctx));
-        let rusd_stable_coin_balance = rusd_stable_coin::get_balance(rsc_storage, tx_context::sender(ctx));
-        assert!(rusd_stable_coin_balance <= amount, ERROR_); // FIXME: Find a better error code
+        let (_, sender_debt_amount) = kasa_storage::get_kasa_amounts(
+            km_storage,
+            tx_context::sender(ctx)
+        );
+        let user_stable_coin_balance = rusd_stable_coin::get_balance(rsc_storage, tx_context::sender(ctx));
+        assert!(user_stable_coin_balance <= stable_coin_amount, ERROR_); // FIXME: Find a better error code
 
-        let remaining_stable_coin_amount = amount;
+        let remaining_stable_coin_amount = coin::value(&stable_coin);
+        let total_debt_to_decrease = coin::zero<RUSD_STABLE_COIN>(ctx);
+        let total_collateral_to_send = coin::zero<SUI>(ctx);
         let current_kasa_owner: Option<address>;
 
         if (check_first_redemption_hint(sk_storage, first_redemption_hint, 0)) { // FIXME: Change the collateral price
@@ -266,8 +275,69 @@ module stable_coin_factory::kasa_manager {
         } else {
             current_kasa_owner = sorted_kasas::get_last(sk_storage);
             // Find the first trove with ICR >= MCR
+            while (
+                option::is_some(&current_kasa_owner) &&
+                kasa_storage::get_collateral_ratio(
+                    km_storage,
+                    option::destroy_some(current_kasa_owner),
+                    COLLATERAL_PRICE
+                ) < get_minimum_collateral_ratio()
+            ) {
+                current_kasa_owner = sorted_kasas::get_prev(
+                    sk_storage,
+                    option::destroy_some(current_kasa_owner)
+                );
+            };
         };
 
+        // TODO: Implement max iterations?
+        while (option::is_some(&current_kasa_owner) && remaining_stable_coin_amount > 0) {
+            // max_iterations = max_iterations - 1;
+            let next_kasa_owner = sorted_kasas::get_prev(
+                sk_storage,
+                option::destroy_some(current_kasa_owner)
+            );
+
+            // TODO: Apply pending rewards here
+            // Rewards include the redistribution of kasas
+
+            // TODO: Remove collateral from kasa method
+            // We will get the amount of collateral and debt to decrease
+            let redemption_collateral_amount = coin::zero<SUI>(ctx); // FIXME: This will come from the redemption method
+            let redemption_debt_amount = coin::zero<RUSD_STABLE_COIN>(ctx); // FIXME: Same as above
+
+            remaining_stable_coin_amount = remaining_stable_coin_amount - coin::value(&redemption_debt_amount);
+            current_kasa_owner = next_kasa_owner;
+
+            coin::join(&mut total_collateral_to_send, redemption_collateral_amount);
+            coin::join(&mut total_debt_to_decrease, redemption_debt_amount);
+        };
+
+        assert!(coin::value(&total_collateral_to_send) > 0, ERROR_UNABLE_TO_REDEEM);
+
+        // TODO: Calculate the fee
+        // Extract it from the total collateral amount
+
+        // Decrease the total debt balance of the protocol
+        kasa_storage::decrease_total_debt_balance(km_storage, coin::value(&total_debt_to_decrease));
+        // Burn the rUSD tokens
+        rusd_stable_coin::burn(
+            rsc_storage,
+            get_publisher(km_publisher),
+            tx_context::sender(ctx), // FIXME: This is incorrect
+            stable_coin
+        );
+        rusd_stable_coin::burn(
+            rsc_storage,
+            get_publisher(km_publisher),
+            tx_context::sender(ctx), // FIXME: This is incorrect
+            total_debt_to_decrease
+        );
+        // Send the collateral to the sender
+        transfer::public_transfer(
+            total_collateral_to_send,
+            tx_context::sender(ctx)
+        );
     }
 
     // =================== Helpers ===================

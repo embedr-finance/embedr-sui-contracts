@@ -133,8 +133,36 @@ module tokens::rusd_stable_coin {
     /// Transfers the given amount of stable coins to the recipient
     /// 
     /// # Arguments
-    entry public fun transfer(asset: Coin<RUSD_STABLE_COIN>, recipient: address) {
+    entry public fun transfer(
+        storage: &mut RUSDStableCoinStorage,
+        asset: Coin<RUSD_STABLE_COIN>,
+        recipient: address,
+        ctx: &mut TxContext
+    ) {
+        decrease_account_balance(
+            storage,
+            tx_context::sender(ctx),
+            coin::value(&asset)
+        );
+        increase_account_balance(
+            storage,
+            recipient,
+            coin::value(&asset)
+        );
         transfer::public_transfer(asset, recipient);
+    }
+
+    entry public fun update_account_balance(
+        storage: &mut RUSDStableCoinStorage,
+        publisher: &Publisher,
+        recipient: address,
+        amount: u64,
+        remove: bool
+    ) {
+        assert!(is_authorized(storage, object::id(publisher)), ERROR_UNAUTHORIZED);
+
+        if (remove) decrease_account_balance(storage, recipient, amount)
+        else increase_account_balance(storage, recipient, amount)
     }
 
     /// Adds the given ID to the list of managers
