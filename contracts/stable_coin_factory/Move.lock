@@ -2,8 +2,8 @@
 
 [move]
 version = 0
-manifest_digest = "E145C5201B4AE86E9DA6F8C62B2D146B6A8D3197CE51A70873304C613C6FCA72"
-deps_digest = "A664AB85064CDA34C67B4B3CF6ED740585504110FA44899FF52DE838FC6D6E35"
+manifest_digest = "DD888CBFE806EE64C9EAE926DE796F19729CB0E4064748DC4FF7E1ED1D0919B3"
+deps_digest = "F9B494B64F0615AED0E98FC12A85B85ECD2BC5185C22D30E7F67786BB52E507C"
 
 dependencies = [
   { name = "EmbedrProtocolLibrary" },
@@ -33,11 +33,11 @@ dependencies = [
 
 [[move.package]]
 name = "MoveStdlib"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "b09ef4e", subdir = "crates/sui-framework/packages/move-stdlib" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/devnet", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
 name = "Sui"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "b09ef4e", subdir = "crates/sui-framework/packages/sui-framework" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/devnet", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
   { name = "MoveStdlib" },

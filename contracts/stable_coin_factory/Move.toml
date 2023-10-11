@@ -1,16 +1,15 @@
 [package]
 name = "embedr_protocol_stable_coin_factory"
 version = "0.0.1"
-published-at = "0x8fa1ca56ef11a8e78a435ec62c4c833c3491633d21b0828a44158d12c63b0aee"
+published-at = "0xcd8642382abdc5ed9584d6035fddc8c77a72cfc2a139cdf462dd19621017d931"
 
 [dependencies]
-# FIXME: rev should be the latest devnet branch -> framework/devnet
-MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "b09ef4e" }
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "b09ef4e" }
+MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "framework/devnet" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/devnet" }
 EmbedrProtocolLibrary = { local = "../library" }
 EmbedrProtocolTokens = { local = "../tokens" }
 
 [addresses]
 std = "0x1"
 sui = "0x2"
-stable_coin_factory = "0x8fa1ca56ef11a8e78a435ec62c4c833c3491633d21b0828a44158d12c63b0aee"
+stable_coin_factory = "0xcd8642382abdc5ed9584d6035fddc8c77a72cfc2a139cdf462dd19621017d931"
