@@ -1,0 +1,19 @@
+{
+  "package_id": "0x67abbcd0aae85f978b38dca89d82e34e825aa7b70406c22bfd82e1a9dd32f274",
+  "kasa_storage": {
+    "km_storage": "0x19d567ed227c8cde31797c851f567c08010ac0dd4afdf826be1bc0fc65df1585"
+  },
+  "kasa_manager": {
+    "publisher": "0x53b40272d4e7b5dce56623340208e43a1ff4912fd314c12fd86b80c4b18dc4d6"
+  },
+  "sorted_kasas": {
+    "storage": "0x403e39aaa9496e913543259e6e65b1f844526fb2547ed50bef46d342123fa6cf"
+  },
+  "stability_pool": {
+    "publisher": "0x1927792237b97521abb9e3997e7717a74ee2e0115e7ddd4bda34be9e0e72dcae",
+    "storage": "0x9c6e02cf3d6dbfad19cb5af9a440333fec8a9491cae1a5e7ef9b18ce4e918306"
+  },
+  "liquidation_assets_distributor": {
+    "collateral_gains": "0x4cfd8b3cfdfbeb54182908967af49e76fae85d56b5e23acb2ac512e80b74a440"
+  }
+}

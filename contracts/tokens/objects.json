@@ -1,0 +1,8 @@
+{
+  "package_id": "0x96b3f2d64289727a7ecd9ec27fb432df011faf8b6a024ba4fea82c0e0e62a655",
+  "rusd_stable_coin": {
+    "storage": "0x595d12e3990996dfa843dc7734ace9fe1c61ce7fb30c214af41cf69d27c6c9e8",
+    "coin_type": "0x96b3f2d64289727a7ecd9ec27fb432df011faf8b6a024ba4fea82c0e0e62a655::rusd_stable_coin::RUSD_STABLE_COIN",
+    "admin_cap": "0xbb12ea74e51747f9fe4ee77f60dfb412d1fb270790f2014c4c6669cfd8c04f17"
+  }
+}
