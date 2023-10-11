@@ -1,6 +1,6 @@
 module library::kasa {
-    use library::math::{d_fdiv_u256, d_fmul_u256, mul_div, double_scalar, scalar};
-    use library::utils::logger;
+    use library::math::{d_fdiv_u256, d_fmul_u256};
+    // use library::utils::logger;
 
     const NOMINAL_PRECISION: u256 = 100000000000000000000; // 1e20
 
