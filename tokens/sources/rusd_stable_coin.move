@@ -152,17 +152,17 @@ module tokens::rusd_stable_coin {
         transfer::public_transfer(asset, recipient);
     }
 
-    entry public fun update_account_balance(
+    public fun update_account_balance(
         storage: &mut RUSDStableCoinStorage,
         publisher: &Publisher,
         recipient: address,
         amount: u64,
-        remove: bool
+        is_increase: bool
     ) {
         assert!(is_authorized(storage, object::id(publisher)), ERROR_UNAUTHORIZED);
 
-        if (remove) decrease_account_balance(storage, recipient, amount)
-        else increase_account_balance(storage, recipient, amount)
+        if (is_increase) increase_account_balance(storage, recipient, amount)
+        else decrease_account_balance(storage, recipient, amount)
     }
 
     /// Adds the given ID to the list of managers
