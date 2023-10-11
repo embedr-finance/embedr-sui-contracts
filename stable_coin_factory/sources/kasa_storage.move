@@ -9,8 +9,9 @@ module stable_coin_factory::kasa_storage {
 
     use library::kasa::{
         calculate_nominal_collateral_ratio, calculate_collateral_ratio,
-        CRITICAL_SYSTEM_COLLATERAL_RATIO
+        get_critical_system_collateral_ratio
     };
+    // use library::utils::logger;
 
     // =================== Initialization ===================
 
@@ -19,19 +20,23 @@ module stable_coin_factory::kasa_storage {
             id: object::new(ctx),
             kasa_table: table::new(ctx),
             collateral_balance: balance::zero(),
-            debt_balance: 0
+            debt_balance: 0,
+            total_stakes: 0
         });
     }
 
     // =================== Single Kasa Object ===================
 
+    // TODO: What does this stake variable do?
     struct Kasa has store, drop {
         collateral_amount: u64,
-        debt_amount: u64
+        debt_amount: u64,
+        stake_amount: u64
     }
 
     public fun create_kasa(storage: &mut KasaManagerStorage, account_address: address, collateral_amount: u64, debt_amount: u64) {
-        let kasa = Kasa { collateral_amount, debt_amount };
+        // TODO: Stake amount will be different than zero
+        let kasa = Kasa { collateral_amount, debt_amount, stake_amount: 0 };
         table::add(&mut storage.kasa_table, account_address, kasa);
     }
 
@@ -71,6 +76,13 @@ module stable_coin_factory::kasa_storage {
         kasa.debt_amount = kasa.debt_amount - amount;
     }
 
+    public fun remove_kasa_stake(storage: &mut KasaManagerStorage, account_address: address) {
+        let kasa = read_kasa(storage, account_address);
+        storage.total_stakes = storage.total_stakes - kasa.stake_amount;
+        let kasa = borrow_kasa(storage, account_address);
+        kasa.stake_amount = 0;
+    }
+
     // TODO: This method can be in KasaManager module - look into it
     public fun get_kasa_amounts(storage: &mut KasaManagerStorage, account_address: address): (u64, u64) {
         // TODO: Check for pending rewards and add them to the amounts
@@ -84,7 +96,14 @@ module stable_coin_factory::kasa_storage {
         id: UID,
         kasa_table: Table<address, Kasa>,
         collateral_balance: Balance<SUI>,
-        debt_balance: u64
+        debt_balance: u64,
+        total_stakes: u64
+    }
+
+    struct Snapshots has key {
+        id: UID,
+        total_collateral: u64,
+        total_stakes: u64,
     }
 
     public fun increase_total_collateral_balance(storage: &mut KasaManagerStorage, balance: Balance<SUI>) {
@@ -106,8 +125,47 @@ module stable_coin_factory::kasa_storage {
     public fun get_total_balances(storage: &KasaManagerStorage): (u64, u64) {
         (balance::value(&storage.collateral_balance), storage.debt_balance)
     }
-    
+
+    public fun create_snapshot(ctx: &mut TxContext) {
+        let snapshots = Snapshots {
+            id: object::new(ctx),
+            total_collateral: 0,
+            total_stakes: 0
+        };
+        transfer::share_object(snapshots);
+    }
+
+    public fun update_stake_and_total_stakes(
+        storage: &mut KasaManagerStorage,
+        snapshots: &Snapshots,
+        account_address: address,
+    ): u64 {
+        let kasa = borrow_kasa(storage, account_address);
+        
+        // Save the new and old stake amounts
+        let new_stake = get_new_stake(snapshots, kasa.collateral_amount);
+        let old_stake = kasa.stake_amount;
+
+        // Update kasa stake amount
+        kasa.stake_amount = new_stake;
+
+        // Update total stakes
+        storage.total_stakes = storage.total_stakes - old_stake + new_stake;
+
+        new_stake
+    }
+
     // =================== Helpers ===================
+
+    fun get_new_stake(snapshots: &Snapshots, collateral_amount: u64): u64 {
+        let stake;
+        if (snapshots.total_collateral == 0) {
+            stake = collateral_amount;
+        } else {
+            stake = collateral_amount * snapshots.total_stakes / snapshots.total_collateral;
+        };
+        stake
+    }
 
     public fun get_nominal_collateral_ratio(
         storage: &mut KasaManagerStorage,
@@ -136,7 +194,7 @@ module stable_coin_factory::kasa_storage {
 
     public fun check_recovery_mode(km_storage: &mut KasaManagerStorage, collateral_price: u64): bool {
         let total_collateral_ratio = get_total_collateral_ratio(km_storage, collateral_price);
-        total_collateral_ratio < CRITICAL_SYSTEM_COLLATERAL_RATIO
+        total_collateral_ratio < get_critical_system_collateral_ratio()
     }
 
     #[test_only]

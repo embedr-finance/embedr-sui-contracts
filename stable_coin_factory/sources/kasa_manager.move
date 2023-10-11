@@ -10,13 +10,14 @@ module stable_coin_factory::kasa_manager {
     use sui::sui::SUI;
     use sui::package::{Self, Publisher};
 
-    use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage};
+    use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage, check_recovery_mode, get_collateral_ratio};
     use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage};
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
     use tokens::rusd_stable_coin::{Self, RUSD_STABLE_COIN, RUSDStableCoinStorage};
     use library::kasa::{is_icr_valid, get_minimum_collateral_ratio};
-    // use library::utils::logger;
+    use library::math::{min, mul_div};
+    use library::utils::logger;
 
     friend stable_coin_factory::kasa_operations;
 
@@ -28,6 +29,7 @@ module stable_coin_factory::kasa_manager {
     const ERROR_EXISTING_ITEM: u64 = 2;
     const ERROR_: u64 = 3;
     const ERROR_UNABLE_TO_REDEEM: u64 = 4;
+    const ERROR_UNABLE_TO_LIQUIDATE: u64 = 5;
 
     // =================== Storage ===================
 
@@ -40,6 +42,26 @@ module stable_coin_factory::kasa_manager {
         publisher: Publisher
     }
 
+    struct LiquidationTotals has drop {
+        collateral_in_sequence: u64,
+        debt_in_sequence: u64,
+        collateral_to_send_to_stability_pool: u64,
+        debt_to_offset: u64,
+        collateral_to_redistribute: u64,
+        debt_to_redistribute: u64,
+        collateral_surplus: u64,
+    }
+
+    struct LiquidationValues has drop {
+        kasa_collateral_amount: u64,
+        kasa_debt_amount: u64,
+        collateral_to_send_to_stability_pool: u64,
+        debt_to_offset: u64,
+        collateral_to_redistribute: u64,
+        debt_to_redistribute: u64,
+        collateral_surplus: u64,
+    }
+
     // =================== Events ===================
 
     /// Defines the event for when a Kasa is created
@@ -47,6 +69,13 @@ module stable_coin_factory::kasa_manager {
         account_address: address,
         collateral_amount: u64,
         debt_amount: u64
+    }
+
+    struct LiquidationEvent has copy, drop {
+        collateral_reward: u64,
+        debt_offset: u64,
+        collateral_redistributed: u64,
+        debt_redistributed: u64,
     }
 
     // =================== Initializer ===================
@@ -187,47 +216,66 @@ module stable_coin_factory::kasa_manager {
         );
     }
     
-    entry public fun liquidate_single(
+    entry public fun liquidate(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
+        sk_storage: &mut SortedKasasStorage,
         sp_storage: &mut StabilityPoolStorage,
         collateral_gains: &mut CollateralGains,
         rsc_storage: &mut RUSDStableCoinStorage,
-        account_address: address,
         ctx: &mut TxContext
     ) {
-        let account_addresses = vector::empty<address>();
-        vector::push_back(&mut account_addresses, account_address);
+        // TODO: Take a look at the stake logic - what does it do?
 
-        liquidate_kasas(
+        let collateral_price = 1600_000000000; // FIXME: Change this to the actual price
+
+        let stability_pool_stake_amount = stability_pool::get_total_stake_amount(sp_storage);
+        // TODO: Uncomment this later
+        // let recovery_mode_at_start = check_recovery_mode(km_storage, collateral_price);
+        let recovery_mode_at_start = false;
+
+        // Initializing the liquidation totals for the loop
+        let liquidation_totals = LiquidationTotals {
+            collateral_in_sequence: 0,
+            debt_in_sequence: 0,
+            debt_to_offset: 0,
+            collateral_to_send_to_stability_pool: 0,
+            collateral_to_redistribute: 0,
+            debt_to_redistribute: 0,
+            collateral_surplus: 0,
+        };
+
+        if (recovery_mode_at_start) {
+            // TODO: Need to implement this
+        } else process_liquidations_normal_mode(
             km_publisher,
             km_storage,
+            sk_storage,
             sp_storage,
             collateral_gains,
             rsc_storage,
-            account_addresses,
+            &mut liquidation_totals,
+            stability_pool_stake_amount,
+            collateral_price,
             ctx
         );
-    }
 
-    entry public fun liquidate_batch(
-        km_publisher: &KasaManagerPublisher,
-        km_storage: &mut KasaManagerStorage,
-        sp_storage: &mut StabilityPoolStorage,
-        collateral_gains: &mut CollateralGains,
-        rsc_storage: &mut RUSDStableCoinStorage,
-        account_addresses: vector<address>,
-        ctx: &mut TxContext
-    ) {
-        liquidate_kasas(
-            km_publisher,
-            km_storage,
-            sp_storage,
-            collateral_gains,
-            rsc_storage,
-            account_addresses,
-            ctx
-        );
+        assert!(liquidation_totals.debt_in_sequence > 0, ERROR_UNABLE_TO_LIQUIDATE);
+
+        // TODO: call this method if needed - need to be implemented
+        // redistribute_collateral_and_debt()
+
+        if (liquidation_totals.collateral_surplus > 0) {
+            // Send the surplus collateral to asset distributor
+        };
+
+        // Send the liquidation event
+        event::emit(LiquidationEvent {
+            collateral_reward: liquidation_totals.collateral_to_send_to_stability_pool,
+            debt_offset: liquidation_totals.debt_to_offset,
+            collateral_redistributed: liquidation_totals.collateral_to_redistribute,
+            debt_redistributed: liquidation_totals.debt_to_redistribute,
+        })
     }
 
     /// Redeems RUSD stable coins for collateral
@@ -342,59 +390,189 @@ module stable_coin_factory::kasa_manager {
 
     // =================== Helpers ===================
 
-    fun liquidate_kasas(
+    /// Processes the liquidations in normal mode
+    /// Loops through the Kasas and liquidates them
+    /// Decreases the total debt and collateral balances of the protocol
+    /// Sends the collateral to the stability pool if needed
+    /// Burns the stable coin if needed
+    fun process_liquidations_normal_mode(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
+        sk_storage: &mut SortedKasasStorage,
         sp_storage: &mut StabilityPoolStorage,
         collateral_gains: &mut CollateralGains,
         rsc_storage: &mut RUSDStableCoinStorage,
-        account_addresses: vector<address>,
+        liquidation_totals: &mut LiquidationTotals,
+        stability_pool_stake_amount: u64,
+        collateral_price: u64,
         ctx: &mut TxContext
     ) {
-        while (!vector::is_empty(&account_addresses)) {
-            let account_address = vector::pop_back(&mut account_addresses);
+        // Saving the remaining amount for decreasing with each liquidation
+        let remaining_stability_pool_stake = stability_pool_stake_amount;
 
-            let (kasa_collateral_amount, kasa_debt_amount) = kasa_storage::get_kasa_amounts(km_storage, account_address);
+        loop {
+            // Get the account address from the sorted kasas storage
+            let account_address = sorted_kasas::get_last(sk_storage);
+            // Make the account address is not none
+            // TODO: Check if this is correct - if the code breaks that means there is no more Kasas
+            // TODO: Should we liquidate ALL of them??
+            if (option::is_none(&account_address)) break;
+            let account_address = option::destroy_some(account_address);
 
-            // If the ICR is valid, return
-            if (is_icr_valid(false, kasa_collateral_amount, kasa_debt_amount, 1600_000000000)) return;
+            let collateral_ratio = get_collateral_ratio(km_storage, account_address, collateral_price);
 
-            // Kasa to be liquidated
-            let kasa = kasa_storage::remove_kasa(km_storage, account_address);
+            if (collateral_ratio < get_minimum_collateral_ratio()) {
+                // Initializing the liquidation values for the single liquidation
+                let single_liquidation = LiquidationValues {
+                    kasa_collateral_amount: 0,
+                    kasa_debt_amount: 0,
+                    collateral_to_send_to_stability_pool: 0,
+                    debt_to_offset: 0,
+                    collateral_to_redistribute: 0,
+                    debt_to_redistribute: 0,
+                    collateral_surplus: 0,
+                };
 
-            // Get the total stake amount from the stability pool
-            let stability_pool_stake_amount = stability_pool::get_total_stake_amount(sp_storage);
-
-            // If the stability pool has enough stake amount to cover the debt amount
-            if (
-                stability_pool_stake_amount != 0 &&
-                stability_pool_stake_amount >= kasa_debt_amount
-            ) {
-                // Remove collateral from the collateral balance
-                let collateral = kasa_storage::decrease_total_collateral_balance(km_storage, kasa_collateral_amount, ctx);
-
-                // Decrease the stability pool balance
-                let stable_coin = stability_pool::liquidation(
-                    sp_storage,
-                    collateral_gains,
-                    collateral,
-                    kasa_debt_amount,
-                    ctx
-                );
-                // Burn the stable coin
-                rusd_stable_coin::burn(
-                    rsc_storage,
-                    get_publisher(km_publisher),
+                liquidate_normal_mode(
+                    km_storage,
+                    sk_storage,
+                    &mut single_liquidation,
                     account_address,
-                    stable_coin
+                    remaining_stability_pool_stake
                 );
 
-                // Decrease the debt balance of the protocol
-                kasa_storage::decrease_total_debt_balance(km_storage, kasa_debt_amount);
-            };
-        };
+                // Kasa is liquidated - decrease the remaining stability pool stake
+                remaining_stability_pool_stake = remaining_stability_pool_stake - single_liquidation.debt_to_offset;
 
-        vector::destroy_empty(account_addresses);
+                // Stability pool will be able to cover the debt
+                if (single_liquidation.collateral_to_send_to_stability_pool > 0) {
+                    // Decrease the total debt balance of the protocol
+                    kasa_storage::decrease_total_debt_balance(
+                        km_storage,
+                        single_liquidation.debt_to_offset,
+                    );
+                    // Decrease the collateral balance of the protocol
+                    let collateral_coin = kasa_storage::decrease_total_collateral_balance(
+                        km_storage,
+                        single_liquidation.collateral_to_send_to_stability_pool,
+                        ctx
+                    );
+                    // Decrease the stability pool balance
+                    let stable_coin = stability_pool::liquidation(
+                        sp_storage,
+                        collateral_gains,
+                        collateral_coin,
+                        single_liquidation.debt_to_offset,
+                        ctx
+                    );
+                    // Burn the stable coin
+                    rusd_stable_coin::burn(
+                        rsc_storage,
+                        get_publisher(km_publisher),
+                        account_address,
+                        stable_coin
+                    );
+                };
+
+                // Update the liquidation totals
+                update_liquidation_totals(
+                    liquidation_totals,
+                    single_liquidation,
+                );
+            } else break;
+        }
+    }
+
+    /// Liquidates a single Kasa in normal mode
+    /// Populates the liquidation values and closes the Kasa
+    fun liquidate_normal_mode(
+        km_storage: &mut KasaManagerStorage,
+        sk_storage: &mut SortedKasasStorage,
+        liquidation_values: &mut LiquidationValues,
+        account_address: address,
+        stability_pool_stake_amount: u64
+    ) {
+        // TODO: We need to add pending rewards to the calculation
+        let (
+            kasa_collateral_amount,
+            kasa_debt_amount
+        ) = kasa_storage::get_kasa_amounts(km_storage, account_address);
+
+        // TODO: We can call this method to apply pending rewards
+        // apply_pending_rewards()
+
+        kasa_storage::remove_kasa_stake(km_storage, account_address);
+
+        let (
+            collateral_to_send_to_stability_pool,
+            debt_to_offset,
+            collateral_to_redistribute,
+            debt_to_redistribute
+        ) = get_offset_and_redistribution_values(
+            kasa_collateral_amount,
+            kasa_debt_amount,
+            stability_pool_stake_amount,
+        );
+
+        // TODO: Call close_kasa method in here
+        kasa_storage::remove_kasa(km_storage, account_address);
+        sorted_kasas::remove(sk_storage, account_address);
+        
+        liquidation_values.kasa_collateral_amount = kasa_collateral_amount;
+        liquidation_values.kasa_debt_amount = kasa_debt_amount;
+        liquidation_values.collateral_to_send_to_stability_pool = collateral_to_send_to_stability_pool;
+        liquidation_values.debt_to_offset = debt_to_offset;
+        liquidation_values.collateral_to_redistribute = collateral_to_redistribute;
+        liquidation_values.debt_to_redistribute = debt_to_redistribute;
+        liquidation_values.collateral_surplus = 0; // TODO: What do we put in here?
+    }
+
+    /// Returns the offset and redistribution values during liquidation
+    /// 
+    /// # Returns
+    /// 
+    /// * `collateral_to_send_to_stability_pool` - the amount of collateral to send to the stability pool
+    /// * `debt_to_offset` - the amount of debt to offset from the stability pool
+    /// * `collateral_to_redistribute` - the amount of collateral to redistribute to the Kasas
+    /// * `debt_to_redistribute` - the amount of debt to redistribute to the Kasas
+    fun get_offset_and_redistribution_values(
+        collateral_amount: u64,
+        debt_amount: u64,
+        stability_pool_stake_amount: u64,
+    ): (u64, u64, u64, u64) {
+        if (stability_pool_stake_amount > 0) {
+            let debt_to_offset = min(debt_amount, stability_pool_stake_amount);
+            let collateral_to_send_to_stability_pool = mul_div(collateral_amount, debt_to_offset, debt_amount);
+            let debt_to_redistribute = debt_amount - debt_to_offset;
+            let collateral_to_redistribute = collateral_amount - collateral_to_send_to_stability_pool;
+            (
+                collateral_to_send_to_stability_pool,
+                debt_to_offset,
+                collateral_to_redistribute,
+                debt_to_redistribute
+            )
+        } else (0, 0, collateral_amount, debt_amount)
+    }
+
+    /// Updates the liquidation totals with the values from a single liquidation
+    fun update_liquidation_totals(
+        liquidation_totals: &mut LiquidationTotals,
+        single_liquidation: LiquidationValues
+    ) {
+        liquidation_totals.collateral_in_sequence =
+            liquidation_totals.collateral_in_sequence + single_liquidation.kasa_collateral_amount;
+        liquidation_totals.debt_in_sequence =
+            liquidation_totals.debt_in_sequence + single_liquidation.kasa_debt_amount;
+        liquidation_totals.collateral_to_send_to_stability_pool =
+            liquidation_totals.collateral_to_send_to_stability_pool + single_liquidation.collateral_to_send_to_stability_pool;
+        liquidation_totals.debt_to_offset =
+            liquidation_totals.debt_to_offset + single_liquidation.debt_to_offset;
+        liquidation_totals.collateral_to_redistribute =
+            liquidation_totals.collateral_to_redistribute + single_liquidation.collateral_to_redistribute;
+        liquidation_totals.debt_to_redistribute =
+            liquidation_totals.debt_to_redistribute + single_liquidation.debt_to_redistribute;
+        liquidation_totals.collateral_surplus =
+            liquidation_totals.collateral_surplus + single_liquidation.collateral_surplus;
     }
 
     fun check_first_redemption_hint(
