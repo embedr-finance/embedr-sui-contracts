@@ -1,6 +1,5 @@
 module stable_coin_factory::kasa_manager {
     use std::option::{Self, Option};
-    use std::vector;
 
     use sui::object::{Self, UID, ID};
     use sui::transfer;
@@ -10,14 +9,14 @@ module stable_coin_factory::kasa_manager {
     use sui::sui::SUI;
     use sui::package::{Self, Publisher};
 
-    use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage, check_recovery_mode, get_collateral_ratio};
+    use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage, get_collateral_ratio};
     use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage};
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
     use tokens::rusd_stable_coin::{Self, RUSD_STABLE_COIN, RUSDStableCoinStorage};
-    use library::kasa::{is_icr_valid, get_minimum_collateral_ratio};
+    use library::kasa::get_minimum_collateral_ratio;
     use library::math::{min, mul_div};
-    use library::utils::logger;
+    // use library::utils::logger;
 
     friend stable_coin_factory::kasa_operations;
 
@@ -292,9 +291,9 @@ module stable_coin_factory::kasa_manager {
         rsc_storage: &mut RUSDStableCoinStorage,
         stable_coin: Coin<RUSD_STABLE_COIN>,
         first_redemption_hint: Option<address>,
-        upper_partial_redemption_hint: Option<address>,
-        lower_partial_redemption_hint: Option<address>,
-        partial_redemption_hint_nicr: u256,
+        _upper_partial_redemption_hint: Option<address>,
+        _lower_partial_redemption_hint: Option<address>,
+        _partial_redemption_hint_nicr: u256,
         ctx: &mut TxContext
     ) {
         let stable_coin_amount = coin::value(&stable_coin);
@@ -304,9 +303,9 @@ module stable_coin_factory::kasa_manager {
         // TODO: Do not redeem Kasas with ICR < MCR => ICR must be >= to 110%
         // TODO: Check the actual code and fork the assert statements
 
-        let (_, total_debt_amount) = kasa_storage::get_total_balances(km_storage);
+        let (_, _total_debt_amount) = kasa_storage::get_total_balances(km_storage);
 
-        let (_, sender_debt_amount) = kasa_storage::get_kasa_amounts(
+        let (_, _sender_debt_amount) = kasa_storage::get_kasa_amounts(
             km_storage,
             tx_context::sender(ctx)
         );
@@ -576,9 +575,9 @@ module stable_coin_factory::kasa_manager {
     }
 
     fun check_first_redemption_hint(
-        sorted_kasas_storage: &mut SortedKasasStorage,
-        hint: Option<address>,
-        collateral_price: u64,
+        _sorted_kasas_storage: &mut SortedKasasStorage,
+        _hint: Option<address>,
+        _collateral_price: u64,
     ): bool {
         // TODO: Implement this method
         false

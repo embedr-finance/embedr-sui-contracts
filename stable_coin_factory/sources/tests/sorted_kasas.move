@@ -2,15 +2,13 @@
 module stable_coin_factory::sorted_kasas_tests {
     use std::option::{Self, Option};
     
-    use sui::test_scenario::{Self as test, next_tx, Scenario, ctx};
+    use sui::test_scenario::{Self as test, next_tx};
     use sui::test_utils::{assert_eq};
-    use sui::coin::{mint_for_testing};
-    use sui::sui::{SUI};
 
     use stable_coin_factory::test_helpers::{init_stable_coin_factory, open_kasa};
     use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
     use library::test_utils::{people, scenario};
-    use library::utils::logger;
+    // use library::utils::logger;
 
     #[test]
     fun test_open_multiple_kasas() {

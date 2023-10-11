@@ -7,7 +7,7 @@ module stable_coin_factory::sorted_kasas {
     use sui::transfer;
 
     use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage};
-    use library::utils::logger;
+    // use library::utils::logger;
 
     friend stable_coin_factory::kasa_operations;
     friend stable_coin_factory::kasa_manager;
@@ -185,9 +185,9 @@ module stable_coin_factory::sorted_kasas {
         sorted_kasas_storage.size == 0
     }
 
-    fun get_max_size(sorted_kasas_storage: &mut SortedKasasStorage): u64 {
-        sorted_kasas_storage.max_size
-    }
+    // fun get_max_size(sorted_kasas_storage: &mut SortedKasasStorage): u64 {
+    //     sorted_kasas_storage.max_size
+    // }
 
     fun insert_node(
         kasa_manager_storage: &mut KasaManagerStorage,
@@ -364,6 +364,7 @@ module stable_coin_factory::sorted_kasas {
         sorted_kasas_storage.size = sorted_kasas_storage.size - 1;
     }
 
+    #[allow(unused_assignment)]
     fun check_node_position(
         kasa_manager_storage: &mut KasaManagerStorage,
         sorted_kasas_storage: &mut SortedKasasStorage,
