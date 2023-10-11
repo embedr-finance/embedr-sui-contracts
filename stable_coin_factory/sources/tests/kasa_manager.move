@@ -7,11 +7,61 @@ module stable_coin_factory::kasa_manager_tests {
     use stable_coin_factory::test_helpers::{init_stable_coin_factory, open_kasa, deposit_to_stability_pool};
     use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage};
     use stable_coin_factory::kasa_manager::{Self, KasaManagerPublisher};
+    use stable_coin_factory::sorted_kasas::SortedKasasStorage;
     use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage};
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use tokens::rusd_stable_coin::RUSDStableCoinStorage;
     use library::test_utils::{people, scenario};
     // use library::utils::logger;
+
+    #[test]
+    fun test_liquidations_happy_path() {
+        let scenario = scenario();
+        let (admin, user) = people();
+        let test = &mut scenario;
+
+        init_stable_coin_factory(test);
+
+        next_tx(test, user);
+        {   
+            open_kasa(test, user, 3_000000000, 4500_000000000);
+        };
+        next_tx(test, @0x2222);
+        {   
+            open_kasa(test, @0x2222, 15_000000000, 20000_000000000);
+        };
+        next_tx(test, @0x2222);
+        {
+            deposit_to_stability_pool(test, @0x2222, 10000_000000000);
+        };
+        next_tx(test, admin);
+        {
+            let km_publisher = test::take_shared<KasaManagerPublisher>(test);
+            let km_storage = test::take_shared<KasaManagerStorage>(test);
+            let sk_storage = test::take_shared<SortedKasasStorage>(test);
+            let sp_storage = test::take_shared<StabilityPoolStorage>(test);
+            let collateral_gains = test::take_shared<CollateralGains>(test);
+            let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
+
+            kasa_manager::liquidate(
+                &km_publisher,
+                &mut km_storage,
+                &mut sk_storage,
+                &mut sp_storage,
+                &mut collateral_gains,
+                &mut rsc_storage,
+                test::ctx(test)
+            );
+
+            test::return_shared(km_publisher);
+            test::return_shared(km_storage);
+            test::return_shared(sk_storage);
+            test::return_shared(sp_storage);
+            test::return_shared(collateral_gains);
+            test::return_shared(rsc_storage);
+        };
+        test::end(scenario);
+    }
 
     #[test]
     fun test_liquidate_single_happy_path() {
