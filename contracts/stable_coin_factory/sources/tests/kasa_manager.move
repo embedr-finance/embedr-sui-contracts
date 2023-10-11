@@ -1,3 +1,4 @@
+#[test_only]
 module stable_coin_factory::kasa_manager_tests {
     use sui::test_scenario::{Self as test, next_tx};
     use sui::test_utils::{assert_eq};
