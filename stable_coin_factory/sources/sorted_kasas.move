@@ -7,7 +7,10 @@ module stable_coin_factory::sorted_kasas {
     use sui::transfer;
 
     use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage};
-    // use library::utils::logger;
+    use library::utils::logger;
+
+    friend stable_coin_factory::kasa_operations;
+    friend stable_coin_factory::kasa_manager;
 
     // =================== Errors ===================
 
@@ -48,7 +51,7 @@ module stable_coin_factory::sorted_kasas {
 
     // =================== Entries ===================
 
-    entry public fun insert(
+    public(friend) fun insert(
         kasa_manager_storage: &mut KasaManagerStorage,
         sorted_kasas_storage: &mut SortedKasasStorage,
         id: address,
@@ -69,10 +72,9 @@ module stable_coin_factory::sorted_kasas {
         );
     }
 
-    entry public fun remove(
+    public(friend) fun remove(
         sorted_kasas_storage: &mut SortedKasasStorage,
         id: address,
-        _ctx: &mut TxContext
     ) {
         // TODO: Make sure only kasa manager module can call this contract
 
@@ -82,7 +84,7 @@ module stable_coin_factory::sorted_kasas {
         );
     }
 
-    entry public fun reinsert(
+    public(friend) fun reinsert(
         kasa_manager_storage: &mut KasaManagerStorage,
         sorted_kasas_storage: &mut SortedKasasStorage,
         id: address,
@@ -306,6 +308,47 @@ module stable_coin_factory::sorted_kasas {
                     &mut sorted_kasas_storage.node_table,
                     option::destroy_some(sorted_kasas_storage.head)
                 ).prev_id = option::none();
+            } else if (
+                option::is_some(&sorted_kasas_storage.tail) &&
+                id == option::destroy_some(sorted_kasas_storage.tail)
+            ) {
+                // The removed node is the tail
+                // Set tail to previous node
+                sorted_kasas_storage.tail = table::borrow(
+                    &sorted_kasas_storage.node_table,
+                    id
+                ).prev_id;
+                // Set next pointer of new tail to null
+                table::borrow_mut(
+                    &mut sorted_kasas_storage.node_table,
+                    option::destroy_some(sorted_kasas_storage.tail)
+                ).next_id = option::none();
+            } else {
+                // The removed node is neither the head nor the tail
+                // Set next pointer of previous node to the next node
+                let prev_id = table::borrow(
+                    &sorted_kasas_storage.node_table,
+                    id
+                ).prev_id;
+                table::borrow_mut(
+                    &mut sorted_kasas_storage.node_table,
+                    option::destroy_some(prev_id)
+                ).next_id = table::borrow(
+                    &sorted_kasas_storage.node_table,
+                    id
+                ).next_id;
+                // Set next pointer of next node to the previous node
+                let next_id = table::borrow(
+                    &sorted_kasas_storage.node_table,
+                    id
+                ).next_id;
+                table::borrow_mut(
+                    &mut sorted_kasas_storage.node_table,
+                    option::destroy_some(next_id)
+                ).prev_id = table::borrow(
+                    &sorted_kasas_storage.node_table,
+                    id
+                ).prev_id;
             }
         } else {
             // List has only one item
