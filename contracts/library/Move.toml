@@ -1,6 +1,7 @@
 [package]
 name = "EmbedrProtocolLibrary"
 version = "0.0.1"
+published-at = "0x152cd215e9880af3144b7d6b1f954560d22e5ff48bb6fc75322bf9fbd1461c91"
 
 [dependencies]
 # FIXME: rev should be the latest devnet branch -> framework/devnet
@@ -10,4 +11,4 @@ Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-fram
 [addresses]
 std = "0x1"
 sui =  "0x2"
-library = "0x3"
+library = "0x152cd215e9880af3144b7d6b1f954560d22e5ff48bb6fc75322bf9fbd1461c91"

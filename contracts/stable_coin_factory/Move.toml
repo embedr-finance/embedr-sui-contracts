@@ -1,6 +1,7 @@
 [package]
 name = "embedr_protocol_stable_coin_factory"
 version = "0.0.1"
+published-at = "0x8fa1ca56ef11a8e78a435ec62c4c833c3491633d21b0828a44158d12c63b0aee"
 
 [dependencies]
 # FIXME: rev should be the latest devnet branch -> framework/devnet
@@ -12,4 +13,4 @@ EmbedrProtocolTokens = { local = "../tokens" }
 [addresses]
 std = "0x1"
 sui = "0x2"
-stable_coin_factory = "0x3"
+stable_coin_factory = "0x8fa1ca56ef11a8e78a435ec62c4c833c3491633d21b0828a44158d12c63b0aee"
