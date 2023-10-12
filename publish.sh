@@ -60,11 +60,13 @@ for module in "${modules[@]}"; do
                 ;;
             "stable_coin_factory")
                 km_storage=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::kasa_storage::KasaManagerStorage").objectId')
+                // TODO: This km_publisher is incorrect
                 km_publisher=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::kasa_manager::KasaManagerPublisher").objectId')
                 sk_storage=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::sorted_kasas::SortedKasasStorage").objectId')
                 sp_publisher=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::stability_pool::StabilityPoolPublisher").objectId')
                 sp_storage=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::stability_pool::StabilityPoolStorage").objectId')
                 collateral_gains=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::liquidation_assets_distributor::CollateralGains").objectId')
+                // TODO: Also add kasa_table id here in the JSON
                 json='{
                     "package_id": "'$package_id'",
                     "kasa_storage": {
