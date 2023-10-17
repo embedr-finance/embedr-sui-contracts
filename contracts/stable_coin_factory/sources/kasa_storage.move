@@ -13,6 +13,8 @@ module stable_coin_factory::kasa_storage {
     };
     // use library::utils::logger;
 
+    friend stable_coin_factory::kasa_manager;
+
     // =================== Initialization ===================
 
     fun init(ctx: &mut TxContext) {
@@ -34,13 +36,13 @@ module stable_coin_factory::kasa_storage {
         stake_amount: u64
     }
 
-    public fun create_kasa(storage: &mut KasaManagerStorage, account_address: address, collateral_amount: u64, debt_amount: u64) {
+    public(friend) fun create_kasa(storage: &mut KasaManagerStorage, account_address: address, collateral_amount: u64, debt_amount: u64) {
         // TODO: Stake amount will be different than zero
         let kasa = Kasa { collateral_amount, debt_amount, stake_amount: 0 };
         table::add(&mut storage.kasa_table, account_address, kasa);
     }
 
-    public fun borrow_kasa(storage: &mut KasaManagerStorage, account_address: address): &mut Kasa {
+    public(friend) fun borrow_kasa(storage: &mut KasaManagerStorage, account_address: address): &mut Kasa {
         table::borrow_mut(&mut storage.kasa_table, account_address)
     }
 
@@ -48,7 +50,7 @@ module stable_coin_factory::kasa_storage {
         table::borrow(&storage.kasa_table, account_address)
     }
 
-    public fun remove_kasa(storage: &mut KasaManagerStorage, account_address: address): Kasa {
+    public(friend) fun remove_kasa(storage: &mut KasaManagerStorage, account_address: address): Kasa {
         table::remove(&mut storage.kasa_table, account_address)
     }
 
@@ -56,27 +58,27 @@ module stable_coin_factory::kasa_storage {
         table::contains(&storage.kasa_table, account_address)
     }
 
-    public fun increase_kasa_collateral_amount(storage: &mut KasaManagerStorage, account_address: address, amount: u64) {
+    public(friend) fun increase_kasa_collateral_amount(storage: &mut KasaManagerStorage, account_address: address, amount: u64) {
         let kasa = borrow_kasa(storage, account_address);
         kasa.collateral_amount = kasa.collateral_amount + amount;
     }
 
-    public fun decrease_kasa_collateral_amount(storage: &mut KasaManagerStorage, account_address: address, amount: u64) {
+    public(friend) fun decrease_kasa_collateral_amount(storage: &mut KasaManagerStorage, account_address: address, amount: u64) {
         let kasa = borrow_kasa(storage, account_address);
         kasa.collateral_amount = kasa.collateral_amount - amount;
     }
 
-    public fun increase_kasa_debt_amount(storage: &mut KasaManagerStorage, account_address: address, amount: u64) {
+    public(friend) fun increase_kasa_debt_amount(storage: &mut KasaManagerStorage, account_address: address, amount: u64) {
         let kasa = borrow_kasa(storage, account_address);
         kasa.debt_amount = kasa.debt_amount + amount;
     }
 
-    public fun decrease_kasa_debt_amount(storage: &mut KasaManagerStorage, account_address: address, amount: u64) {
+    public(friend) fun decrease_kasa_debt_amount(storage: &mut KasaManagerStorage, account_address: address, amount: u64) {
         let kasa = borrow_kasa(storage, account_address);
         kasa.debt_amount = kasa.debt_amount - amount;
     }
 
-    public fun remove_kasa_stake(storage: &mut KasaManagerStorage, account_address: address) {
+    public(friend) fun remove_kasa_stake(storage: &mut KasaManagerStorage, account_address: address) {
         let kasa = read_kasa(storage, account_address);
         storage.total_stakes = storage.total_stakes - kasa.stake_amount;
         let kasa = borrow_kasa(storage, account_address);
@@ -86,7 +88,7 @@ module stable_coin_factory::kasa_storage {
     // TODO: This method can be in KasaManager module - look into it
     public fun get_kasa_amounts(storage: &mut KasaManagerStorage, account_address: address): (u64, u64) {
         // TODO: Check for pending rewards and add them to the amounts
-        let kasa = borrow_kasa(storage, account_address);
+        let kasa = read_kasa(storage, account_address);
         (kasa.collateral_amount, kasa.debt_amount)
     }
 
@@ -106,19 +108,19 @@ module stable_coin_factory::kasa_storage {
         total_stakes: u64,
     }
 
-    public fun increase_total_collateral_balance(storage: &mut KasaManagerStorage, balance: Balance<SUI>) {
+    public(friend) fun increase_total_collateral_balance(storage: &mut KasaManagerStorage, balance: Balance<SUI>) {
         balance::join(&mut storage.collateral_balance, balance);
     }
 
-    public fun decrease_total_collateral_balance(storage: &mut KasaManagerStorage, amount: u64, ctx: &mut TxContext): Coin<SUI> {
+    public(friend) fun decrease_total_collateral_balance(storage: &mut KasaManagerStorage, amount: u64, ctx: &mut TxContext): Coin<SUI> {
         coin::take(&mut storage.collateral_balance, amount, ctx)
     }
 
-    public fun increase_total_debt_balance(storage: &mut KasaManagerStorage, amount: u64) {
+    public(friend) fun increase_total_debt_balance(storage: &mut KasaManagerStorage, amount: u64) {
         storage.debt_balance = storage.debt_balance + amount;
     }
 
-    public fun decrease_total_debt_balance(storage: &mut KasaManagerStorage, amount: u64) {
+    public(friend) fun decrease_total_debt_balance(storage: &mut KasaManagerStorage, amount: u64) {
         storage.debt_balance = storage.debt_balance - amount;
     }
 
@@ -126,7 +128,7 @@ module stable_coin_factory::kasa_storage {
         (balance::value(&storage.collateral_balance), storage.debt_balance)
     }
 
-    public fun create_snapshot(ctx: &mut TxContext) {
+    public(friend) fun create_snapshot(ctx: &mut TxContext) {
         let snapshots = Snapshots {
             id: object::new(ctx),
             total_collateral: 0,
@@ -135,7 +137,7 @@ module stable_coin_factory::kasa_storage {
         transfer::share_object(snapshots);
     }
 
-    public fun update_stake_and_total_stakes(
+    public(friend) fun update_stake_and_total_stakes(
         storage: &mut KasaManagerStorage,
         snapshots: &Snapshots,
         account_address: address,
