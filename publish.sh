@@ -60,8 +60,7 @@ for module in "${modules[@]}"; do
                 ;;
             "stable_coin_factory")
                 km_storage=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::kasa_storage::KasaManagerStorage").objectId')
-                kasa_table_object=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "0x2::dynamic_field::Field<u64, 0x2::table::Table<u64, u256>>").objectId')
-                kasa_table_id=$(sui client object --json $kasa_table_object | jq -r '.content.fields.value.fields.id.id')
+                kasa_table_id=$(sui client object --json $km_storage | jq -r '.content.fields.kasa_table.fields.id.id')
                 km_publisher_object=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::kasa_manager::KasaManagerPublisher").objectId')
                 km_publisher_id=$(sui client object --json $km_publisher_object | jq -r '.content.fields.publisher.fields.id.id')
                 sk_storage=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::sorted_kasas::SortedKasasStorage").objectId')
@@ -76,7 +75,6 @@ for module in "${modules[@]}"; do
                     "kasa_manager": {
                         "publisher_object": "'$km_publisher_object'",
                         "publisher_id": "'$km_publisher_id'",
-                        "kasa_table_object": "'$kasa_table_object'",
                         "kasa_table_id": "'$kasa_table_id'"
                     },
                     "sorted_kasas": {
