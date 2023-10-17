@@ -29,7 +29,7 @@ module stable_coin_factory::kasa_operations {
 
     // =================== Entries ===================
 
-    entry public fun open_kasa(
+    public fun open_kasa(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
@@ -81,7 +81,7 @@ module stable_coin_factory::kasa_operations {
         )
     }
 
-    entry public fun deposit_collateral(
+    public fun deposit_collateral(
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
         collateral: Coin<SUI>,
@@ -111,7 +111,7 @@ module stable_coin_factory::kasa_operations {
         );
     }
 
-    entry public fun withdraw_collateral(
+    public fun withdraw_collateral(
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
         amount: u64,
@@ -157,7 +157,7 @@ module stable_coin_factory::kasa_operations {
         );
     }
 
-    entry public fun borrow_loan(
+    public fun borrow_loan(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
@@ -207,7 +207,7 @@ module stable_coin_factory::kasa_operations {
         );
     }
 
-    entry public fun repay_loan(
+    public fun repay_loan(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
