@@ -265,6 +265,7 @@ module stable_coin_factory::kasa_manager {
         // redistribute_collateral_and_debt()
 
         if (liquidation_totals.collateral_surplus > 0) {
+            // TODO: Write this logic later on
             // Send the surplus collateral to asset distributor
         };
 
