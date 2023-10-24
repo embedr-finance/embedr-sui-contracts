@@ -117,39 +117,39 @@ module stable_coin_factory::sorted_kasas {
 
     // =================== Queries ===================
 
-    public fun check_insert_position(
-        kasa_manager_storage: &mut KasaManagerStorage,
-        sorted_kasas_storage: &mut SortedKasasStorage,
-        nicr: u256,
-        prev_id: Option<address>,
-        next_id: Option<address>,
-        _ctx: &mut TxContext
-    ): bool {
-        check_node_position(
-            kasa_manager_storage,
-            sorted_kasas_storage,
-            nicr,
-            prev_id,
-            next_id
-        )
-    }
+    // public fun check_insert_position(
+    //     kasa_manager_storage: &mut KasaManagerStorage,
+    //     sorted_kasas_storage: &mut SortedKasasStorage,
+    //     nicr: u256,
+    //     prev_id: Option<address>,
+    //     next_id: Option<address>,
+    //     _ctx: &mut TxContext
+    // ): bool {
+    //     check_node_position(
+    //         kasa_manager_storage,
+    //         sorted_kasas_storage,
+    //         nicr,
+    //         prev_id,
+    //         next_id
+    //     )
+    // }
 
-    public fun find_insert_position(
-        kasa_manager_storage: &mut KasaManagerStorage,
-        sorted_kasas_storage: &mut SortedKasasStorage,
-        nicr: u256,
-        prev_id: Option<address>,
-        next_id: Option<address>,
-        _ctx: &mut TxContext
-    ): (Option<address>, Option<address>) {
-        find_node_position(
-            kasa_manager_storage,
-            sorted_kasas_storage,
-            nicr,
-            prev_id,
-            next_id
-        )
-    }
+    // public fun find_insert_position(
+    //     kasa_manager_storage: &mut KasaManagerStorage,
+    //     sorted_kasas_storage: &mut SortedKasasStorage,
+    //     nicr: u256,
+    //     prev_id: Option<address>,
+    //     next_id: Option<address>,
+    //     _ctx: &mut TxContext
+    // ): (Option<address>, Option<address>) {
+    //     find_node_position(
+    //         kasa_manager_storage,
+    //         sorted_kasas_storage,
+    //         nicr,
+    //         prev_id,
+    //         next_id
+    //     )
+    // }
 
     public fun get_size(sorted_kasas_storage: &SortedKasasStorage): u64 {
         sorted_kasas_storage.size

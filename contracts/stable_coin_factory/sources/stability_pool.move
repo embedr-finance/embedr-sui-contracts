@@ -110,7 +110,7 @@ module stable_coin_factory::stability_pool {
     /// 
     /// * `sp_storage` - the storage for the stability pool
     /// * `stable_coin` - the stable coin to be staked
-    entry public fun deposit(
+    public fun deposit(
         sp_publisher: &StabilityPoolPublisher,
         sp_storage: &mut StabilityPoolStorage,
         collateral_gains: &mut CollateralGains,
@@ -188,7 +188,7 @@ module stable_coin_factory::stability_pool {
     /// 
     /// * `sp_storage` - the storage for the stability pool
     /// * `amount` - the amount of stable coin to be withdrawn
-    entry public fun withdraw(
+    public fun withdraw(
         sp_publisher: &StabilityPoolPublisher,
         sp_storage: &mut StabilityPoolStorage,
         collateral_gains: &mut CollateralGains,

@@ -215,7 +215,7 @@ module stable_coin_factory::kasa_manager {
         );
     }
     
-    entry public fun liquidate(
+    public fun liquidate(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
@@ -265,6 +265,7 @@ module stable_coin_factory::kasa_manager {
         // redistribute_collateral_and_debt()
 
         if (liquidation_totals.collateral_surplus > 0) {
+            // TODO: Write this logic later on
             // Send the surplus collateral to asset distributor
         };
 
@@ -284,7 +285,7 @@ module stable_coin_factory::kasa_manager {
     /// * `kasa_manager_storage` - the KasaManagerStorage object
     /// * `rusd_stable_coin_storage` - the RUSDStableCoinStorage object
     /// * `amount` - the amount of RUSD stable coins to redeem
-    entry public fun redeem(
+    public fun redeem(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
@@ -583,10 +584,11 @@ module stable_coin_factory::kasa_manager {
         false
     }
     
-    public fun get_publisher(storage: &KasaManagerPublisher): &Publisher {
+    fun get_publisher(storage: &KasaManagerPublisher): &Publisher {
         &storage.publisher
     }
 
+    #[test_only]
     public fun get_publisher_id(publisher: &KasaManagerPublisher): ID {
         object::id(&publisher.publisher)
     }
