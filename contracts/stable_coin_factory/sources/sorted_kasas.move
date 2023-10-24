@@ -170,23 +170,23 @@ module stable_coin_factory::sorted_kasas {
         table::borrow(&sorted_kasas_storage.node_table, id).prev_id
     }
 
-    // =================== Helpers ===================
-
-    fun contains(sorted_kasas_storage: &mut SortedKasasStorage, id: address): bool {
+    public fun contains(sorted_kasas_storage: &mut SortedKasasStorage, id: address): bool {
         table::contains(&sorted_kasas_storage.node_table, id)
     }
 
-    fun is_full(sorted_kasas_storage: &mut SortedKasasStorage): bool {
+    public fun is_full(sorted_kasas_storage: &mut SortedKasasStorage): bool {
         sorted_kasas_storage.size == sorted_kasas_storage.max_size
     }
 
-    fun is_empty(sorted_kasas_storage: &mut SortedKasasStorage): bool {
+    public fun is_empty(sorted_kasas_storage: &mut SortedKasasStorage): bool {
         sorted_kasas_storage.size == 0
     }
 
-    // fun get_max_size(sorted_kasas_storage: &mut SortedKasasStorage): u64 {
-    //     sorted_kasas_storage.max_size
-    // }
+    public fun get_max_size(sorted_kasas_storage: &mut SortedKasasStorage): u64 {
+        sorted_kasas_storage.max_size
+    }
+
+    // =================== Helpers ===================
 
     fun insert_node(
         kasa_manager_storage: &mut KasaManagerStorage,
