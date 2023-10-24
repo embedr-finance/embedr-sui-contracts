@@ -25,6 +25,11 @@ module stable_coin_factory::kasa_storage {
             debt_balance: 0,
             total_stakes: 0
         });
+        transfer::share_object(LiquidationSnapshots {
+            id: object::new(ctx),
+            total_collateral: 0,
+            total_stakes: 0
+        });
     }
 
     // =================== Single Kasa Object ===================
@@ -136,15 +141,6 @@ module stable_coin_factory::kasa_storage {
 
     public fun get_kasa_count(storage: &KasaManagerStorage): u64 {
         table::length(&storage.kasa_table)
-    }
-
-    public(friend) fun create_snapshot(ctx: &mut TxContext) {
-        let snapshots = LiquidationSnapshots {
-            id: object::new(ctx),
-            total_collateral: 0,
-            total_stakes: 0
-        };
-        transfer::share_object(snapshots);
     }
 
     public(friend) fun update_stake_and_total_stakes(
