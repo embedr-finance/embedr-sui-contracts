@@ -102,7 +102,13 @@ module stable_coin_factory::kasa_storage {
         total_stakes: u64
     }
 
-    struct Snapshots has key {
+    /// Keeps track of collateral and stake amounts after each liquidation
+    /// 
+    /// # Fields
+    /// 
+    /// * `total_collateral` - Snapshot of the value of total collateral, taken right after the lastest liquidation
+    /// * `total_stakes` - Snapshot of the value of total stakes, taken right after the lastest liquidation
+    struct LiquidationSnapshots has key {
         id: UID,
         total_collateral: u64,
         total_stakes: u64,
@@ -128,8 +134,12 @@ module stable_coin_factory::kasa_storage {
         (balance::value(&storage.collateral_balance), storage.debt_balance)
     }
 
+    public fun get_kasa_count(storage: &KasaManagerStorage): u64 {
+        table::length(&storage.kasa_table)
+    }
+
     public(friend) fun create_snapshot(ctx: &mut TxContext) {
-        let snapshots = Snapshots {
+        let snapshots = LiquidationSnapshots {
             id: object::new(ctx),
             total_collateral: 0,
             total_stakes: 0
@@ -139,7 +149,7 @@ module stable_coin_factory::kasa_storage {
 
     public(friend) fun update_stake_and_total_stakes(
         storage: &mut KasaManagerStorage,
-        snapshots: &Snapshots,
+        snapshots: &LiquidationSnapshots,
         account_address: address,
     ): u64 {
         let kasa = borrow_kasa(storage, account_address);
@@ -159,11 +169,13 @@ module stable_coin_factory::kasa_storage {
 
     // =================== Helpers ===================
 
-    fun get_new_stake(snapshots: &Snapshots, collateral_amount: u64): u64 {
+    fun get_new_stake(snapshots: &LiquidationSnapshots, collateral_amount: u64): u64 {
         let stake;
         if (snapshots.total_collateral == 0) {
             stake = collateral_amount;
         } else {
+            // assert!(snapshots.total_stakes > 0, "Total stakes should be greater than zero");
+            // TODO: Might have to use math library for this
             stake = collateral_amount * snapshots.total_stakes / snapshots.total_collateral;
         };
         stake
