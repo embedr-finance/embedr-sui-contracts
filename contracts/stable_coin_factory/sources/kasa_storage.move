@@ -9,7 +9,7 @@ module stable_coin_factory::kasa_storage {
 
     use library::kasa::{
         calculate_nominal_collateral_ratio, calculate_collateral_ratio,
-        get_critical_system_collateral_ratio
+        get_critical_system_collateral_ratio, is_icr_valid
     };
     // use library::utils::logger;
 
@@ -197,6 +197,17 @@ module stable_coin_factory::kasa_storage {
     public fun check_recovery_mode(km_storage: &mut KasaManagerStorage, collateral_price: u64): bool {
         let total_collateral_ratio = get_total_collateral_ratio(km_storage, collateral_price);
         total_collateral_ratio < get_critical_system_collateral_ratio()
+    }
+
+    /// Checks if the total collateral ratio is over the minimum collateral ratio
+    public fun is_tcr_over_threshold(storage: &mut KasaManagerStorage, collateral_price: u64): bool {
+        let (collateral_amount, debt_amount) = get_total_balances(storage);
+        is_icr_valid(
+            false,
+            collateral_amount,
+            debt_amount,
+            collateral_price
+        )
     }
 
     #[test_only]
