@@ -41,6 +41,8 @@ module stable_coin_factory::kasa_operations {
         let account_address = tx_context::sender(ctx);
         let collateral_amount = coin::value(&collateral);
 
+        // TODO: Check for minumum debt amount
+
         // Check for existing kasa
         assert!(!kasa_storage::has_kasa(km_storage, account_address), ERROR_EXISTING_KASA);
 
@@ -106,8 +108,7 @@ module stable_coin_factory::kasa_operations {
             sk_storage,
             account_address,
             option::none(),
-            option::none(),
-            ctx
+            option::none()
         );
     }
 
@@ -152,8 +153,7 @@ module stable_coin_factory::kasa_operations {
             sk_storage,
             account_address,
             option::none(),
-            option::none(),
-            ctx
+            option::none()
         );
     }
 
@@ -202,8 +202,7 @@ module stable_coin_factory::kasa_operations {
             sk_storage,
             account_address,
             option::none(),
-            option::none(),
-            ctx
+            option::none()
         );
     }
 
@@ -253,8 +252,7 @@ module stable_coin_factory::kasa_operations {
             sk_storage,
             account_address,
             option::none(),
-            option::none(),
-            ctx
+            option::none()
         )
     }
 
@@ -265,8 +263,7 @@ module stable_coin_factory::kasa_operations {
         sk_storage: &mut SortedKasasStorage,
         account_address: address,
         prev_id: Option<address>,
-        next_id: Option<address>,
-        ctx: &mut TxContext
+        next_id: Option<address>
     ) {
         let (current_collateral_amount, current_debt_amount) = kasa_storage::get_kasa_amounts(
             km_storage,
@@ -281,8 +278,7 @@ module stable_coin_factory::kasa_operations {
                 current_debt_amount
             ),
             prev_id,
-            next_id,
-            ctx
+            next_id
         )
     }
 }

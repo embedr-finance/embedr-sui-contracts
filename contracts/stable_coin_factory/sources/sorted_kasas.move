@@ -90,8 +90,7 @@ module stable_coin_factory::sorted_kasas {
         id: address,
         nicr: u256,
         prev_id: Option<address>,
-        next_id: Option<address>,
-        _ctx: &mut TxContext
+        next_id: Option<address>
     ) {
         // TODO: Make sure only kasa manager module can call this contract
 
