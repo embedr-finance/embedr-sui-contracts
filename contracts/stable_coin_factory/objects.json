@@ -1,22 +1,21 @@
 {
-  "package_id": "0xba7a32822c191220f96734a97a03aea1db4c78ccc5bfafcdaf364458db02969b",
+  "package_id": "0xfcce683faeb061c3a17a07e7dadc9b4adfb14477b7588a7b38e6263408d1d934",
   "kasa_storage": {
-    "km_storage": "0x391329e7b588740b2ca5a6145230e2982add310a446e8f698c71c6c35a00586c"
+    "km_storage": "0x897e0f586aea868c27d91de225bef2520d9a4a9ddfbc5de311f199c72c424318"
   },
   "kasa_manager": {
-    "publisher_object": "0xbcdcf96467aa0190b54ed6fc142cc966402368a905b5499112e2cafa54c0ca05",
-    "publisher_id": "0x502cb58680cf9a5ec29f25ac1d2cd004f4665c1898f50976dbe6384b562f23d5",
-    "kasa_table_object": "0xe577e822a5624de696c2d08754ffcacc231258015597fc0376838f74107ea62a",
-    "kasa_table_id": "0x63b05f79da4e51726379b2137ca51eb6ed06edab7635e07914497cca80a45df4"
+    "publisher_object": "0xe88991c1c62a5b26e20bf1ddba843392163e0da5e86afcbb8648fd17163b3293",
+    "publisher_id": "0x384a2e7b1ec7d3fc82bd49aa03adf06b442c26f54c9f3e410a78d220d57318be",
+    "kasa_table_id": "0xcd5db1a6de217739211386101b97870d772c0b3f19c6f1dd28ed2e289c365f75"
   },
   "sorted_kasas": {
-    "storage": "0xfcd97d37d68c0d2de805656b2b75ef0ab73740413ec83c1638f84f024ec379a3"
+    "storage": "0xd6a5b416ecfcc8ac9bb5f502d094185b4d8cf8109178f1f9474a860aef86b299"
   },
   "stability_pool": {
-    "publisher": "0x33d9be2dd2da1d9a62f5a69332dbde6e253b42a613e226459fc2faeaea85a1a8",
-    "storage": "0x6a40369c6e089c54d6d13184cf9980334705b0fb6612f227cf1b66f110e21e9d"
+    "publisher": "0x62958e64446795bea5fa20de328e4710a888e58ce85c16c8349b823f12fdb321",
+    "storage": "0x82bdbbab66922493e5153836aaf704be04a4016152c19f6420605e48bf80402b"
   },
   "liquidation_assets_distributor": {
-    "collateral_gains": "0x23d43a965d4b70b3e088017579d8c37f3f778bccb3f2cee3069d4f44464201d2"
+    "collateral_gains": "0x798b7674ddafa6d224aff5a8698dc9d2c5bb4d542ce57ab4bbfeacb5450e65b4"
   }
 }

@@ -1,8 +1,8 @@
 {
-  "package_id": "0x9ff8f187990a9d2fb215e808a68006c8273421fd9a1227235bfdb521e671d174",
+  "package_id": "0x5d1cf12391cdfad9b92ece78bd611c5a92b96d6f5675709076ba426939b4ae9a",
   "rusd_stable_coin": {
-    "storage": "0xe528196b969d27508e6f91fdbdcdb78654c99ecd3db8bdb68c54e44837c3edb5",
-    "coin_type": "0x9ff8f187990a9d2fb215e808a68006c8273421fd9a1227235bfdb521e671d174::rusd_stable_coin::RUSD_STABLE_COIN",
-    "admin_cap": "0x4c89ab60aceed14f625cb0fd7a9a9760f54113266ecd817ce23ca3b1b240260d"
+    "storage": "0x8ca9679bf6097bef4f732efd2be5ae3cbcdc2456341dc3f64021ca83a833aa43",
+    "coin_type": "0x5d1cf12391cdfad9b92ece78bd611c5a92b96d6f5675709076ba426939b4ae9a::rusd_stable_coin::RUSD_STABLE_COIN",
+    "admin_cap": "0x73dfccf4b17eb3fe0a18431339febf2c89abb8a583e3bf17732ceb8ec693eee5"
   }
 }
