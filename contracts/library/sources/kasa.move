@@ -11,6 +11,9 @@ module library::kasa {
     /// If the system collateral ratio falls below this value, the system enters recovery mode
     const CRITICAL_SYSTEM_COLLATERAL_RATIO: u256 = 1500000000;
 
+    /// The minimum amount of debt needed to open a Kasa
+    const MINIMUM_NET_DEBT: u256 = 1800_000000000;
+
     /// Calculates the collateral ratio for a given collateral amount, debt amount and collateral price.
     /// 
     /// # Arguments
@@ -81,5 +84,9 @@ module library::kasa {
 
     public fun get_critical_system_collateral_ratio(): u256 {
         CRITICAL_SYSTEM_COLLATERAL_RATIO
+    }
+
+    public fun get_minimum_net_debt(): u256 {
+        MINIMUM_NET_DEBT
     }
 }
