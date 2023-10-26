@@ -49,7 +49,7 @@ module stable_coin_factory::sorted_kasas {
         });
     }
 
-    // =================== Entries ===================
+    // =================== Friend Methods ===================
 
     public(friend) fun insert(
         kasa_manager_storage: &mut KasaManagerStorage,

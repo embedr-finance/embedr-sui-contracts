@@ -65,6 +65,10 @@ module stable_coin_factory::kasa_storage {
     /// # Arguments
     /// 
     /// * `account_address` - address of the account
+    /// 
+    /// # Returns
+    /// 
+    /// * `Kasa` - a mutable reference to the Kasa object
     public(friend) fun borrow_kasa(storage: &mut KasaManagerStorage, account_address: address): &mut Kasa {
         table::borrow_mut(&mut storage.kasa_table, account_address)
     }
@@ -74,6 +78,10 @@ module stable_coin_factory::kasa_storage {
     /// # Arguments
     /// 
     /// * `account_address` - address of the account
+    /// 
+    /// # Returns
+    /// 
+    /// * `Kasa` - a reference to the Kasa object
     public fun read_kasa(storage: &KasaManagerStorage, account_address: address): &Kasa {
         table::borrow(&storage.kasa_table, account_address)
     }
@@ -83,6 +91,10 @@ module stable_coin_factory::kasa_storage {
     /// # Arguments
     /// 
     /// * `account_address` - address of the account
+    /// 
+    /// # Returns
+    /// 
+    /// * `Kasa` - the removed Kasa object
     public(friend) fun remove_kasa(storage: &mut KasaManagerStorage, account_address: address): Kasa {
         table::remove(&mut storage.kasa_table, account_address)
     }
@@ -92,6 +104,10 @@ module stable_coin_factory::kasa_storage {
     /// # Arguments
     /// 
     /// * `account_address` - address of the account
+    /// 
+    /// # Returns
+    /// 
+    /// * `bool` - true if the Kasa object exists, false otherwise
     public fun has_kasa(storage: &KasaManagerStorage, account_address: address): bool {
         table::contains(&storage.kasa_table, account_address)
     }
