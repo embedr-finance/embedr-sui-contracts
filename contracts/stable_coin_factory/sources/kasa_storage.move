@@ -1,3 +1,17 @@
+/// Kasa Storage module is responsible for storing Kasa and protocol data
+/// It also provides helper functions to access and modify the data
+/// 
+/// # Related Modules
+/// 
+/// * `Kasa Manager` - `Kasa Manager` calls methods from this module to access and modify the data
+/// * `Kasa Operations` - `Kasa Operations` calls methods from this module to read Kasa data
+/// 
+/// There are two responsibilities of this module:
+/// 
+/// 1. Manipulating the Kasa object data for user accounts
+/// 3. Manipulating the protocol data
+/// 
+/// This module exposes the necessary functions to perform these responsibilities
 module stable_coin_factory::kasa_storage {
     use sui::object::{Self, UID};
     use sui::transfer;

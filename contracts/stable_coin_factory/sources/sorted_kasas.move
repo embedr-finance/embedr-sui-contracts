@@ -1,3 +1,15 @@
+/// Sorted Kasas is responsible for maintaining a sorted list of kasas based on their nominal collateral ratio.
+/// Kasa nominal collateral ratio changes over time, so the list must be updated accordingly.
+/// 
+/// # Related Modules
+/// 
+/// * `Kasa Manager` - `Kasa Manager` calls methods in this module to insert, remove, and reinsert kasas in the list.
+/// * `Kasa Operations` - `Kasa Operations` 
+/// 
+/// There is a single responsibility for this module:
+/// 
+/// Manage a sorted list of kasas based on their nominal collateral ratio
+/// Execute insert, remove, and reinsert operations on the list
 module stable_coin_factory::sorted_kasas {
     use std::option::{Self, Option};
 

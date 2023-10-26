@@ -1,3 +1,21 @@
+/// Kasa Operations module is responsible for all the operations related to kasas
+/// This module can be used by users as a proxy to interact with the kasas
+/// 
+/// # Related Modules
+/// 
+/// * `Kasa Manager` - `Kasa Operations` calls `Kasa Manager` to perform Kasa operations
+/// * `Sorted Kasas` - `Kasa Operations` calls `Sorted Kasas` to insert or reinsert a kasa to the sorted kasas list
+/// 
+/// There is a single responsibility for this module:
+/// 
+/// With each operation, `Kasa Operations` will check for the validity of the operation such as:
+/// 
+/// 1. Making sure the collateral ratio is valid
+/// 2. Making sure the minimum debt amount is met for opening a Kasa
+/// 3. Making sure Kasa exists for some operations
+/// ...
+/// 
+/// After checking various conditions, `Kasa Operations` will call `Kasa Manager` to perform operations
 module stable_coin_factory::kasa_operations {
     use std::option::{Self, Option};
 
@@ -78,6 +96,7 @@ module stable_coin_factory::kasa_operations {
         );
 
         // TODO: Get prev_id and next_id as a parameter
+        // TODO: Move this logic to Kasa Manager
         sorted_kasas::insert(
             km_storage,
             sk_storage,
@@ -292,6 +311,7 @@ module stable_coin_factory::kasa_operations {
     /// * `account_address` - the account address of the kasa
     /// * `prev_id` - the previous kasa id in the sorted kasas list
     /// * `next_id` - the next kasa id in the sorted kasas list
+    /// // TODO: Move this logic to Kasa Manager
     fun reinsert_kasa_to_list(
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,

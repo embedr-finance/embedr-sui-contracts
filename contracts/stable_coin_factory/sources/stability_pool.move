@@ -1,3 +1,15 @@
+/// Stability Pool is responsible for storing the stable coin tokens staked by users and
+/// during liquidations covers the debt for liquidated Kasas
+/// 
+/// # Related Modules
+/// 
+/// * `Kasa Manager` - `Kasa Manager` reads the debt from the `Stability Pool` and sends collateral gains to this module
+/// 
+/// # Module Features
+/// 
+/// 1. Storing the stable coin tokens staked by users
+/// 2. During liquidations, covering the debt for liquidated Kasas
+/// 3. Distributing collateral gains to users automatically on deposit and withdrawal
 module stable_coin_factory::stability_pool {
     use sui::object::{Self, UID, ID};
     use sui::table::{Self, Table};

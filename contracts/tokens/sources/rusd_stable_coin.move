@@ -1,3 +1,16 @@
+/// RUSD Stable Coin is responsible for the issuance of the stable coin for the Embedr Protocol
+/// 
+/// # Related Modules
+/// 
+/// * `Kasa Manager` - `Kasa Manager` mints and burns stable coins
+/// * `Stability Pool` - `Stability Pool` updates the account balance of the user on deposit/withdrawal
+/// 
+/// # Module Features
+/// 
+/// 1. Adding and removing manager IDs for gatekeeping minting/burning
+///     stable coins and updating balances
+/// 2. Minting and burning stable coins
+/// 3. Updating stable coin balances
 module tokens::rusd_stable_coin {
     use std::option;
 

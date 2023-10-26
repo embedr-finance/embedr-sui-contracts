@@ -1,3 +1,15 @@
+/// Liquidation Assets Distributor is responsible for distributing collateral gains to Stability Pool stakers
+/// With each liquidation of Kasa, this module is executed to save the reward state of the liquidation
+/// 
+/// # Related Modules
+/// 
+/// * `Stability Pool` - `Stability Pool` calls methods from this module to save and distribute collateral gains to stakers
+/// 
+/// There is a single responsibility for this module:
+/// 
+/// During liquidations, this module is called to save the collateral gains for each epoch and scale
+/// After saving the collateral gains, with each deposit and withdraw from Stability Pool
+/// this module is called to distribute the collateral gains to stakers automatically
 module stable_coin_factory::liquidation_assets_distributor {    
     use sui::object::{Self, UID};
     use sui::tx_context::{TxContext};

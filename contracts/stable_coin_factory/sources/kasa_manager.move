@@ -1,3 +1,19 @@
+/// Kasa Manager module is responsible for managing the Kasas and their operations
+/// 
+/// # Related Modules
+/// 
+/// * `Kasa Storage` - `Kasa Manager` calls `Kasa Storage` to manipulate the Kasas and protocol balances
+/// * `Kasa Operations` - `Kasa Operations` module calls the methods in this module for executing Kasa operations
+/// * `Sorted Kasas` - `Kasa Manager` calls `Sorted Kasas` to manipulate and get the Kasas in order
+/// * `Stability Pool` - `Kasa Manager` calls `Stability Pool` during liquidations
+/// * `RUSD Stable Coin` - `Kasa Manager` calls `RUSD Stable Coin` to mint and burn stable coins
+///
+/// 
+/// There are three main operations in this module:
+/// 
+/// 1. Creates and manipulates the Kasa objects
+/// 2. Liquidates Kasas that are below the minimum collateral ratio
+/// 3. Redeems stable coins for collateral from Kasas
 module stable_coin_factory::kasa_manager {
     use std::option::{Self, Option};
 
