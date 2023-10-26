@@ -1,3 +1,15 @@
+/// Stability Pool is responsible for storing the stable coin tokens staked by users and
+/// during liquidations covers the debt for liquidated Kasas
+/// 
+/// # Related Modules
+/// 
+/// * `Kasa Manager` - `Kasa Manager` reads the debt from the `Stability Pool` and sends collateral gains to this module
+/// 
+/// # Module Features
+/// 
+/// 1. Storing the stable coin tokens staked by users
+/// 2. During liquidations, covering the debt for liquidated Kasas
+/// 3. Distributing collateral gains to users automatically on deposit and withdrawal
 module stable_coin_factory::stability_pool {
     use sui::object::{Self, UID, ID};
     use sui::table::{Self, Table};
@@ -24,19 +36,20 @@ module stable_coin_factory::stability_pool {
         publisher: Publisher
     }
 
-    /// Stake represents the amount of tokens staked by an account.
+    /// Stake represents the amount of tokens staked by an account
     /// 
     /// # Fields
     /// 
     /// * `account_address` - the address of the account that staked the tokens
     /// * `amount` - the amount of tokens staked
+    /// * `snapshot` - the snapshot of the stability pool
     struct Stake has store, drop {
         account_address: address,
         amount: u64,
         snapshot: StabilityPoolSnapshot
     }
 
-    /// StabilityPoolStorage represents the storage for the stability pool.
+    /// StabilityPoolStorage represents the storage for the stability pool
     /// 
     /// # Fields
     /// 
@@ -52,11 +65,12 @@ module stable_coin_factory::stability_pool {
         last_error_offsets: OffsetErrors
     }
 
-    /// LiquidationSnapshot represents the snapshot of the stability pool at var
+    /// StabilityPoolSnapshot represents the snapshot of the stability pool at various epochs
     /// 
     /// # Fields
     /// 
-    /// * `p` - value to calculate the compounded stake amount
+    /// * `p` - p value comes from the distribution formula
+    /// * `s` - s value comes from the distribution formula
     /// * `epoch` - stability pool depletion epoch
     /// * `scale` - decimal shift of the p value
     struct StabilityPoolSnapshot has store, drop {
@@ -102,14 +116,13 @@ module stable_coin_factory::stability_pool {
         });
     }
 
-    // =================== Entries ===================
+    // =================== Public Methods ===================
 
     /// Deposits a given amount of stable coin into the stability pool.
     /// 
     /// # Arguments
     /// 
-    /// * `sp_storage` - the storage for the stability pool
-    /// * `stable_coin` - the stable coin to be staked
+    /// * `stable_coin` - the stable coin object to be staked
     public fun deposit(
         sp_publisher: &StabilityPoolPublisher,
         sp_storage: &mut StabilityPoolStorage,
@@ -186,7 +199,6 @@ module stable_coin_factory::stability_pool {
     /// 
     /// # Arguments
     /// 
-    /// * `sp_storage` - the storage for the stability pool
     /// * `amount` - the amount of stable coin to be withdrawn
     public fun withdraw(
         sp_publisher: &StabilityPoolPublisher,
@@ -245,18 +257,19 @@ module stable_coin_factory::stability_pool {
         );
     }  
 
+    // =================== Friend Methods ===================
+
     /// Decreases the total balance of the stability pool by a given amount of stable coin.
     /// Only callable by the KasaManager module.
     /// 
     /// # Arguments
     /// 
-    /// * `sp_storage` - the storage for the stability pool
-    /// * `amount` - the amount of stable coin to be taken from the total balance
-    /// * `ctx` - the transaction context
+    /// * `collateral` - collateral gained from the liquidation
+    /// * `stake_offset_amount` - debt to offset from the stability pool
     /// 
     /// # Returns
     /// 
-    /// The stable coin that was taken from the total balance
+    /// * `Coin<RUSD_STABLE_COIN> - the stable coin object taken from the stability pool
     public(friend) fun liquidation(
         sp_storage: &mut StabilityPoolStorage,
         collateral_gains: &mut CollateralGains,
@@ -295,16 +308,15 @@ module stable_coin_factory::stability_pool {
 
     // =================== Queries ===================
     
-    /// Returns the amount of tokens staked by an account in the stability pool.
+    /// Returns the amount of tokens staked by an account in the stability pool
     /// 
     /// # Arguments
     /// 
-    /// * `sp_storage` - the storage for the stability pool
     /// * `account_address` - the address of the account
     /// 
     /// # Returns
     /// 
-    /// The amount of tokens staked by the account
+    /// * `u64` - the amount of tokens staked by the account
     public fun get_stake_amount(sp_storage: &StabilityPoolStorage, account_address: address): u64 {
         if (!check_stake_exists(sp_storage, account_address)) return 0;        
         let stake = table::borrow(&sp_storage.stake_table, account_address);
@@ -342,32 +354,28 @@ module stable_coin_factory::stability_pool {
         (compounded_stake as u64)
     }
 
-    /// Returns the total amount of tokens staked in the stability pool.
-    /// 
-    /// # Arguments
-    /// 
-    /// * `sp_storage` - the storage for the stability pool
+    /// Returns the total amount of tokens staked in the stability pool
     /// 
     /// # Returns
     /// 
-    /// The total amount of tokens staked in the stability pool
+    /// * `u64` - the total amount of tokens staked in the stability pool
     public fun get_total_stake_amount(sp_storage: &StabilityPoolStorage): u64 {
         balance::value(&sp_storage.stake_balance)
     }
 
     // =================== Helpers ===================
 
-    /// Calculates the rewards per stake and the stake offset per stake.
+    /// Calculates the rewards per stake and the stake offset per stake
     /// 
     /// # Arguments
     /// 
-    /// * `collateral_amount` - the amount of collateral gained from the liquidation
-    /// * `debt_amount` - the amount of debt offset from the stability pool
+    /// * `collateral` - the collateral gained from the liquidation
+    /// * `stake_offset_amount` - the debt to offset from the stability pool
     /// * `total_stake_amount` - the total amount of tokens staked in the stability pool
     /// 
     /// # Returns
     /// 
-    /// The rewards per stake and the stake offset per stake
+    /// * `(u256, u256)` - the rewards per stake and the stake offset per stake
     fun calculate_rewards_per_stake(
         sp_storage: &mut StabilityPoolStorage,
         collateral: &Coin<SUI>,
@@ -399,7 +407,13 @@ module stable_coin_factory::stability_pool {
         (collateral_gain_per_stake, stake_offset_per_stake)
     }
 
-    // Updates the snapshot of the stability pool
+    /// Updates the snapshot of the stability pool
+    /// 
+    /// # Arguments
+    /// 
+    /// * `collateral_gain_per_stake` - the collateral gain per stake
+    /// * `stake_offset_per_stake` - the stake offset per stake
+    /// * `collateral` - the collateral gained from the liquidation
     fun update_storage_snapshot(
         sp_storage: &mut StabilityPoolStorage,
         collateral_gains: &mut CollateralGains,
@@ -471,13 +485,11 @@ module stable_coin_factory::stability_pool {
         };
     }
 
-    /// Updates the snapshots of an account's stake.
+    /// Updates the snapshots of an account's stake
     /// 
     /// # Arguments
     /// 
-    /// * `sp_storage` - the storage for the stability pool
-    /// * `collateral_gains` - the CollateralGains object
-    /// * `stake` - the stake to update the snapshots for
+    /// * `account_address` - the address of the account
     fun update_account_snapshots(
         sp_storage: &mut StabilityPoolStorage,
         collateral_gains: &mut CollateralGains,
@@ -503,12 +515,11 @@ module stable_coin_factory::stability_pool {
     /// 
     /// # Arguments
     /// 
-    /// * `sp_storage` - the storage for the stability pool
     /// * `account_address` - the address of the account
     /// 
     /// # Returns
     /// 
-    /// `true` if a stake exists for the account, `false` otherwise
+    /// * `bool` - true if a stake exists for the account, false otherwise
     fun check_stake_exists(sp_storage: &StabilityPoolStorage, account_address: address): bool {
         table::contains(&sp_storage.stake_table, account_address)
     }
@@ -517,21 +528,19 @@ module stable_coin_factory::stability_pool {
     /// 
     /// # Arguments
     /// 
-    /// * `sp_storage` - the storage for the stability pool
     /// * `account_address` - the address of the account
     /// 
     /// # Returns
     /// 
-    /// A mutable reference to the stake for the account
+    /// * `Stake` - A mutable reference to the stake for the account
     fun borrow_stake(sp_storage: &mut StabilityPoolStorage, account_address: address): &mut Stake {
         table::borrow_mut(&mut sp_storage.stake_table, account_address)
     }
 
-    /// Removes the stake for a given account address from the stability pool.
+    /// Removes the stake for a given account address from the stability pool
     /// 
     /// # Arguments
     /// 
-    /// * `sp_storage` - the storage for the stability pool
     /// * `account_address` - the address of the account
     fun remove_stake(sp_storage: &mut StabilityPoolStorage, account_address: address) {
         table::remove(&mut sp_storage.stake_table, account_address);
