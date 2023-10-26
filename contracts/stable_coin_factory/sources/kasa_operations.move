@@ -27,8 +27,14 @@ module stable_coin_factory::kasa_operations {
     /// Error for kasa not found
     const ERROR_KASA_NOT_FOUND: u64 = 5;
 
-    // =================== Entries ===================
+    // =================== Public Methods ===================
 
+    /// Open a new kasa for an user
+    /// 
+    /// # Arguments
+    /// 
+    /// * `collateral` - the collateral coin object to be deposited
+    /// * `debt_amount` - the amount of debt to be borrowed
     public fun open_kasa(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
@@ -83,6 +89,11 @@ module stable_coin_factory::kasa_operations {
         )
     }
 
+    /// Deposit collateral to an existing kasa
+    /// 
+    /// # Arguments
+    /// 
+    /// * `collateral` - the collateral coin object to be deposited
     public fun deposit_collateral(
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
@@ -112,6 +123,11 @@ module stable_coin_factory::kasa_operations {
         );
     }
 
+    /// Withdraw collateral from an existing kasa
+    /// 
+    /// # Arguments
+    /// 
+    /// * `amount` - the amount of collateral to be withdrawn
     public fun withdraw_collateral(
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
@@ -157,6 +173,11 @@ module stable_coin_factory::kasa_operations {
         );
     }
 
+    /// Borrow debt from an existing kasa
+    /// 
+    /// # Arguments
+    /// 
+    /// * `amount` - the amount of debt to be borrowed
     public fun borrow_loan(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
@@ -206,6 +227,11 @@ module stable_coin_factory::kasa_operations {
         );
     }
 
+    /// Repay debt from an existing kasa
+    /// 
+    /// # Arguments
+    /// 
+    /// * `debt_coin` - the debt coin object to be repaid
     public fun repay_loan(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
@@ -258,6 +284,14 @@ module stable_coin_factory::kasa_operations {
 
     // =================== Helpers ===================
 
+    /// Reinsert a kasa to the sorted kasas list
+    /// After updating the collateral ratio of a kasa, we need to reinsert it to the sorted kasas list
+    /// 
+    /// # Arguments
+    /// 
+    /// * `account_address` - the account address of the kasa
+    /// * `prev_id` - the previous kasa id in the sorted kasas list
+    /// * `next_id` - the next kasa id in the sorted kasas list
     fun reinsert_kasa_to_list(
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
