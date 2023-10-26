@@ -17,7 +17,8 @@ module stable_coin_factory::liquidation_assets_distributor {
     /// 
     /// # Fields
     /// 
-    /// * `s` - sum of collateral gains for each epoch and scale
+    /// * `sum_table` - the sum of collateral gains for each epoch and scale
+    /// * `balance` - the total balance of collateral gains
     struct CollateralGains has key, store {
         id: UID,
         sum_table: Table<u64, Table<u64, u256>>,
@@ -40,13 +41,12 @@ module stable_coin_factory::liquidation_assets_distributor {
         });
     }
 
-    // =================== Entries ===================
+    // =================== Friend Methods ===================
 
     /// Initializes the epoch to scale to sum table for the given epoch.
     /// 
     /// # Arguments
     /// 
-    /// * `collateral_gains` - the CollateralGains object to initialize
     /// * `epoch` - the epoch to initialize
     public(friend) fun initialize_collateral_gains(collateral_gains: &mut CollateralGains, epoch: u64, ctx: &mut TxContext) {
         let table = table::new(ctx);
@@ -58,7 +58,6 @@ module stable_coin_factory::liquidation_assets_distributor {
     /// 
     /// # Arguments
     /// 
-    /// * `collateral_gains` - the CollateralGains object to update
     /// * `epoch` - the epoch to update
     /// * `scale` - the scale to update
     /// * `gain` - the amount of collateral gains to add
@@ -82,6 +81,16 @@ module stable_coin_factory::liquidation_assets_distributor {
         coin::put(&mut collateral_gains.balance, collateral);
     }
 
+    /// Sends collateral gains to the given account address for the given epoch and scale
+    /// 
+    /// # Arguments
+    /// 
+    /// * `account_address` - the account address to send the collateral gains to
+    /// * `epoch` - the epoch to send the collateral gains for
+    /// * `scale` - the scale to send the collateral gains for
+    /// * `p` - p value that is used to calculate the collateral gains in distribution formula
+    /// * `s` - p value that is used to calculate the collateral gains in distribution formula
+    /// * `stake` - the stability pool stake of the account address
     public(friend) fun send_collateral_gains(
         collateral_gains: &mut CollateralGains,
         account_address: address,
@@ -116,19 +125,18 @@ module stable_coin_factory::liquidation_assets_distributor {
         transfer::public_transfer(collateral, account_address);
     }
 
-    // =================== Queries ===================
+    // =================== Public Methods ===================
 
     /// Returns the sum of collateral gains for the given epoch and scale.
     /// 
     /// # Arguments
     /// 
-    /// * `collateral_gains` - the CollateralGains object
     /// * `epoch` - the epoch to get the sum for
     /// * `scale` - the scale to get the sum for
     /// 
     /// # Returns
     /// 
-    /// * `u64` - the sum of collateral gains for the given epoch and scale
+    /// * `u256` - the sum of collateral gains for the given epoch and scale
     public fun get_collateral_gains_sum(collateral_gains: &mut CollateralGains, epoch: u64, scale: u64): u256 {
         // If the epoch does not exist, return 0
         if (!table::contains(&collateral_gains.sum_table, epoch)) return 0;
