@@ -9,12 +9,15 @@ else
 	done
 endif
 
-# build:
-# 	for package in $(PACKAGES); do \
-# 		cd contracts/$$package && sui move build && cd ../..; \
-# 	done
+deploy:
+	@echo "Deploying Embedr Protocol Contracts"
+	@echo ""
 
-# deploy:
-# 	for package in $(PACKAGES); do \
-# 		cd contracts/$$package && sui client publish --gas-budget 20000000 && cd ../..; \
-# 	done
+	@bash scripts/request_test_tokens.sh
+	@echo ""
+
+	@bash scripts/deploy_modules.sh
+	@echo ""
+
+	@bash scripts/km_mint_permission.sh
+	@echo ""
