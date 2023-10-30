@@ -102,6 +102,35 @@ module tokens::embd_staking {
         )
     }
 
+    // =================== Query Methods ===================
+
+    /// Get the total amount of tokens staked in the staking module
+    /// 
+    /// # Returns
+    /// 
+    /// * `u64` - the total amount of tokens staked
+    public fun get_total_stake_amount(storage: &EMBDStakingStorage): u64 {
+        balance::value(&storage.stake_balance)
+    }
+
+    /// Get the amount of tokens staked by an account
+    /// 
+    /// # Arguments
+    /// 
+    /// * `account_address` - the address of the account to get the stake amount for
+    /// 
+    /// # Returns
+    /// 
+    /// * `u64` - the amount of tokens staked by the account
+    public fun get_stake_amount(storage: &EMBDStakingStorage, account_address: address): u64 {
+        let stake: u64;
+        if (check_stake_exists(storage, account_address)) {
+            stake = read_stake(storage, account_address).amount
+        }
+        else stake = 0;
+        stake
+    }
+
     // =================== Helpers ===================
 
     /// deposit_ is the internal implementation of the deposit entry method
@@ -128,15 +157,17 @@ module tokens::embd_staking {
             );
         };
 
+        // Update the user stake amount
         let stake = borrow_stake(es_storage, account_address);
+        stake.amount = stake.amount + amount;
 
         // Update the total stake amount
         coin::put(&mut es_storage.stake_balance, token);
 
         // Decrease the account balance by the amount being staked
         embd_incentive_token::update_account_balance(
-            eit_storage,
             get_publisher(es_publisher),
+            eit_storage,
             account_address,
             amount,
             false
@@ -156,10 +187,12 @@ module tokens::embd_staking {
         // Check if the account has a stake before withdrawing
         assert!(check_stake_exists(es_storage, account_address), ERROR_STAKE_NOT_FOUND);
 
+        // Update the user stake amount
         let stake = borrow_stake(es_storage, account_address);
+        stake.amount = stake.amount - amount;
 
         // If the stake amount is equal to the amount being withdrawn, remove the stake
-        if (stake.amount - amount == 0) {
+        if (stake.amount == 0) {
             remove_stake(es_storage, account_address);
         };
 
@@ -173,8 +206,8 @@ module tokens::embd_staking {
 
         // Increase the account balance by the amount being withdrawn
         embd_incentive_token::update_account_balance(
-            eit_storage,
             get_publisher(es_publisher),
+            eit_storage,
             account_address,
             amount,
             true
@@ -189,6 +222,10 @@ module tokens::embd_staking {
         table::borrow_mut(&mut storage.stake_table, account_address)
     }
 
+    fun read_stake(storage: &EMBDStakingStorage, account_address: address): &Stake {
+        table::borrow(&storage.stake_table, account_address)
+    }
+
     fun remove_stake(storage: &mut EMBDStakingStorage, account_address: address) {
         table::remove(&mut storage.stake_table, account_address);
     }
@@ -197,6 +234,7 @@ module tokens::embd_staking {
         &storage.publisher
     }
 
+    #[test_only]
     public fun get_publisher_id(publisher: &EMBDStakingPublisher): ID {
         object::id(&publisher.publisher)
     }
