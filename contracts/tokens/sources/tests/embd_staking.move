@@ -1,6 +1,5 @@
 #[test_only]
 module tokens::embd_staking_tests {
-
     use sui::test_scenario::{Self as test, next_tx, Scenario, ctx};
     use sui::test_utils::{assert_eq};
     
