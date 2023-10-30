@@ -12,7 +12,7 @@ module tokens::embd_staking {
 
     const ERROR_STAKE_NOT_FOUND: u64 = 1;
 
-    /// OTW for Stability Pool
+    /// OTW for EMBD Staking
     struct EMBD_STAKING has drop {}
 
     /// Defines the data structure for saving the publisher
