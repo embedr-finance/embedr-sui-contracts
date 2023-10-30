@@ -76,8 +76,8 @@ module tokens::embd_incentive_token {
     /// * `recipient` - recipient of the new coins
     /// * `amount` - amount of tokens to mint
     public fun mint(
-        storage: &mut EMBDIncentiveTokenStorage,
         publisher: &Publisher,
+        storage: &mut EMBDIncentiveTokenStorage,
         recipient: address,
         amount: u64,
         ctx: &mut TxContext
@@ -109,8 +109,8 @@ module tokens::embd_incentive_token {
     /// * `recipient` - recipient of the new tokens
     /// * `asset` - asset to burn
     public fun burn(
-        storage: &mut EMBDIncentiveTokenStorage,
         publisher: &Publisher,
+        storage: &mut EMBDIncentiveTokenStorage,
         recipient: address,
         asset: Coin<EMBD_INCENTIVE_TOKEN>
     ) {
@@ -162,8 +162,8 @@ module tokens::embd_incentive_token {
     /// * `amount` - amount to update the balance by
     /// * `is_increase` - whether to increase or decrease the balance
     public fun update_account_balance(
-        storage: &mut EMBDIncentiveTokenStorage,
         publisher: &Publisher,
+        storage: &mut EMBDIncentiveTokenStorage,
         recipient: address,
         amount: u64,
         is_increase: bool
