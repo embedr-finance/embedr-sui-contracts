@@ -4,13 +4,9 @@ module participation_bank_factory::revenue_farming_pool_tests {
 
     use sui::test_scenario::{Self as test, next_tx, Scenario, ctx};
     use sui::test_utils::{assert_eq};
-    use sui::vec_map;
     use sui::coin::{Self, Coin};
     
-    use participation_bank_factory::revenue_farming_pool::{
-        Self, RevenueFarmingPoolAdminCap, RevenueFarmingPoolStorage,
-        FarmingPoolStorage, RevenueFarmingPoolPublisher
-    };
+    use participation_bank_factory::revenue_farming_pool::{Self, RevenueFarmingPoolStorage, RevenueFarmingPoolPublisher};
     use stable_coin_factory::test_helpers::{init_stable_coin_factory, open_kasa};
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSDStableCoinAdminCap, RUSD_STABLE_COIN};
     use library::test_utils::{people, scenario};
@@ -20,7 +16,7 @@ module participation_bank_factory::revenue_farming_pool_tests {
         init_stable_coin_factory(test);
         next_tx(test, admin);
         {
-            revenue_farming_pool::init_for_testing(test::ctx(test));
+            revenue_farming_pool::init_for_testing(ctx(test));
         };
         next_tx(test, admin);
         {
@@ -47,14 +43,13 @@ module participation_bank_factory::revenue_farming_pool_tests {
             revenue_farming_pool::add_farming_pool_for_testing(
                 &mut rfp_storage,
                 account_address,
-                test::ctx(test)
+                ctx(test)
             );
             test::return_shared(rfp_storage);
         };
     }
 
     fun setup_pool_request(test: &mut Scenario, sender: address) {
-        let (admin, _) = people();
         next_tx(test, sender);
         {
             let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
@@ -62,7 +57,7 @@ module participation_bank_factory::revenue_farming_pool_tests {
                 &mut rfp_storage,
                 string::utf8(b"SME Name"),
                 string::utf8(b"SME Description"),
-                test::ctx(test)
+                ctx(test)
             );
             test::return_shared(rfp_storage);
         };
@@ -89,7 +84,7 @@ module participation_bank_factory::revenue_farming_pool_tests {
             let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let stable_coin = test::take_from_sender<Coin<RUSD_STABLE_COIN>>(test);
-            let deposit_coin = coin::split(&mut stable_coin, amount, test::ctx(test));
+            let deposit_coin = coin::split(&mut stable_coin, amount, ctx(test));
             revenue_farming_pool::deposit_for_testing(
                 &rfp_publisher,
                 &mut rfp_storage,
@@ -97,7 +92,7 @@ module participation_bank_factory::revenue_farming_pool_tests {
                 pool_address,
                 1,
                 deposit_coin,
-                test::ctx(test)
+                ctx(test)
             );
             test::return_shared(rfp_publisher);
             test::return_shared(rfp_storage);
@@ -105,6 +100,27 @@ module participation_bank_factory::revenue_farming_pool_tests {
             test::return_to_sender(test, stable_coin);
         };
     }
+
+    // fun setup_withdraw(test: &mut Scenario, pool_address: address, sender: address, amount: u64) {
+    //     next_tx(test, sender);
+    //     {
+    //         let rfp_publisher = test::take_shared<RevenueFarmingPoolPublisher>(test);
+    //         let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+    //         let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
+    //         revenue_farming_pool::withdraw_for_testing(
+    //             &rfp_publisher,
+    //             &mut rfp_storage,
+    //             &mut rsc_storage,
+    //             pool_address,
+    //             1,
+    //             amount,
+    //             ctx(test)
+    //         );
+    //         test::return_shared(rfp_publisher);
+    //         test::return_shared(rfp_storage);
+    //         test::return_shared(rsc_storage);
+    //     };
+    // }
 
     #[test]
     fun test_add_farming_pool_happy_path() {
@@ -121,7 +137,7 @@ module participation_bank_factory::revenue_farming_pool_tests {
             revenue_farming_pool::add_farming_pool_for_testing(
                 &mut rfp_storage,
                 user,
-                test::ctx(test)
+                ctx(test)
             );
             revenue_farming_pool::get_farming_pool(&rfp_storage, user);
 
@@ -146,12 +162,12 @@ module participation_bank_factory::revenue_farming_pool_tests {
             revenue_farming_pool::add_farming_pool_for_testing(
                 &mut rfp_storage,
                 user,
-                test::ctx(test)
+                ctx(test)
             );
             revenue_farming_pool::add_farming_pool_for_testing(
                 &mut rfp_storage,
                 user,
-                test::ctx(test)
+                ctx(test)
             );
 
             test::return_shared(rfp_storage);
@@ -181,7 +197,7 @@ module participation_bank_factory::revenue_farming_pool_tests {
                 &mut rfp_storage,
                 string::utf8(b"SME Name"),
                 string::utf8(b"SME Description"),
-                test::ctx(test)
+                ctx(test)
             );
 
             let farming_pool = revenue_farming_pool::get_farming_pool(&rfp_storage, user);
@@ -209,7 +225,7 @@ module participation_bank_factory::revenue_farming_pool_tests {
                 &mut rfp_storage,
                 string::utf8(b"SME Name"),
                 string::utf8(b"SME Description"),
-                test::ctx(test)
+                ctx(test)
             );
             test::return_shared(rfp_storage);
         };
@@ -323,7 +339,7 @@ module participation_bank_factory::revenue_farming_pool_tests {
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
             
             let stable_coin = test::take_from_sender<Coin<RUSD_STABLE_COIN>>(test);
-            let deposit_coin = coin::split(&mut stable_coin, 600_000000000, test::ctx(test));
+            let deposit_coin = coin::split(&mut stable_coin, 600_000000000, ctx(test));
 
             let coin_balance = rusd_stable_coin::get_balance(&rsc_storage, user2);
             assert_eq(coin_balance, 1000_000000000);
@@ -335,7 +351,7 @@ module participation_bank_factory::revenue_farming_pool_tests {
                 user,
                 1,
                 deposit_coin,
-                test::ctx(test)
+                ctx(test)
             );
 
             let stake_amount = revenue_farming_pool::get_stake_amount(
@@ -391,7 +407,160 @@ module participation_bank_factory::revenue_farming_pool_tests {
                 user,
                 1,
                 stable_coin,
-                test::ctx(test)
+                ctx(test)
+            );
+            test::return_shared(rfp_publisher);
+            test::return_shared(rfp_storage);
+            test::return_shared(rsc_storage);
+        };
+        test::end(scenario);
+    }
+
+    #[test]
+    fun test_withdraw_happy_path() {
+        let scenario = scenario();
+        let test = &mut scenario;
+        let (_, user) = people();
+        let user2 = @0x2222;
+
+        setup_modules(test);
+
+        setup_farming_pool(test, user);
+        setup_pool_request(test, user);
+        setup_pool_approval(test, user, 1);
+        open_kasa(test, user2, 3_000000000, 1000_000000000);
+        setup_deposit(test, user, user2, 600_000000000);
+
+        next_tx(test, user2);
+        {
+            let rfp_publisher = test::take_shared<RevenueFarmingPoolPublisher>(test);
+            let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+            let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
+            
+            let coin_balance = rusd_stable_coin::get_balance(&rsc_storage, user2);
+            assert_eq(coin_balance, 400_000000000);
+
+            revenue_farming_pool::withdraw_for_testing(
+                &rfp_publisher,
+                &mut rfp_storage,
+                &mut rsc_storage,
+                user,
+                1,
+                200_000000000,
+                ctx(test)
+            );
+
+            let stake_amount = revenue_farming_pool::get_stake_amount(
+                &rfp_storage,
+                user,
+                1,
+                user2,
+            );
+            assert_eq(stake_amount, 400_000000000);
+
+            let pool_balance = revenue_farming_pool::get_pool_stake_amount(
+                &rfp_storage,
+                user,
+                1,
+            );
+            assert_eq(pool_balance, 400_000000000);
+
+            let coin_balance = rusd_stable_coin::get_balance(&rsc_storage, user2);
+            assert_eq(coin_balance, 600_000000000);
+
+            revenue_farming_pool::withdraw_for_testing(
+                &rfp_publisher,
+                &mut rfp_storage,
+                &mut rsc_storage,
+                user,
+                1,
+                400_000000000,
+                ctx(test)
+            );
+
+            let stake_amount = revenue_farming_pool::get_stake_amount(
+                &rfp_storage,
+                user,
+                1,
+                user2,
+            );
+            assert_eq(stake_amount, 0);
+
+            let pool_balance = revenue_farming_pool::get_pool_stake_amount(
+                &rfp_storage,
+                user,
+                1,
+            );
+            assert_eq(pool_balance, 0);
+
+            let coin_balance = rusd_stable_coin::get_balance(&rsc_storage, user2);
+            assert_eq(coin_balance, 1000_000000000);
+
+            test::return_shared(rfp_publisher);
+            test::return_shared(rfp_storage);
+            test::return_shared(rsc_storage);
+        };
+        test::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = revenue_farming_pool::ERROR_FARMING_POOL_NOT_FOUND)]
+    fun test_withdraw_farming_pool_not_found() {
+        let scenario = scenario();
+        let test = &mut scenario;
+        let (_, user) = people();
+        let user2 = @0x2222;
+
+        setup_modules(test);
+
+        next_tx(test, user2);
+        {
+            let rfp_publisher = test::take_shared<RevenueFarmingPoolPublisher>(test);
+            let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+            let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
+            revenue_farming_pool::withdraw_for_testing(
+                &rfp_publisher,
+                &mut rfp_storage,
+                &mut rsc_storage,
+                user,
+                1,
+                200_000000000,
+                ctx(test)
+            );
+            test::return_shared(rfp_publisher);
+            test::return_shared(rfp_storage);
+            test::return_shared(rsc_storage);
+        };
+        test::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = revenue_farming_pool::ERROR_STAKE_NOT_FOUND)]
+    fun test_withdraw_stake_not_found() {
+        let scenario = scenario();
+        let test = &mut scenario;
+        let (_, user) = people();
+        let user2 = @0x2222;
+
+        setup_modules(test);
+
+        setup_farming_pool(test, user);
+        setup_pool_request(test, user);
+        setup_pool_approval(test, user, 1);
+
+        next_tx(test, user2);
+        {
+            let rfp_publisher = test::take_shared<RevenueFarmingPoolPublisher>(test);
+            let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+            let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
+            revenue_farming_pool::withdraw_for_testing(
+                &rfp_publisher,
+                &mut rfp_storage,
+                &mut rsc_storage,
+                user,
+                1,
+                200_000000000,
+                ctx(test)
             );
             test::return_shared(rfp_publisher);
             test::return_shared(rfp_storage);
