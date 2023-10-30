@@ -1,15 +1,17 @@
 module participation_bank_factory::revenue_farming_pool {
     use std::string;
 
-    use sui::object::{Self, UID};
+    use sui::object::{Self, UID, ID};
     use sui::table::{Self, Table};
     use sui::balance::{Self, Balance};
     use sui::vec_set::{Self, VecSet};
     use sui::vec_map::{Self, VecMap};
     use sui::tx_context::{Self, TxContext};
     use sui::transfer;
+    use sui::coin::{Self, Coin};
+    use sui::package::{Self, Publisher};
 
-    use tokens::rusd_stable_coin::{RUSD_STABLE_COIN};
+    use tokens::rusd_stable_coin::{Self, RUSD_STABLE_COIN, RUSDStableCoinStorage};
 
     // =================== Errors ===================
 
@@ -70,9 +72,15 @@ module participation_bank_factory::revenue_farming_pool {
     /// Admin capability object
     struct RevenueFarmingPoolAdminCap has key { id: UID }
 
+    /// Publisher capability object
+    struct RevenueFarmingPoolPublisher has key { id: UID, publisher: Publisher }
+
+    /// OTW
+    struct REVENUE_FARMING_POOL has drop {}
+
     // =================== Initializer ===================
 
-    fun init(ctx: &mut TxContext) {
+    fun init(witness: REVENUE_FARMING_POOL, ctx: &mut TxContext) {
         transfer::share_object(RevenueFarmingPoolStorage {
             id: object::new(ctx),
             pool_table: table::new(ctx),
@@ -81,6 +89,10 @@ module participation_bank_factory::revenue_farming_pool {
             RevenueFarmingPoolAdminCap { id: object::new(ctx) },
             tx_context::sender(ctx)
         );
+        transfer::share_object(RevenueFarmingPoolPublisher {
+            id: object::new(ctx),
+            publisher: package::claim<REVENUE_FARMING_POOL>(witness, ctx)
+        });
     }
 
     // =================== Entry Methods ===================
@@ -135,7 +147,31 @@ module participation_bank_factory::revenue_farming_pool {
     }
 
     /// Deposits stable coin to a given pool
-    entry fun deposit() {}
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool_address` - The address of pool
+    /// * `pool_id` - The ID of the pool
+    /// * `stable_coin` - The amount of stable coin to deposit
+    entry fun deposit(
+        rfp_publisher: &RevenueFarmingPoolPublisher,
+        rfp_storage: &mut RevenueFarmingPoolStorage,
+        rsc_storage: &mut RUSDStableCoinStorage,
+        pool_address: address,
+        pool_id: u64,
+        stable_coin: Coin<RUSD_STABLE_COIN>,
+        ctx: &mut TxContext
+    ) {
+        deposit_(
+            rfp_publisher,
+            rfp_storage,
+            rsc_storage,
+            pool_address,
+            pool_id,
+            stable_coin,
+            ctx
+        )
+    }
 
     /// Withdraws stable coin from a given pool
     entry fun withdraw() {}
@@ -155,6 +191,44 @@ module participation_bank_factory::revenue_farming_pool {
 
         // Borrow the farming pool
         table::borrow(&rfp_storage.pool_table, account_address)
+    }
+
+    public fun get_stake_amount(
+        rfp_storage: &RevenueFarmingPoolStorage,
+        pool_address: address,
+        pool_id: u64,
+        account_address: address
+    ): u64 {
+        // Make sure farming pool for this account exists
+        assert!(table::contains(&rfp_storage.pool_table, pool_address), ERROR_FARMING_POOL_NOT_FOUND);
+
+        let farming_pool = table::borrow(&rfp_storage.pool_table, pool_address);
+
+        // Make sure the pool exists
+        assert!(table::contains(&farming_pool.pool_table, pool_id), ERROR_FARMING_POOL_NOT_FOUND);
+
+        let single_pool = table::borrow(&farming_pool.pool_table, pool_id);
+
+        // Make sure the stake exists
+        if (table::contains(&single_pool.stake_table, account_address)) {
+            table::borrow(&single_pool.stake_table, account_address).amount
+        } else return 0
+    }
+
+    public fun get_pool_stake_amount(
+        rfp_storage: &RevenueFarmingPoolStorage,
+        pool_address: address,
+        pool_id: u64,
+    ): u64 {
+        // Make sure farming pool for this account exists
+        assert!(table::contains(&rfp_storage.pool_table, pool_address), ERROR_FARMING_POOL_NOT_FOUND);
+
+        let farming_pool = table::borrow(&rfp_storage.pool_table, pool_address);
+
+        // Make sure the pool exists
+        assert!(table::contains(&farming_pool.pool_table, pool_id), ERROR_FARMING_POOL_NOT_FOUND);
+
+        balance::value(&table::borrow(&farming_pool.pool_table, pool_id).balance)
     }
 
     // =================== Helpers ===================
@@ -231,6 +305,56 @@ module participation_bank_factory::revenue_farming_pool {
         vec_set::insert(&mut farming_pool.active_pools, pool_id);
     }
 
+    /// deposit_ is the internal implementation of the deposit entry method
+    fun deposit_(
+        rfp_publisher: &RevenueFarmingPoolPublisher,
+        rfp_storage: &mut RevenueFarmingPoolStorage,
+        rsc_storage: &mut RUSDStableCoinStorage,
+        pool_address: address,
+        pool_id: u64,
+        stable_coin: Coin<RUSD_STABLE_COIN>,
+        ctx: &mut TxContext
+    ) {
+        let account_address = tx_context::sender(ctx);
+        let amount = coin::value(&stable_coin);
+
+        // Make sure farming pool exists for pool address
+        assert!(table::contains(&rfp_storage.pool_table, pool_address), ERROR_FARMING_POOL_NOT_FOUND);
+
+        let farming_pool = table::borrow_mut(&mut rfp_storage.pool_table, pool_address);
+        let single_pool = table::borrow_mut(&mut farming_pool.pool_table, pool_id);
+
+        // Create a new stake if it does not exist
+        if (!check_stake_exists(single_pool, account_address)) {
+            table::add(&mut single_pool.stake_table, account_address,
+                FarmingPoolStake {
+                    account_address,
+                    amount: 0,
+                }
+            )
+        };
+
+        // Update the stake amount for the user
+        let stake = table::borrow_mut(&mut single_pool.stake_table, account_address);
+        stake.amount = stake.amount + amount;
+
+        // Update the balance of the pool
+        coin::put(&mut single_pool.balance, stable_coin);
+
+        // Update the balance of the user in the stable coin
+        rusd_stable_coin::update_account_balance(
+            rsc_storage,
+            get_publisher(rfp_publisher),
+            account_address,
+            amount,
+            false
+        )
+    }
+
+    fun check_stake_exists(storage: &SinglePoolStorage, account_address: address): bool {
+        table::contains(&storage.stake_table, account_address)
+    }
+
     #[test_only]
     public fun add_farming_pool_for_testing(
         rfp_storage: &mut RevenueFarmingPoolStorage,
@@ -273,8 +397,24 @@ module participation_bank_factory::revenue_farming_pool {
     }
 
     #[test_only]
-    public fun deposit_for_testing() {
-
+    public fun deposit_for_testing(
+        rfp_publisher: &RevenueFarmingPoolPublisher,
+        rfp_storage: &mut RevenueFarmingPoolStorage,
+        rsc_storage: &mut RUSDStableCoinStorage,
+        pool_address: address,
+        pool_id: u64,
+        stable_coin: Coin<RUSD_STABLE_COIN>,
+        ctx: &mut TxContext
+    ) {
+        deposit_(
+            rfp_publisher,
+            rfp_storage,
+            rsc_storage,
+            pool_address,
+            pool_id,
+            stable_coin,
+            ctx
+        )
     }
 
     #[test_only]
@@ -300,8 +440,17 @@ module participation_bank_factory::revenue_farming_pool {
         vec_map::size(&fp_storage.pool_requests)
     }
 
+    public fun get_publisher(storage: &RevenueFarmingPoolPublisher): &Publisher {
+        &storage.publisher
+    }
+
+    #[test_only]
+    public fun get_publisher_id(publisher: &RevenueFarmingPoolPublisher): ID {
+        object::id(&publisher.publisher)
+    }
+
     #[test_only]
     public fun init_for_testing(ctx: &mut TxContext) {
-        init(ctx)
+        init(REVENUE_FARMING_POOL {}, ctx)
     }
 }
