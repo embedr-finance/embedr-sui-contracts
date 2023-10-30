@@ -18,6 +18,7 @@ module participation_bank_factory::revenue_farming_pool {
     const ERROR_FARMING_POOL_ALREADY_EXISTS: u64 = 1;
     const ERROR_FARMING_POOL_NOT_FOUND: u64 = 2;
     const ERROR_POOL_REQUEST_NOT_FOUND: u64 = 3;
+    const ERROR_STAKE_NOT_FOUND: u64 = 4;
 
     // =================== Storage ===================
 
@@ -174,7 +175,31 @@ module participation_bank_factory::revenue_farming_pool {
     }
 
     /// Withdraws stable coin from a given pool
-    entry fun withdraw() {}
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool_address` - The address of pool
+    /// * `pool_id` - The ID of the pool
+    /// * `amount` - The amount of stable coin to withdraw
+    entry fun withdraw(
+        rfp_publisher: &RevenueFarmingPoolPublisher,
+        rfp_storage: &mut RevenueFarmingPoolStorage,
+        rsc_storage: &mut RUSDStableCoinStorage,
+        pool_address: address,
+        pool_id: u64,
+        amount: u64,
+        ctx: &mut TxContext
+    ) {
+        withdraw_(
+            rfp_publisher,
+            rfp_storage,
+            rsc_storage,
+            pool_address,
+            pool_id,
+            amount,
+            ctx
+        )
+    }
 
     /// Requests liquidity from a given pool
     entry fun request_liquidity() {}
@@ -351,6 +376,54 @@ module participation_bank_factory::revenue_farming_pool {
         )
     }
 
+    /// withdraw_ is the internal implementation of the withdraw entry method
+    fun withdraw_(
+        rfp_publisher: &RevenueFarmingPoolPublisher,
+        rfp_storage: &mut RevenueFarmingPoolStorage,
+        rsc_storage: &mut RUSDStableCoinStorage,
+        pool_address: address,
+        pool_id: u64,
+        amount: u64,
+        ctx: &mut TxContext
+    ) {
+        let account_address = tx_context::sender(ctx);
+
+        // Make sure farming pool exists for pool address
+        assert!(table::contains(&rfp_storage.pool_table, pool_address), ERROR_FARMING_POOL_NOT_FOUND);
+
+        let farming_pool = table::borrow_mut(&mut rfp_storage.pool_table, pool_address);
+        let single_pool = table::borrow_mut(&mut farming_pool.pool_table, pool_id);
+
+        // Make sure the stake exists
+        assert!(check_stake_exists(single_pool, account_address), ERROR_STAKE_NOT_FOUND);
+
+        // Update the stake amount for the user
+        let stake = table::borrow_mut(&mut single_pool.stake_table, account_address);
+        stake.amount = stake.amount - amount;
+
+        // If the stake amount is equal to the amount being withdrawn, remove the stake
+        if (stake.amount == 0) {
+            table::remove(&mut single_pool.stake_table, account_address);
+        };
+
+        // Transfer the stable coin to the account
+        let stable_coin = coin::take(
+            &mut single_pool.balance,
+            amount,
+            ctx
+        );
+        transfer::public_transfer(stable_coin, account_address);
+
+        // Update the balance of the user in the stable coin
+        rusd_stable_coin::update_account_balance(
+            rsc_storage,
+            get_publisher(rfp_publisher),
+            account_address,
+            amount,
+            true
+        )
+    }
+
     fun check_stake_exists(storage: &SinglePoolStorage, account_address: address): bool {
         table::contains(&storage.stake_table, account_address)
     }
@@ -413,6 +486,27 @@ module participation_bank_factory::revenue_farming_pool {
             pool_address,
             pool_id,
             stable_coin,
+            ctx
+        )
+    }
+
+    #[test_only]
+    public fun withdraw_for_testing(
+        rfp_publisher: &RevenueFarmingPoolPublisher,
+        rfp_storage: &mut RevenueFarmingPoolStorage,
+        rsc_storage: &mut RUSDStableCoinStorage,
+        pool_address: address,
+        pool_id: u64,
+        amount: u64,
+        ctx: &mut TxContext
+    ) {
+        withdraw_(
+            rfp_publisher,
+            rfp_storage,
+            rsc_storage,
+            pool_address,
+            pool_id,
+            amount,
             ctx
         )
     }
