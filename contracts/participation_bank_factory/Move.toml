@@ -1,7 +1,7 @@
 [package]
 name = "EmbedrProtocolParticipationBankFactory"
 version = "0.0.1"
-published-at = "0x175b4bba3748351f8dde7155842c4ccb1cc8a8f0ead0cd97bc5db2e9ca351ed0"
+published-at = "0x6d5533d5158d7db6ea22c12cc928e9a5069193e1cd91fcde82d642b8c3b551e4"
 
 [dependencies]
 MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "framework/devnet" }
@@ -13,4 +13,4 @@ EmbedrProtocolStableCoinFactory = { local = "../stable_coin_factory" }
 [addresses]
 std = "0x1"
 sui = "0x2"
-participation_bank_factory = "0x175b4bba3748351f8dde7155842c4ccb1cc8a8f0ead0cd97bc5db2e9ca351ed0"
+participation_bank_factory = "0x6d5533d5158d7db6ea22c12cc928e9a5069193e1cd91fcde82d642b8c3b551e4"
