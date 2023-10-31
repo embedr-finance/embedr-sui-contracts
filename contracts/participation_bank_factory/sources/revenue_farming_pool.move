@@ -227,7 +227,30 @@ module participation_bank_factory::revenue_farming_pool {
         );
     }
 
-    entry fun approve_liquidity_request() {}
+    /// Approves a liquidity request 
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool_address` - The address of pool
+    /// * `pool_id` - The ID of the pool
+    entry fun approve_liquidity_request(
+        _: &RevenueFarmingPoolAdminCap,
+        rfp_publisher: &RevenueFarmingPoolPublisher,
+        rfp_storage: &mut RevenueFarmingPoolStorage,
+        rsc_storage: &mut RUSDStableCoinStorage,
+        pool_address: address,
+        pool_id: u64,
+        ctx: &mut TxContext
+    ) {
+        approve_liquidity_request_(
+            rfp_publisher,
+            rfp_storage,
+            rsc_storage,
+            pool_address,
+            pool_id,
+            ctx
+        )
+    }
 
     // =================== @Query Methods ===================
 
@@ -476,6 +499,51 @@ module participation_bank_factory::revenue_farming_pool {
         single_pool.liquidity_request = option::some(amount);
     }
 
+    /// approve_liquidity_request_ is the internal implementation of the approve_liquidity_request entry method
+    fun approve_liquidity_request_(
+        rfp_publisher: &RevenueFarmingPoolPublisher,
+        rfp_storage: &mut RevenueFarmingPoolStorage,
+        rsc_storage: &mut RUSDStableCoinStorage,
+        pool_address: address,
+        pool_id: u64,
+        ctx: &mut TxContext
+    ) {
+        // Make sure farming pool exists for pool address
+        assert!(table::contains(&rfp_storage.pool_table, pool_address), ERROR_FARMING_POOL_NOT_FOUND);
+        let farming_pool = table::borrow_mut(&mut rfp_storage.pool_table, pool_address);
+
+        assert!(table::contains(&farming_pool.pool_table, pool_id), ERROR_POOL_NOT_FOUND);
+        let single_pool = table::borrow_mut(&mut farming_pool.pool_table, pool_id);
+
+        // Make sure the liquidity request exists
+        assert!(option::is_some(&single_pool.liquidity_request), ERROR_LIQUIDITY_REQUEST_NOT_FOUND);
+
+        // Get the liquidity request
+        let liquidity_request = option::destroy_some(single_pool.liquidity_request);
+
+        // Remove the liquidity request
+        single_pool.liquidity_request = option::none();
+
+        // Take the stable coin from the pool
+        let stable_coin = coin::take(
+            &mut single_pool.balance,
+            liquidity_request,
+            ctx
+        );
+        // Update the balance of the account in the stable coin
+        rusd_stable_coin::update_account_balance(
+            rsc_storage,
+            get_publisher(rfp_publisher),
+            pool_address,
+            coin::value(&stable_coin),
+            true
+        );
+        // Transfer the stable coin to the account
+        transfer::public_transfer(stable_coin, pool_address);
+
+        // TODO: We also need to save user stakes to calculate their rewards
+    }
+
     fun check_stake_exists(storage: &SinglePoolStorage, account_address: address): bool {
         table::contains(&storage.stake_table, account_address)
     }
@@ -576,6 +644,25 @@ module participation_bank_factory::revenue_farming_pool {
             amount,
             ctx
         );
+    }
+
+    #[test_only]
+    public fun approve_liquidity_request_for_testing(
+        rp_publisher: &RevenueFarmingPoolPublisher,
+        rfp_storage: &mut RevenueFarmingPoolStorage,
+        rsc_storage: &mut RUSDStableCoinStorage,
+        pool_address: address,
+        pool_id: u64,
+        ctx: &mut TxContext
+    ) {
+        approve_liquidity_request_(
+            rp_publisher,
+            rfp_storage,
+            rsc_storage,
+            pool_address,
+            pool_id,
+            ctx
+        )
     }
 
     #[test_only]
