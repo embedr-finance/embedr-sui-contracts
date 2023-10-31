@@ -1,5 +1,11 @@
 # !/bin/bash
 
+BLUE=$(tput setaf 4)
+GREEN=$(tput setaf 2)
+RED=$(tput setaf 1)
+BOLD=$(tput bold)
+NC=$(tput sgr0)
+
 modules=("library" "tokens" "stable_coin_factory" "participation_bank_factory")
 
 update_toml_field() {
@@ -25,12 +31,13 @@ get_publisher_id_from_object() {
     sui client object --json $1 | jq -r '.content.fields.publisher.fields.id.id'
 }
 
+echo -e "${BOLD}${BLUE}Publishing Embedr Protocol Contracts${NC}\n"
+
 for module in "${modules[@]}"; do
     (
         cd "contracts/$module"
 
-        echo "Publishing \"$module\" module..."
-        echo ""
+        echo -e "${RED}Publishing \"$module\" module...${NC}\n"
 
         # Set the address and published-at fields to 0x0
         update_toml_field $module "0x0"
@@ -119,7 +126,7 @@ for module in "${modules[@]}"; do
                         "storage": "'$sk_storage'"
                     },
                     "stability_pool": {
-                        "publisher_object": "'$sp_publisher'",
+                        "publisher_object": "'$sp_publisher_object'",
                         "publisher_id": "'$sp_publisher_id'",
                         "storage": "'$sp_storage'"
                     },
@@ -154,7 +161,8 @@ for module in "${modules[@]}"; do
         update_toml_field $module $package_id
         update_toml_field "published-at" $package_id
         
-        echo ""
+        echo -e "\n${GREEN}Published \"$module\" module with package ID: $package_id${NC}\n"
     )
 done
 
+exit 0

@@ -1,16 +1,26 @@
+# !/bin/bash
+
+BLUE=$(tput setaf 4)
+GREEN=$(tput setaf 2)
+RED=$(tput setaf 1)
+BOLD=$(tput bold)
+NC=$(tput sgr0)
+
 active_address=$(sui client active-address)
 
 check() {
     gas_response=$(sui client gas --json)
 
     if [ ${#gas_response} -gt 2 ]; then
-        echo "This address already has test tokens."
-        exit 0
+        echo "${RED}This address already has test tokens.${NC}"
     else
         res=request
-        echo "Got test tokens from the faucet."
-        exit 0
+        echo "${GREEN}Got test tokens from the faucet.${NC}"
     fi
+
+    echo ""
+    
+    exit 0
 }
 
 request() {
@@ -23,6 +33,8 @@ request() {
     }'
 }
 
-echo "Requesting test tokens for: '$active_address'"
+echo -e "${BOLD}${BLUE}Requesting Test Tokens${NC}\n"
+
+echo -e "Current address: '$active_address'\n"
 
 check
