@@ -1,6 +1,7 @@
 #[test_only]
 module participation_bank_factory::revenue_farming_pool_tests {
     use std::string;
+    use std::option;
 
     use sui::test_scenario::{Self as test, next_tx, Scenario, ctx};
     use sui::test_utils::{assert_eq};
@@ -565,6 +566,173 @@ module participation_bank_factory::revenue_farming_pool_tests {
             test::return_shared(rfp_publisher);
             test::return_shared(rfp_storage);
             test::return_shared(rsc_storage);
+        };
+        test::end(scenario);
+    }
+
+    #[test]
+    fun test_request_liquidity_happy_path() {
+        let scenario = scenario();
+        let test = &mut scenario;
+        let (_, business) = people();
+        let (user2, user3) = (@0x2222, @0x3333);
+
+        setup_modules(test);
+
+        setup_farming_pool(test, business);
+        setup_pool_request(test, business);
+        setup_pool_approval(test, business, 1);
+
+        next_tx(test, user2);
+        {
+            open_kasa(test, user2, 3_000000000, 4500_000000000);
+            setup_deposit(test, business, user2, 1000_000000000);
+        };
+        next_tx(test, user3);
+        {
+            open_kasa(test, user3, 3_000000000, 4500_000000000);
+            setup_deposit(test, business, user3, 2500_000000000);
+        };
+        next_tx(test, business);
+        {
+            let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+
+            revenue_farming_pool::request_liquidity_for_testing(
+                &mut rfp_storage,
+                1,
+                2000_000000000,
+                ctx(test)
+            );
+
+            let farming_pool = revenue_farming_pool::get_farming_pool(&rfp_storage, business);
+            let liquidity_request
+                = revenue_farming_pool::get_single_pool_liquidity_request_for_testing(
+                farming_pool,
+                1,
+            );
+            assert_eq(liquidity_request, option::some(2000_000000000));
+
+            test::return_shared(rfp_storage);
+        };
+        test::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = revenue_farming_pool::ERROR_FARMING_POOL_NOT_FOUND)]
+    fun test_request_liquidity_farming_pool_not_found() {
+        let scenario = scenario();
+        let test = &mut scenario;
+        let (_, business) = people();
+
+        setup_modules(test);
+
+        next_tx(test, business);
+        {
+            let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+            revenue_farming_pool::request_liquidity_for_testing(
+                &mut rfp_storage,
+                1,
+                2000_000000000,
+                ctx(test)
+            );
+            test::return_shared(rfp_storage);
+        };
+        test::end(scenario);
+    }
+    
+    #[test]
+    #[expected_failure(abort_code = revenue_farming_pool::ERROR_POOL_NOT_FOUND)]
+    fun test_request_liquidity_pool_not_found() {
+        let scenario = scenario();
+        let test = &mut scenario;
+        let (_, business) = people();
+
+        setup_modules(test);
+
+        setup_farming_pool(test, business);
+
+        next_tx(test, business);
+        {
+            let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+            revenue_farming_pool::request_liquidity_for_testing(
+                &mut rfp_storage,
+                1,
+                2000_000000000,
+                ctx(test)
+            );
+            test::return_shared(rfp_storage);
+        };
+        test::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = revenue_farming_pool::ERROR_LIQUIDITY_REQUEST_ALREADY_EXISTS)]
+    fun test_request_liquidity_liquidity_request_already_exists() {
+        let scenario = scenario();
+        let test = &mut scenario;
+        let (_, business) = people();
+        let user2 = @0x2222;
+
+        setup_modules(test);
+
+        setup_farming_pool(test, business);
+        setup_pool_request(test, business);
+        setup_pool_approval(test, business, 1);
+
+        next_tx(test, user2);
+        {
+            open_kasa(test, user2, 3_000000000, 4500_000000000);
+            setup_deposit(test, business, user2, 1000_000000000);
+        };
+        next_tx(test, business);
+        {
+            let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+            revenue_farming_pool::request_liquidity_for_testing(
+                &mut rfp_storage,
+                1,
+                500_000000000,
+                ctx(test)
+            );
+            revenue_farming_pool::request_liquidity_for_testing(
+                &mut rfp_storage,
+                1,
+                500_000000000,
+                ctx(test)
+            );
+            test::return_shared(rfp_storage);
+        };
+        test::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = revenue_farming_pool::ERROR_POOL_INSUFFICIENT_BALANCE)]
+    fun test_request_liquidity_pool_insufficient_balance() {
+        let scenario = scenario();
+        let test = &mut scenario;
+        let (_, business) = people();
+        let user2 = @0x2222;
+
+        setup_modules(test);
+
+        setup_farming_pool(test, business);
+        setup_pool_request(test, business);
+        setup_pool_approval(test, business, 1);
+
+        next_tx(test, user2);
+        {
+            open_kasa(test, user2, 3_000000000, 4500_000000000);
+            setup_deposit(test, business, user2, 1000_000000000);
+        };
+        next_tx(test, business);
+        {
+            let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+            revenue_farming_pool::request_liquidity_for_testing(
+                &mut rfp_storage,
+                1,
+                2000_000000000,
+                ctx(test)
+            );
+            test::return_shared(rfp_storage);
         };
         test::end(scenario);
     }
