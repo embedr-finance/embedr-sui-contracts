@@ -17,7 +17,10 @@
 module stable_coin_factory::kasa_manager {
     use std::option::{Self, Option};
 
-    use sui::object::{Self, UID, ID};
+    #[test_only]
+    use sui::object::{ID};
+
+    use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::event;

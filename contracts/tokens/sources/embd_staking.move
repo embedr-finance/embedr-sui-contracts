@@ -1,7 +1,10 @@
 /// EMBD Staking is responsible for managing the staking of EMBD tokens
 module tokens::embd_staking {
+    #[test_only]
+    use sui::object::{ID};
+
     use sui::package::{Self, Publisher};
-    use sui::object::{Self, UID, ID};
+    use sui::object::{Self, UID};
     use sui::table::{Self, Table};
     use sui::coin::{Self, Coin};
     use sui::balance::{Self, Balance};

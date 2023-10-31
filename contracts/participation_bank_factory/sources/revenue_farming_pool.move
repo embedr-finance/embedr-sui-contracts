@@ -2,7 +2,10 @@ module participation_bank_factory::revenue_farming_pool {
     use std::string;
     use std::option::{Self, Option};
 
-    use sui::object::{Self, UID, ID};
+    #[test_only]
+    use sui::object::{ID};
+    
+    use sui::object::{Self, UID};
     use sui::table::{Self, Table};
     use sui::balance::{Self, Balance};
     use sui::vec_set::{Self, VecSet};
