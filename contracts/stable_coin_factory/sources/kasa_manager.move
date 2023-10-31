@@ -17,7 +17,10 @@
 module stable_coin_factory::kasa_manager {
     use std::option::{Self, Option};
 
-    use sui::object::{Self, UID, ID};
+    #[test_only]
+    use sui::object::{ID};
+
+    use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::event;
@@ -828,12 +831,13 @@ module stable_coin_factory::kasa_manager {
     }
 
     #[test_only]
+    #[allow(unused_assignment)]
     public fun get_redemption_hints(
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
         amount: u64,
         price: u64,
-        max_iterations: u64
+        _max_iterations: u64
     ): (Option<address>, u256, u64) {
         let first_redemption_hint: Option<address>;
         let partial_redemption_hint_nicr: u256 = 0;

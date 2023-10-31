@@ -10,14 +10,10 @@ else
 endif
 
 deploy:
-	@echo "Deploying Embedr Protocol Contracts"
-	@echo ""
-
 	@bash scripts/request_test_tokens.sh
-	@echo ""
 
 	@bash scripts/deploy_modules.sh
-	@echo ""
 
-	@bash scripts/km_mint_permission.sh
-	@echo ""
+	@bash scripts/add_manager_rusd_stable_coin.sh
+
+	@bash scripts/add_manager_embd_incentive_token.sh

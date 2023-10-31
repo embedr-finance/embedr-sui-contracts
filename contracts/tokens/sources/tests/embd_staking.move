@@ -3,18 +3,15 @@ module tokens::embd_staking_tests {
     use sui::test_scenario::{Self as test, next_tx, Scenario, ctx};
     use sui::test_utils::{assert_eq};
     
-    use tokens::embd_staking::{Self, EMBD_STAKING, EMBDStakingPublisher, EMBDStakingStorage};
-    use tokens::embd_incentive_token::{
-        Self, EMBD_INCENTIVE_TOKEN,
-        EMBDIncentiveTokenAdminCap, EMBDIncentiveTokenStorage
-    };
+    use tokens::embd_staking::{Self, EMBDStakingPublisher, EMBDStakingStorage};
+    use tokens::embd_incentive_token::{Self, EMBDIncentiveTokenAdminCap, EMBDIncentiveTokenStorage};
     use library::test_utils::{people, scenario};
 
     fun setup_embd_token_module(test: &mut Scenario) {
         let (admin, _) = people();
         next_tx(test, admin);
         {
-            embd_incentive_token::init_for_testing(test::ctx(test));
+            embd_incentive_token::init_for_testing(ctx(test));
         };
     }
 
@@ -22,7 +19,7 @@ module tokens::embd_staking_tests {
         let (admin, _) = people();
         next_tx(test, admin);
         {
-            embd_staking::init_for_testing(test::ctx(test));
+            embd_staking::init_for_testing(ctx(test));
         };
         next_tx(test, admin);
         {
@@ -56,14 +53,14 @@ module tokens::embd_staking_tests {
                 &mut eit_storage,
                 sender,
                 amount,
-                test::ctx(test)
+                ctx(test)
             );
             embd_staking::deposit_for_testing(
                 &es_publisher,
                 &mut es_storage,
                 &mut eit_storage,
                 embd_token,
-                test::ctx(test)
+                ctx(test)
             );
             test::return_shared(es_publisher);
             test::return_shared(es_storage);
@@ -75,7 +72,7 @@ module tokens::embd_staking_tests {
     fun test_deposit_happy_path() {
         let scenario = scenario();
         let test = &mut scenario;
-        let (admin, user) = people();
+        let (_, user) = people();
         let user2 = @0x2222;
         
         setup_test(test);
@@ -91,14 +88,14 @@ module tokens::embd_staking_tests {
                 &mut eit_storage,
                 user,
                 1000,
-                test::ctx(test)
+                ctx(test)
             );
             embd_staking::deposit_for_testing(
                 &es_publisher,
                 &mut es_storage,
                 &mut eit_storage,
                 embd_token,
-                test::ctx(test)
+                ctx(test)
             );
 
             let stake_amount = embd_staking::get_stake_amount(&es_storage, user);
@@ -133,7 +130,7 @@ module tokens::embd_staking_tests {
     fun test_withdraw_happy_path() {
         let scenario = scenario();
         let test = &mut scenario;
-        let (admin, user) = people();
+        let (_, user) = people();
         
         setup_test(test);
 
@@ -150,7 +147,7 @@ module tokens::embd_staking_tests {
                 &mut es_storage,
                 &mut eit_storage,
                 1000,
-                test::ctx(test)
+                ctx(test)
             );
 
             let stake_amount = embd_staking::get_stake_amount(&es_storage, user);
@@ -164,7 +161,7 @@ module tokens::embd_staking_tests {
                 &mut es_storage,
                 &mut eit_storage,
                 500,
-                test::ctx(test)
+                ctx(test)
             );
 
             let stake_amount = embd_staking::get_stake_amount(&es_storage, user);
@@ -185,7 +182,7 @@ module tokens::embd_staking_tests {
     fun test_withdraw_stake_not_found() {
         let scenario = scenario();
         let test = &mut scenario;
-        let (admin, user) = people();
+        let (_, user) = people();
         
         setup_test(test);
 
@@ -199,7 +196,7 @@ module tokens::embd_staking_tests {
                 &mut es_storage,
                 &mut eit_storage,
                 1000,
-                test::ctx(test)
+                ctx(test)
             );
             test::return_shared(es_publisher);
             test::return_shared(es_storage);

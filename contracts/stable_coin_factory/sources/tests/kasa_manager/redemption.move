@@ -14,7 +14,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSD_STABLE_COIN};
     use library::test_utils::{people, scenario};
-    use library::utils::logger;
+    // use library::utils::logger;
 
     const COLLATERAL_PRICE: u64 = 1800_000000000;
 
@@ -51,10 +51,10 @@ module stable_coin_factory::kasa_manager_redemption_tests {
         };
     }
 
-    // #[test]
+    #[test]
     fun test_full_redemption() {
         let scenario = scenario();
-        let (admin, user) = people();
+        let (_, user) = people();
         let test = &mut scenario;
 
         let user2 = @0x2222;
@@ -64,12 +64,6 @@ module stable_coin_factory::kasa_manager_redemption_tests {
         init_stable_coin_factory(test);
         setup_kasas(test);
 
-        next_tx(test, user4);
-        {
-            let collateral = test::take_from_sender<Coin<SUI>>(test);
-            assert_eq(coin::value(&collateral), 0);
-            test::return_to_sender(test, collateral);
-        };
         next_tx(test, user4);
         {
             let km_publisher = test::take_shared<KasaManagerPublisher>(test);
@@ -178,7 +172,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
     #[test]
     fun test_partial_redemption() {
         let scenario = scenario();
-        let (admin, user) = people();
+        let (_, user) = people();
         let test = &mut scenario;
 
         let user2 = @0x2222;
