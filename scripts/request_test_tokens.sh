@@ -3,11 +3,11 @@ active_address=$(sui client active-address)
 check() {
     gas_response=$(sui client gas --json)
 
-    if [ ${#gas_response} -gt 0 ]; then
+    if [ ${#gas_response} -gt 2 ]; then
         echo "This address already has test tokens."
         exit 0
     else
-        request
+        res=request
         echo "Got test tokens from the faucet."
         exit 0
     fi
