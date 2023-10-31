@@ -1,6 +1,6 @@
 # !/bin/bash
 
-modules=("library" "tokens" "stable_coin_factory")
+modules=("library" "tokens" "stable_coin_factory" "participation_bank_factory")
 
 update_toml_field() {
     file="Move.toml"
@@ -17,8 +17,12 @@ update_toml_field() {
     echo "$updated_content" > "$file"
 }
 
-parse_response_object_changes() {
+get_object_id_from_object_type() {
     echo "$1" | jq -r '.objectChanges[] | select(.objectType == "'$2'").objectId'
+}
+
+get_publisher_id_from_object() {
+    sui client object --json $1 | jq -r '.content.fields.publisher.fields.id.id'
 }
 
 for module in "${modules[@]}"; do
@@ -47,26 +51,60 @@ for module in "${modules[@]}"; do
                 json='{"package_id": "'$package_id'"}'
                 ;;
             "tokens")
-                storage=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::rusd_stable_coin::RUSDStableCoinStorage").objectId')
-                admin_cap=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::rusd_stable_coin::RUSDStableCoinAdminCap").objectId')
+                # rUSD Stable Coin
+                rsc_storage=$(get_object_id_from_object_type "$response" "$package_id"::rusd_stable_coin::RUSDStableCoinStorage)
+                rsc_admin_cap=$(get_object_id_from_object_type "$response" "$package_id"::rusd_stable_coin::RUSDStableCoinAdminCap)
+                rsc_coin_type="'$package_id'::rusd_stable_coin::RUSD_STABLE_COIN"
+
+                # EMBD Incentive Token
+                eit_storage=$(get_object_id_from_object_type "$response" "$package_id"::embd_incentive_token::EMBDIncentiveTokenStorage)
+                eit_admin_cap=$(get_object_id_from_object_type "$response" "$package_id"::embd_incentive_token::EMBDIncentiveTokenAdminCap)
+                eit_coin_type="'$package_id'::embd_incentive_token::EMBD_INCENTIVE_TOKEN"
+
+                # EMBD Staking
+                es_publisher_object=$(get_object_id_from_object_type "$response" "$package_id"::embd_staking::EMBDStakingPublisher)
+                es_publisher_id=$(get_publisher_id_from_object "$es_publisher_object")
+                es_storage=$(get_object_id_from_object_type "$response" "$package_id"::embd_staking::EMBDStakingStorage)
+
                 json='{
                     "package_id": "'$package_id'",
                     "rusd_stable_coin": {
-                        "storage": "'$storage'",
-                        "coin_type": "'$package_id'::rusd_stable_coin::RUSD_STABLE_COIN",
-                        "admin_cap": "'$admin_cap'"
+                        "storage": "'$rsc_storage'",
+                        "coin_type": "'$rsc_coin_type'",
+                        "admin_cap": "'$rsc_admin_cap'"
+                    },
+                    "embd_incentive_token": {
+                        "storage": "'$eit_storage'",
+                        "coin_type": "'$eit_coin_type'",
+                        "admin_cap": "'$eit_admin_cap'"
+                    },
+                    "embd_staking": {
+                        "publisher_object": "'$es_publisher_object'",
+                        "publisher_id": "'$es_publisher_id'",
+                        "storage": "'$es_storage'"
                     }
                 }'
                 ;;
             "stable_coin_factory")
-                km_storage=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::kasa_storage::KasaManagerStorage").objectId')
+                # Kasa Storage
+                km_storage=$(get_object_id_from_object_type "$response" "$package_id"::kasa_storage::KasaManagerStorage)
+
+                # Kasa Manager
+                km_publisher_object=$(get_object_id_from_object_type "$response" "$package_id"::kasa_manager::KasaManagerPublisher)
+                km_publisher_id=$(get_publisher_id_from_object "$km_publisher_object")
                 kasa_table_id=$(sui client object --json $km_storage | jq -r '.content.fields.kasa_table.fields.id.id')
-                km_publisher_object=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::kasa_manager::KasaManagerPublisher").objectId')
-                km_publisher_id=$(sui client object --json $km_publisher_object | jq -r '.content.fields.publisher.fields.id.id')
-                sk_storage=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::sorted_kasas::SortedKasasStorage").objectId')
-                sp_publisher=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::stability_pool::StabilityPoolPublisher").objectId')
-                sp_storage=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::stability_pool::StabilityPoolStorage").objectId')
-                collateral_gains=$(echo "$response" | jq -r '.objectChanges[] | select(.objectType == "'$package_id'::liquidation_assets_distributor::CollateralGains").objectId')
+
+                # Sorted Kasas
+                sk_storage=$(get_object_id_from_object_type "$response" "$package_id"::sorted_kasas::SortedKasasStorage)
+
+                # Stability Pool
+                sp_publisher_object=$(get_object_id_from_object_type "$response" "$package_id"::stability_pool::StabilityPoolPublisher)
+                sp_publisher_id=$(get_publisher_id_from_object "$sp_publisher_object")
+                sp_storage=$(get_object_id_from_object_type "$response" "$package_id"::stability_pool::StabilityPoolStorage)
+                
+                # Liquidation Assets Distributor
+                collateral_gains=$(get_object_id_from_object_type "$response" "$package_id"::liquidation_assets_distributor::CollateralGains)
+                
                 json='{
                     "package_id": "'$package_id'",
                     "kasa_storage": {
@@ -81,7 +119,8 @@ for module in "${modules[@]}"; do
                         "storage": "'$sk_storage'"
                     },
                     "stability_pool": {
-                        "publisher": "'$sp_publisher'",
+                        "publisher_object": "'$sp_publisher'",
+                        "publisher_id": "'$sp_publisher_id'",
                         "storage": "'$sp_storage'"
                     },
                     "liquidation_assets_distributor": {
@@ -89,6 +128,23 @@ for module in "${modules[@]}"; do
                     }
                 }'
                 ;;
+            "participation_bank_factory")
+                # Revenue Farming Pool
+                rfp_publisher_object=$(get_object_id_from_object_type "$response" "$package_id"::revenue_farming_pool::RevenueFarmingPoolPublisher)
+                rfp_publisher_id=$(get_publisher_id_from_object "$rfp_publisher_object")
+                rfp_storage=$(get_object_id_from_object_type "$response" "$package_id"::revenue_farming_pool::RevenueFarmingPoolStorage)
+                rfp_admin_cap=$(get_object_id_from_object_type "$response" "$package_id"::revenue_farming_pool::RevenueFarmingPoolAdminCap)
+
+                json='{
+                    "package_id": "'$package_id'",
+                    "revenue_farming_pool": {
+                        "publisher_object": "'$rfp_publisher_object'",
+                        "publisher_id": "'$rfp_publisher_id'",
+                        "storage": "'$rfp_storage'",
+                        "admin_cap": "'$rfp_admin_cap'"
+                    }
+                }'
+            ;;
         esac
 
         # Save the JSON file
