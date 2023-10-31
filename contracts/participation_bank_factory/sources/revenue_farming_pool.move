@@ -1,5 +1,6 @@
 module participation_bank_factory::revenue_farming_pool {
     use std::string;
+    use std::option::{Self, Option};
 
     use sui::object::{Self, UID, ID};
     use sui::table::{Self, Table};
@@ -13,14 +14,18 @@ module participation_bank_factory::revenue_farming_pool {
 
     use tokens::rusd_stable_coin::{Self, RUSD_STABLE_COIN, RUSDStableCoinStorage};
 
-    // =================== Errors ===================
+    // =================== @Errors ===================
 
     const ERROR_FARMING_POOL_ALREADY_EXISTS: u64 = 1;
     const ERROR_FARMING_POOL_NOT_FOUND: u64 = 2;
     const ERROR_POOL_REQUEST_NOT_FOUND: u64 = 3;
-    const ERROR_STAKE_NOT_FOUND: u64 = 4;
+    const ERROR_POOL_NOT_FOUND: u64 = 4;
+    const ERROR_STAKE_NOT_FOUND: u64 = 5;
+    const ERROR_LIQUIDITY_REQUEST_NOT_FOUND: u64 = 6;
+    const ERROR_LIQUIDITY_REQUEST_ALREADY_EXISTS: u64 = 7;
+    const ERROR_POOL_INSUFFICIENT_BALANCE: u64 = 8;
 
-    // =================== Storage ===================
+    // =================== @Storage ===================
 
     /// FarmingPoolStake is the stake of a user in a given pool
     /// 
@@ -44,6 +49,7 @@ module participation_bank_factory::revenue_farming_pool {
         description: string::String,
         stake_table: Table<address, FarmingPoolStake>,
         balance: Balance<RUSD_STABLE_COIN>,
+        liquidity_request: Option<u64>,
     }
 
     /// FarmingPoolStorage is the storage for a single business pool storage
@@ -79,7 +85,7 @@ module participation_bank_factory::revenue_farming_pool {
     /// OTW
     struct REVENUE_FARMING_POOL has drop {}
 
-    // =================== Initializer ===================
+    // =================== @Initializer ===================
 
     fun init(witness: REVENUE_FARMING_POOL, ctx: &mut TxContext) {
         transfer::share_object(RevenueFarmingPoolStorage {
@@ -96,7 +102,7 @@ module participation_bank_factory::revenue_farming_pool {
         });
     }
 
-    // =================== Entry Methods ===================
+    // =================== @Entry Methods ===================
 
     /// Adds a new farming pool to the protocol for a given business
     /// 
@@ -202,9 +208,28 @@ module participation_bank_factory::revenue_farming_pool {
     }
 
     /// Requests liquidity from a given pool
-    entry fun request_liquidity() {}
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool_id` - The ID of the pool
+    /// * `amount` - The amount of stable coin to request
+    entry fun request_liquidity(
+        rfp_storage: &mut RevenueFarmingPoolStorage,
+        pool_id: u64,
+        amount: u64,
+        ctx: &mut TxContext
+    ) {
+        request_liquidity_(
+            rfp_storage,
+            pool_id,
+            amount,
+            ctx
+        );
+    }
 
-    // =================== Query Methods ===================
+    entry fun approve_liquidity_request() {}
+
+    // =================== @Query Methods ===================
 
     // TODO: Do we need this?
     public fun get_farming_pool(
@@ -256,7 +281,7 @@ module participation_bank_factory::revenue_farming_pool {
         balance::value(&table::borrow(&farming_pool.pool_table, pool_id).balance)
     }
 
-    // =================== Helpers ===================
+    // =================== @Helpers ===================
 
     /// add_farming_pool_ is the internal implementation of the add_farming_pool entry method
     fun add_farming_pool_(
@@ -300,6 +325,7 @@ module participation_bank_factory::revenue_farming_pool {
             description,
             stake_table: table::new(ctx),
             balance: balance::zero(),
+            liquidity_request: option::none()
         };
 
         // Insert the pool request into the farming pool
@@ -424,6 +450,32 @@ module participation_bank_factory::revenue_farming_pool {
         )
     }
 
+    /// request_liquidity_ is the internal implementation of the request_liquidity entry method
+    fun request_liquidity_(
+        rfp_storage: &mut RevenueFarmingPoolStorage,
+        pool_id: u64,
+        amount: u64,
+        ctx: &mut TxContext
+    ) {
+        let account_address = tx_context::sender(ctx);
+
+        // Make sure farming pool exists for pool address
+        assert!(table::contains(&rfp_storage.pool_table, account_address), ERROR_FARMING_POOL_NOT_FOUND);
+        let farming_pool = table::borrow_mut(&mut rfp_storage.pool_table, account_address);
+
+        assert!(table::contains(&farming_pool.pool_table, pool_id), ERROR_POOL_NOT_FOUND);
+        let single_pool = table::borrow_mut(&mut farming_pool.pool_table, pool_id);
+
+        // Make sure the liquidity request does not exist already
+        assert!(option::is_none(&single_pool.liquidity_request), ERROR_LIQUIDITY_REQUEST_ALREADY_EXISTS);
+
+        // Make sure amount is less than the balance of the pool
+        assert!(amount <= balance::value(&single_pool.balance), ERROR_POOL_INSUFFICIENT_BALANCE);
+
+        // Create a new liquidity request
+        single_pool.liquidity_request = option::some(amount);
+    }
+
     fun check_stake_exists(storage: &SinglePoolStorage, account_address: address): bool {
         table::contains(&storage.stake_table, account_address)
     }
@@ -512,6 +564,21 @@ module participation_bank_factory::revenue_farming_pool {
     }
 
     #[test_only]
+    public fun request_liquidity_for_testing(
+        rfp_storage: &mut RevenueFarmingPoolStorage,
+        pool_id: u64,
+        amount: u64,
+        ctx: &mut TxContext
+    ) {
+        request_liquidity_(
+            rfp_storage,
+            pool_id,
+            amount,
+            ctx
+        );
+    }
+
+    #[test_only]
     public fun get_active_pools_size_for_testing(
         fp_storage: &FarmingPoolStorage,
     ): u64 {
@@ -525,6 +592,15 @@ module participation_bank_factory::revenue_farming_pool {
     ): (string::String, string::String) {
         let pool = table::borrow(&fp_storage.pool_table, pool_id);
         (pool.name, pool.description)
+    }
+
+    #[test_only]
+    public fun get_single_pool_liquidity_request_for_testing(
+        fp_storage: &FarmingPoolStorage,
+        pool_id: u64,
+    ): Option<u64> {
+        let pool = table::borrow(&fp_storage.pool_table, pool_id);
+        pool.liquidity_request
     }
 
     #[test_only]
