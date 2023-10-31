@@ -1,4 +1,4 @@
-PACKAGES := library tokens stable_coin_factory 
+PACKAGES := library tokens stable_coin_factory participation_bank_factory
 
 test:
 ifdef module
