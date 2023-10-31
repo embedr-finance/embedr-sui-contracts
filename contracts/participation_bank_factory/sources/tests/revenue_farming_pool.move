@@ -123,6 +123,21 @@ module participation_bank_factory::revenue_farming_pool_tests {
     //     };
     // }
 
+    fun setup_liquidity_request(test: &mut Scenario, pool_address: address, pool_id: u64, amount: u64) {
+        next_tx(test, pool_address);
+        {
+            let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+            revenue_farming_pool::request_liquidity_for_testing(
+                &mut rfp_storage,
+                pool_id,
+                amount,
+                ctx(test)
+            );
+            test::return_shared(rfp_storage);
+        };
+
+    }
+
     #[test]
     fun test_add_farming_pool_happy_path() {
         let scenario = scenario();
@@ -733,6 +748,164 @@ module participation_bank_factory::revenue_farming_pool_tests {
                 ctx(test)
             );
             test::return_shared(rfp_storage);
+        };
+        test::end(scenario);
+    }
+
+    #[test]
+    fun test_approve_liquidity_request() {
+        let scenario = scenario();
+        let test = &mut scenario;
+        let (admin, business) = people();
+        let user2 = @0x2222;
+
+        setup_modules(test);
+
+        setup_farming_pool(test, business);
+        setup_pool_request(test, business);
+        setup_pool_approval(test, business, 1);
+
+        next_tx(test, user2);
+        {
+            open_kasa(test, user2, 3_000000000, 4500_000000000);
+            setup_deposit(test, business, user2, 2000_000000000);
+            setup_liquidity_request(test, business, 1, 2000_000000000);
+        };
+        next_tx(test, admin);
+        {
+            let rfp_publisher = test::take_shared<RevenueFarmingPoolPublisher>(test);
+            let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+            let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
+
+            revenue_farming_pool::approve_liquidity_request_for_testing(
+                &rfp_publisher,
+                &mut rfp_storage,
+                &mut rsc_storage,
+                business,
+                1,
+                ctx(test)
+            );
+
+            let farming_pool = revenue_farming_pool::get_farming_pool(&rfp_storage, business);
+            let liquidity_request
+                = revenue_farming_pool::get_single_pool_liquidity_request_for_testing(
+                farming_pool,
+                1,
+            );
+            assert_eq(liquidity_request, option::none());
+
+            let stable_coin_balance = rusd_stable_coin::get_balance(&rsc_storage, business);
+            assert_eq(stable_coin_balance, 2000_000000000);
+
+            let pool_balance = revenue_farming_pool::get_pool_stake_amount(
+                &rfp_storage,
+                business,
+                1,
+            );
+            assert_eq(pool_balance, 0);
+
+            test::return_shared(rfp_publisher);
+            test::return_shared(rfp_storage);
+            test::return_shared(rsc_storage);
+        };
+        next_tx(test, business);
+        {
+            let stable_coin = test::take_from_sender<Coin<RUSD_STABLE_COIN>>(test);
+            assert_eq(coin::value(&stable_coin), 2000_000000000);
+            test::return_to_sender(test, stable_coin);
+        };
+        test::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = revenue_farming_pool::ERROR_FARMING_POOL_NOT_FOUND)]
+    fun test_approve_liquidity_request_farming_pool_not_found() {
+        let scenario = scenario();
+        let test = &mut scenario;
+        let (admin, business) = people();
+
+        setup_modules(test);
+
+        next_tx(test, admin);
+        {
+            let rfp_publisher = test::take_shared<RevenueFarmingPoolPublisher>(test);
+            let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+            let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
+            revenue_farming_pool::approve_liquidity_request_for_testing(
+                &rfp_publisher,
+                &mut rfp_storage,
+                &mut rsc_storage,
+                business,
+                1,
+                ctx(test)
+            );
+            test::return_shared(rfp_publisher);
+            test::return_shared(rfp_storage);
+            test::return_shared(rsc_storage);
+        };
+        test::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = revenue_farming_pool::ERROR_POOL_NOT_FOUND)]
+    fun test_approve_liquidity_request_pool_not_found() {
+        let scenario = scenario();
+        let test = &mut scenario;
+        let (admin, business) = people();
+
+        setup_modules(test);
+
+        setup_farming_pool(test, business);
+
+        next_tx(test, admin);
+        {
+            let rfp_publisher = test::take_shared<RevenueFarmingPoolPublisher>(test);
+            let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+            let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
+            revenue_farming_pool::approve_liquidity_request_for_testing(
+                &rfp_publisher,
+                &mut rfp_storage,
+                &mut rsc_storage,
+                business,
+                1,
+                ctx(test)
+            );
+            test::return_shared(rfp_publisher);
+            test::return_shared(rfp_storage);
+            test::return_shared(rsc_storage);
+        };
+        test::end(scenario);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = revenue_farming_pool::ERROR_LIQUIDITY_REQUEST_NOT_FOUND)]
+    fun test_approve_liquidity_request_liquidity_request_not_found() {
+        let scenario = scenario();
+        let test = &mut scenario;
+        let (admin, business) = people();
+
+        setup_modules(test);
+
+        setup_farming_pool(test, business);
+        setup_pool_request(test, business);
+        setup_pool_approval(test, business, 1);
+
+        next_tx(test, admin);
+        {
+            let rfp_publisher = test::take_shared<RevenueFarmingPoolPublisher>(test);
+            let rfp_storage = test::take_shared<RevenueFarmingPoolStorage>(test);
+            let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
+            revenue_farming_pool::approve_liquidity_request_for_testing(
+                &rfp_publisher,
+                &mut rfp_storage,
+                &mut rsc_storage,
+                business,
+                1,
+                ctx(test)
+            );
+            test::return_shared(rfp_publisher);
+            test::return_shared(rfp_storage);
+            test::return_shared(rsc_storage);
         };
         test::end(scenario);
     }
