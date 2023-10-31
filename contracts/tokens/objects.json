@@ -1,8 +1,18 @@
 {
-  "package_id": "0x5d1cf12391cdfad9b92ece78bd611c5a92b96d6f5675709076ba426939b4ae9a",
+  "package_id": "0x598c812c2bff8a125d9d8577af09af8620c22cb28bbeb1a339597f8abcb308cd",
   "rusd_stable_coin": {
-    "storage": "0x8ca9679bf6097bef4f732efd2be5ae3cbcdc2456341dc3f64021ca83a833aa43",
-    "coin_type": "0x5d1cf12391cdfad9b92ece78bd611c5a92b96d6f5675709076ba426939b4ae9a::rusd_stable_coin::RUSD_STABLE_COIN",
-    "admin_cap": "0x73dfccf4b17eb3fe0a18431339febf2c89abb8a583e3bf17732ceb8ec693eee5"
+    "storage": "0xa6836a5f145f77fe2b26565949fc3c263bd629840bbdcad4787a349a3843764b",
+    "coin_type": "'0x598c812c2bff8a125d9d8577af09af8620c22cb28bbeb1a339597f8abcb308cd'::rusd_stable_coin::RUSD_STABLE_COIN",
+    "admin_cap": "0x1196be5459f9ae35e1696e3ca42dc8290194605aca3b11a79e424f1b15d8e8cc"
+  },
+  "embd_incentive_token": {
+    "storage": "0xdd85571212b6b7a1a29d4aefc03c1ce363d3fca58b8634f19d9f71ddea1db8f4",
+    "coin_type": "'0x598c812c2bff8a125d9d8577af09af8620c22cb28bbeb1a339597f8abcb308cd'::embd_incentive_token::EMBD_INCENTIVE_TOKEN",
+    "admin_cap": "0x9bb4a49b90d9a5c88ba0ebd5e4d2bf5787fe8e9475dd8f671a6781e87b84d435"
+  },
+  "embd_staking": {
+    "publisher_object": "0xabc0e2f3111d7c7324dcf2ed5c50c14d96801c3b8b73411655fd8fc7e0cb3de6",
+    "publisher_id": "0x59da3aaddae2e9fbc69ef96a36a85e43d5b0fe110a1d4dff70f0108692548454",
+    "storage": "0xce47df6c536e44b577a93e507dc32ce32f0b80b20cabb38f8023051b351d01fa"
   }
 }
