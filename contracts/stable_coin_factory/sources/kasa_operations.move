@@ -17,17 +17,15 @@
 /// 
 /// After checking various conditions, `Kasa Operations` will call `Kasa Manager` to perform operations
 module stable_coin_factory::kasa_operations {
-    use std::option::{Self, Option};
-
     use sui::tx_context::{Self, TxContext};
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
 
     use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage};
     use stable_coin_factory::kasa_manager::{Self, KasaManagerPublisher};
-    use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
+    use stable_coin_factory::sorted_kasas::{SortedKasasStorage};
     use tokens::rusd_stable_coin::{RUSDStableCoinStorage, RUSD_STABLE_COIN};
-    use library::kasa::{is_icr_valid, calculate_nominal_collateral_ratio};
+    use library::kasa::{is_icr_valid};
     // use library::utils::logger;
 
     const COLLATERAL_PRICE: u64 = 1800_000000000;
@@ -88,24 +86,13 @@ module stable_coin_factory::kasa_operations {
         kasa_manager::create_kasa(
             km_publisher,
             km_storage,
+            sk_storage,
             rsc_storage,
             account_address,
             collateral,
             debt_amount,
             ctx
         );
-
-        // TODO: Get prev_id and next_id as a parameter
-        // TODO: Move this logic to Kasa Manager
-        sorted_kasas::insert(
-            km_storage,
-            sk_storage,
-            account_address,
-            calculate_nominal_collateral_ratio(collateral_amount, debt_amount),
-            option::none(),
-            option::none(),
-            ctx
-        )
     }
 
     /// Deposit collateral to an existing kasa
@@ -129,16 +116,9 @@ module stable_coin_factory::kasa_operations {
 
         kasa_manager::increase_collateral(
             km_storage,
-            account_address,
-            collateral
-        );
-
-        reinsert_kasa_to_list(
-            km_storage,
             sk_storage,
             account_address,
-            option::none(),
-            option::none()
+            collateral
         );
     }
 
@@ -178,17 +158,10 @@ module stable_coin_factory::kasa_operations {
 
         kasa_manager::decrease_collateral(
             km_storage,
+            sk_storage,
             account_address,
             amount,
             ctx
-        );
-
-        reinsert_kasa_to_list(
-            km_storage,
-            sk_storage,
-            account_address,
-            option::none(),
-            option::none()
         );
     }
 
@@ -231,18 +204,11 @@ module stable_coin_factory::kasa_operations {
         kasa_manager::increase_debt(
             km_publisher,
             km_storage,
+            sk_storage,
             rusd_stable_coin_storage,
             account_address,
             amount,
             ctx
-        );
-
-        reinsert_kasa_to_list(
-            km_storage,
-            sk_storage,
-            account_address,
-            option::none(),
-            option::none()
         );
     }
 
@@ -287,52 +253,10 @@ module stable_coin_factory::kasa_operations {
         kasa_manager::decrease_debt(
             km_publisher,
             km_storage,
+            sk_storage,
             rusd_stable_coin_storage,
             account_address,
             debt_coin
         );
-
-        reinsert_kasa_to_list(
-            km_storage,
-            sk_storage,
-            account_address,
-            option::none(),
-            option::none()
-        )
-    }
-
-    // =================== Helpers ===================
-
-    /// Reinsert a kasa to the sorted kasas list
-    /// After updating the collateral ratio of a kasa, we need to reinsert it to the sorted kasas list
-    /// 
-    /// # Arguments
-    /// 
-    /// * `account_address` - the account address of the kasa
-    /// * `prev_id` - the previous kasa id in the sorted kasas list
-    /// * `next_id` - the next kasa id in the sorted kasas list
-    /// // TODO: Move this logic to Kasa Manager
-    fun reinsert_kasa_to_list(
-        km_storage: &mut KasaManagerStorage,
-        sk_storage: &mut SortedKasasStorage,
-        account_address: address,
-        prev_id: Option<address>,
-        next_id: Option<address>
-    ) {
-        let (current_collateral_amount, current_debt_amount) = kasa_storage::get_kasa_amounts(
-            km_storage,
-            account_address,
-        );
-        sorted_kasas::reinsert(
-            km_storage,
-            sk_storage,
-            account_address,
-            calculate_nominal_collateral_ratio(
-                current_collateral_amount,
-                current_debt_amount
-            ),
-            prev_id,
-            next_id
-        )
     }
 }
