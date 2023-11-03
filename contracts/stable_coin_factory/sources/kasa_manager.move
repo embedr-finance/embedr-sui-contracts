@@ -126,6 +126,7 @@ module stable_coin_factory::kasa_manager {
     public(friend) fun create_kasa(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
+        sk_storage: &mut SortedKasasStorage,
         rsc_storage: &mut RUSDStableCoinStorage,
         account_address: address,
         collateral: Coin<SUI>,
@@ -162,6 +163,17 @@ module stable_coin_factory::kasa_manager {
         // Transfer the stable coin to the user
         transfer::public_transfer(stable_coin, account_address);
 
+        // Insert kasa into sorted kasa list
+        sorted_kasas::insert(
+            km_storage,
+            sk_storage,
+            account_address,
+            calculate_nominal_collateral_ratio(collateral_amount, debt_amount),
+            option::none(),
+            option::none(),
+            ctx
+        );
+
         // Emit event
         event::emit(KasaCreated {
             account_address,
@@ -178,6 +190,7 @@ module stable_coin_factory::kasa_manager {
     /// * `collateral` - the collateral coin object
     public(friend) fun increase_collateral(
         km_storage: &mut KasaManagerStorage,
+        sk_storage: &mut SortedKasasStorage,
         account_address: address,
         collateral: Coin<SUI>
     ) {
@@ -189,6 +202,15 @@ module stable_coin_factory::kasa_manager {
 
         // Update total collateral balance of the protocol
         kasa_storage::increase_total_collateral_balance(km_storage, coin::into_balance<SUI>(collateral));
+
+        // Reinsert the Kasa to the sorted kasas list
+        reinsert_kasa_to_list(
+            km_storage,
+            sk_storage,
+            account_address,
+            option::none(),
+            option::none()
+        );
     }
     
     /// Decreases the collateral amount of a Kasa
@@ -199,6 +221,7 @@ module stable_coin_factory::kasa_manager {
     /// * `amount` - the amount of collateral to decrease
     public(friend) fun decrease_collateral(
         km_storage: &mut KasaManagerStorage,
+        sk_storage: &mut SortedKasasStorage,
         account_address: address,
         amount: u64,
         ctx: &mut TxContext
@@ -211,6 +234,15 @@ module stable_coin_factory::kasa_manager {
 
         // Transfer the collateral back to the user
         transfer::public_transfer(collateral, account_address);
+
+        // Reinsert the Kasa to the sorted kasas list
+        reinsert_kasa_to_list(
+            km_storage,
+            sk_storage,
+            account_address,
+            option::none(),
+            option::none()
+        );
     }
 
     /// Increases the debt amount of a Kasa
@@ -222,6 +254,7 @@ module stable_coin_factory::kasa_manager {
     public(friend) fun increase_debt(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
+        sk_storage: &mut SortedKasasStorage,
         rsc_storage: &mut RUSDStableCoinStorage,
         account_address: address,
         amount: u64,
@@ -242,6 +275,15 @@ module stable_coin_factory::kasa_manager {
 
         // Update the total debt balance of the protocol
         kasa_storage::increase_total_debt_balance(km_storage, amount);
+
+        // Reinsert the Kasa to the sorted kasas list
+        reinsert_kasa_to_list(
+            km_storage,
+            sk_storage,
+            account_address,
+            option::none(),
+            option::none()
+        );
     }
 
     /// Decreases the debt amount of a Kasa
@@ -253,6 +295,7 @@ module stable_coin_factory::kasa_manager {
     public(friend) fun decrease_debt(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
+        sk_storage: &mut SortedKasasStorage,
         rsc_storage: &mut RUSDStableCoinStorage,
         account_address: address,
         stable_coin: Coin<RUSD_STABLE_COIN>
@@ -271,6 +314,15 @@ module stable_coin_factory::kasa_manager {
             get_publisher(km_publisher),
             account_address,
             stable_coin
+        );
+
+        // Reinsert the Kasa to the sorted kasas list
+        reinsert_kasa_to_list(
+            km_storage,
+            sk_storage,
+            account_address,
+            option::none(),
+            option::none()
         );
     }
     
@@ -495,6 +547,38 @@ module stable_coin_factory::kasa_manager {
     }
 
     // =================== Helpers ===================
+
+    /// Reinsert a kasa to the sorted kasas list
+    /// After updating the collateral ratio of a kasa, we need to reinsert it to the sorted kasas list
+    /// 
+    /// # Arguments
+    /// 
+    /// * `account_address` - the account address of the kasa
+    /// * `prev_id` - the previous kasa id in the sorted kasas list
+    /// * `next_id` - the next kasa id in the sorted kasas list
+    fun reinsert_kasa_to_list(
+        km_storage: &mut KasaManagerStorage,
+        sk_storage: &mut SortedKasasStorage,
+        account_address: address,
+        prev_id: Option<address>,
+        next_id: Option<address>
+    ) {
+        let (current_collateral_amount, current_debt_amount) = kasa_storage::get_kasa_amounts(
+            km_storage,
+            account_address,
+        );
+        sorted_kasas::reinsert(
+            km_storage,
+            sk_storage,
+            account_address,
+            calculate_nominal_collateral_ratio(
+                current_collateral_amount,
+                current_debt_amount
+            ),
+            prev_id,
+            next_id
+        )
+    }
 
     /// Processes the liquidations in normal mode
     /// Loops through the Kasas and liquidates them
