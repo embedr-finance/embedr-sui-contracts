@@ -61,12 +61,12 @@ for module in "${modules[@]}"; do
                 # rUSD Stable Coin
                 rsc_storage=$(get_object_id_from_object_type "$response" "$package_id"::rusd_stable_coin::RUSDStableCoinStorage)
                 rsc_admin_cap=$(get_object_id_from_object_type "$response" "$package_id"::rusd_stable_coin::RUSDStableCoinAdminCap)
-                rsc_coin_type="'$package_id'::rusd_stable_coin::RUSD_STABLE_COIN"
+                rsc_coin_type="$package_id::rusd_stable_coin::RUSD_STABLE_COIN"
 
                 # EMBD Incentive Token
                 eit_storage=$(get_object_id_from_object_type "$response" "$package_id"::embd_incentive_token::EMBDIncentiveTokenStorage)
                 eit_admin_cap=$(get_object_id_from_object_type "$response" "$package_id"::embd_incentive_token::EMBDIncentiveTokenAdminCap)
-                eit_coin_type="'$package_id'::embd_incentive_token::EMBD_INCENTIVE_TOKEN"
+                eit_coin_type="$package_id::embd_incentive_token::EMBD_INCENTIVE_TOKEN"
 
                 # EMBD Staking
                 es_publisher_object=$(get_object_id_from_object_type "$response" "$package_id"::embd_staking::EMBDStakingPublisher)
