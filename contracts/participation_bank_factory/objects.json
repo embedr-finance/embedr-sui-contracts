@@ -1,9 +1,9 @@
 {
-  "package_id": "0x6d5533d5158d7db6ea22c12cc928e9a5069193e1cd91fcde82d642b8c3b551e4",
+  "package_id": "0x03bb9730b555a60826e75b598ae6545a5fb0a7aed25a6c8ae7f2b922602b4a6f",
   "revenue_farming_pool": {
-    "publisher_object": "0xb1e5d58fbff2e6364b03e0925e6c9476b259a715de0f3898bde69b3cf01cab03",
-    "publisher_id": "0x1a0105950a461ace784456589fdb992b23ba29c45004871fdb476217e1683063",
-    "storage": "0x3488d501e21e9cff9d071e7f861deab9acdf96ee93369e1923aaa0d6482bad79",
-    "admin_cap": "0x860c157458fd2be74cb2f31e0ba8ea0cc9954626fd4f2a483100eb73b9f3ce70"
+    "publisher_object": "0xf4c1164308c7edae52da7a62a65d3b63d293cc326050fd2f0cd8d275ed2b9be1",
+    "publisher_id": "0xa72de216dfc3955413fdcd895758a34568d2b044f52854ad179aa7614ee892ef",
+    "storage": "0xa63127a9f1f30a2bd23daa2ed6723de11ff7a319732b6869bba5b802271b3585",
+    "admin_cap": "0x0bec84c5e7e3fb726afb7db9aeda2c40aa53dfd82cdafd6b66ee181412da9f1b"
   }
 }

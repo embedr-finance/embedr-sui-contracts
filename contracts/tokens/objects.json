@@ -1,18 +1,18 @@
 {
-  "package_id": "0xcd74ea2c1cd15eb284eb9d22ea8d82ac3f0d5160f681a37087b0b9ada1c6af04",
+  "package_id": "0x2462ffbd4411d45cbcd79c40a3cb293c6544d8b023f250ea70ef5f15b368b501",
   "rusd_stable_coin": {
-    "storage": "0xf4b52f61d254c7bf322412d34f45048b19357a06f9b6a68436cdd9cba9d255d7",
-    "coin_type": "'0xcd74ea2c1cd15eb284eb9d22ea8d82ac3f0d5160f681a37087b0b9ada1c6af04'::rusd_stable_coin::RUSD_STABLE_COIN",
-    "admin_cap": "0xdaa31c08d5aafb8b394903de2d811eb17f09ec301c8a1d31854edf12516f89ed"
+    "storage": "0xe93246e98ac0bade95ba48fbc8d5cee03c57fb34a17d688a83967dddfcd851b5",
+    "coin_type": "0x2462ffbd4411d45cbcd79c40a3cb293c6544d8b023f250ea70ef5f15b368b501::rusd_stable_coin::RUSD_STABLE_COIN",
+    "admin_cap": "0x8ea70c37d6898dfae27e6234db399d4767c72ccf414cf68fce7515e6c5e3f68f"
   },
   "embd_incentive_token": {
-    "storage": "0x0a1d823b60b5e7c2282b4e18a91f52603ab13d5039e67b10a4f0729b8974f35d",
-    "coin_type": "'0xcd74ea2c1cd15eb284eb9d22ea8d82ac3f0d5160f681a37087b0b9ada1c6af04'::embd_incentive_token::EMBD_INCENTIVE_TOKEN",
-    "admin_cap": "0xffa979f7419b4dc5ab23a89e1b0366d439682d821e31cd54cd13d8176b5af073"
+    "storage": "0x22f90daa3efef0c3aa98a7087933f8a8dd0eb5f4cba60884668c20618a4e5213",
+    "coin_type": "0x2462ffbd4411d45cbcd79c40a3cb293c6544d8b023f250ea70ef5f15b368b501::embd_incentive_token::EMBD_INCENTIVE_TOKEN",
+    "admin_cap": "0xc7a2f3a0c821eeb43b99e6bd7dc567362a3b08f69a17fc0984ebe337dc6e83ff"
   },
   "embd_staking": {
-    "publisher_object": "0xd3915ca380f1dead48ff13426f0bcc4520365da5e64ca2a73b38486cd80ba599",
-    "publisher_id": "0xcea02a37d8afba9767532415b02406ddf2f3b7fceef7ce22275134acdf3281a5",
-    "storage": "0x44df1f6d2128344ca7d13464d976f7df200ceaf486937c6b8c938199f0da1b8b"
+    "publisher_object": "0x2bbc9aaab54e933e48158cb54698f36d303e79d84513984eb4920d732b9adfb9",
+    "publisher_id": "0xc0510e66eed8b2750c4fd1d23740ddecdec5878d9de8015f04a488d243cdb896",
+    "storage": "0x6cbad4b9330bd7ba5ddb6b2dee545eb257bd2d4cbad3314f6ce4225864a910c4"
   }
 }
