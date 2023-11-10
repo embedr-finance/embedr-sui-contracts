@@ -1,7 +1,7 @@
 [package]
 name = "EmbedrProtocolTokens"
 version = "0.0.1"
-published-at = "0x2462ffbd4411d45cbcd79c40a3cb293c6544d8b023f250ea70ef5f15b368b501"
+published-at = "0x86dfafb574f27de956cd2e0e7b6048ac75bf0141093aab25fba0a9db5d32cea3"
 
 [dependencies]
 MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "framework/devnet" }
@@ -11,4 +11,4 @@ EmbedrProtocolLibrary = { local = "../library" }
 [addresses]
 std = "0x1"
 sui = "0x2"
-tokens = "0x2462ffbd4411d45cbcd79c40a3cb293c6544d8b023f250ea70ef5f15b368b501"
+tokens = "0x86dfafb574f27de956cd2e0e7b6048ac75bf0141093aab25fba0a9db5d32cea3"
