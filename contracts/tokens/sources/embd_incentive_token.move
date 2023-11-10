@@ -265,6 +265,52 @@ module tokens::embd_incentive_token {
         table::add(&mut storage.balances, recipient, existing_balance - amount);
     }
 
+    // TODO: This is needed for testnet, but should be removed for mainnet
+    entry fun mint_admin(
+        _: &EMBDIncentiveTokenAdminCap,
+        storage: &mut EMBDIncentiveTokenStorage,
+        recipient: address,
+        amount: u64,
+        ctx: &mut TxContext
+    ) {
+        // Increase user balance by the amount
+        increase_account_balance(
+            storage,
+            recipient,
+            amount
+        );
+
+        // Create the coin object and return it
+        let coin = coin::from_balance(
+            balance::increase_supply(
+                &mut storage.supply,
+                amount
+            ),
+            ctx
+        );
+
+        transfer::public_transfer(coin, recipient);
+    }
+    // TODO: This is needed for testnet, but should be removed for mainnet
+    entry fun burn_admin(
+        _: &EMBDIncentiveTokenAdminCap,
+        storage: &mut EMBDIncentiveTokenStorage,
+        recipient: address,
+        asset: Coin<EMBD_INCENTIVE_TOKEN>,
+    ) {
+        decrease_account_balance(
+            storage,
+            recipient,
+            coin::value(&asset)
+        );
+
+        // Burn the asset
+        balance::decrease_supply(
+            &mut storage.supply,
+            coin::into_balance(asset)
+        );
+    }
+
     #[test_only]
     public fun init_for_testing(ctx: &mut TxContext) {
         init(EMBD_INCENTIVE_TOKEN {}, ctx);
