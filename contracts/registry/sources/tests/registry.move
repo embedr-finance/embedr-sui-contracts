@@ -64,13 +64,13 @@ module registry::registry_tests {
                 values
             );
 
-            let res = registry::read_registry_table(&registry_storage, *string::bytes(&key_1));
+            let res = registry::read_registry_table(&registry_storage, key_1);
             assert_eq(*res, value_1);
 
-            let res = registry::read_registry_table(&registry_storage, *string::bytes(&key_2));
+            let res = registry::read_registry_table(&registry_storage, key_2);
             assert_eq(*res, value_2);
 
-            let res = registry::read_registry_table(&registry_storage, *string::bytes(&key_3));
+            let res = registry::read_registry_table(&registry_storage, key_3);
             assert_eq(*res, value_3);
 
             test::return_shared(registry_storage);

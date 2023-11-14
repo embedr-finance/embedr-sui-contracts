@@ -1,6 +1,6 @@
 module registry::registry {
     use std::vector;
-    use std::string::{Self, String};
+    use std::string::String;
     
     use sui::object::{Self, UID, ID};
     use sui::tx_context::{Self, TxContext};
@@ -20,7 +20,7 @@ module registry::registry {
         // stable_coin_factory: StableCoinFactory,
         // participation_bank_factory: ParticipationBankFactory,
         // tokens: Tokens,
-        registry_table: Table<vector<u8>, ID>
+        registry_table: Table<String, ID>
     }
     
     // =================== @Initializer ===================
@@ -64,7 +64,7 @@ module registry::registry {
         while (!vector::is_empty(&keys)) {
             let key = vector::pop_back(&mut keys);
             let value = vector::pop_back(&mut values);
-            table::add(&mut storage.registry_table, *string::bytes(&key), value);
+            table::add(&mut storage.registry_table, key, value);
         }
     }
 
@@ -78,7 +78,7 @@ module registry::registry {
     }
 
     #[test_only]
-    public fun read_registry_table(storage: &RegistryStorage, key: vector<u8>): &ID {
+    public fun read_registry_table(storage: &RegistryStorage, key: String): &ID {
         table::borrow(&storage.registry_table, key)
     }
 
