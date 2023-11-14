@@ -1,5 +1,6 @@
 module registry::registry {
     use std::vector;
+    use std::string::{Self, String};
     
     use sui::object::{Self, UID, ID};
     use sui::tx_context::{Self, TxContext};
@@ -44,9 +45,9 @@ module registry::registry {
     // =================== @Entry Methods ===================
 
     entry fun register(
-        _: &RegistryAdminCap,
+        // _: &RegistryAdminCap,
         storage: &mut RegistryStorage,
-        keys: vector<vector<u8>>,
+        keys: vector<String>,
         values: vector<ID>,
     ) {
         register_(storage, keys, values)
@@ -56,21 +57,21 @@ module registry::registry {
 
     fun register_(
         storage: &mut RegistryStorage,
-        keys: vector<vector<u8>>,
+        keys: vector<String>,
         values: vector<ID>,
     ) {
         assert!(vector::length(&keys) == vector::length(&values), ERROR_INVALID_KEY_VALUE_LENGTH);
         while (!vector::is_empty(&keys)) {
             let key = vector::pop_back(&mut keys);
             let value = vector::pop_back(&mut values);
-            table::add(&mut storage.registry_table, key, value);
+            table::add(&mut storage.registry_table, *string::bytes(&key), value);
         }
     }
 
     #[test_only]
     public fun register_for_testing(
         storage: &mut RegistryStorage,
-        keys: vector<vector<u8>>,
+        keys: vector<String>,
         values: vector<ID>,
     ) {
         register_(storage, keys, values)
