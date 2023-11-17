@@ -1,7 +1,7 @@
 [package]
 name = "EmbedrProtocolLibrary"
 version = "0.0.1"
-published-at = "0xacd21943c6509b5d3f2104d9b28cc9bb7ce73a89c09f2168d579a2a844eab606"
+published-at = "0x0036229f8bccf213e661ba4d089db1910741db49340b28b7697fb846cd922d56"
 
 [dependencies]
 MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "framework/devnet" }
@@ -10,4 +10,4 @@ Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-fram
 [addresses]
 std = "0x1"
 sui =  "0x2"
-library = "0xacd21943c6509b5d3f2104d9b28cc9bb7ce73a89c09f2168d579a2a844eab606"
+library = "0x0036229f8bccf213e661ba4d089db1910741db49340b28b7697fb846cd922d56"

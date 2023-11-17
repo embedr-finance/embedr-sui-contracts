@@ -1,7 +1,7 @@
 [package]
 name = "EmbedrProtocolStableCoinFactory"
 version = "0.0.1"
-published-at = "0x00c4e9d930f24c08b847b325b5aba49b3655f0686431ad35cd281398d70d904f"
+published-at = "0x27a677a55b0c1a9b745aef2f62758118adfcbce264b98fcd6cd378eea6f6e51e"
 
 [dependencies]
 MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "framework/devnet" }
@@ -12,4 +12,4 @@ EmbedrProtocolTokens = { local = "../tokens" }
 [addresses]
 std = "0x1"
 sui = "0x2"
-stable_coin_factory = "0x00c4e9d930f24c08b847b325b5aba49b3655f0686431ad35cd281398d70d904f"
+stable_coin_factory = "0x27a677a55b0c1a9b745aef2f62758118adfcbce264b98fcd6cd378eea6f6e51e"
