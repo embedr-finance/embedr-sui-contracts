@@ -31,6 +31,10 @@ get_publisher_id_from_object() {
     sui client object --json $1 | jq -r '.content.fields.publisher.fields.id.id'
 }
 
+get_table_id_from_object() {
+    sui client object --json $1 | jq -r '.content.fields.'$2'.fields.id.id'
+}
+
 echo -e "${BOLD}${BLUE}Publishing Embedr Protocol Contracts${NC}\n"
 
 for module in "${modules[@]}"; do
@@ -59,36 +63,42 @@ for module in "${modules[@]}"; do
                 ;;
             "tokens")
                 # rUSD Stable Coin
+                rsc_coin_type="$package_id::rusd_stable_coin::RUSD_STABLE_COIN"
                 rsc_storage=$(get_object_id_from_object_type "$response" "$package_id"::rusd_stable_coin::RUSDStableCoinStorage)
                 rsc_admin_cap=$(get_object_id_from_object_type "$response" "$package_id"::rusd_stable_coin::RUSDStableCoinAdminCap)
-                rsc_coin_type="$package_id::rusd_stable_coin::RUSD_STABLE_COIN"
+                rsc_balance_table_id=$(get_table_id_from_object "$rsc_storage" "balances")
 
                 # EMBD Incentive Token
+                eit_coin_type="$package_id::embd_incentive_token::EMBD_INCENTIVE_TOKEN"
                 eit_storage=$(get_object_id_from_object_type "$response" "$package_id"::embd_incentive_token::EMBDIncentiveTokenStorage)
                 eit_admin_cap=$(get_object_id_from_object_type "$response" "$package_id"::embd_incentive_token::EMBDIncentiveTokenAdminCap)
-                eit_coin_type="$package_id::embd_incentive_token::EMBD_INCENTIVE_TOKEN"
+                eit_balance_table_id=$(get_table_id_from_object "$eit_storage" "balances")
 
                 # EMBD Staking
                 es_publisher_object=$(get_object_id_from_object_type "$response" "$package_id"::embd_staking::EMBDStakingPublisher)
                 es_publisher_id=$(get_publisher_id_from_object "$es_publisher_object")
                 es_storage=$(get_object_id_from_object_type "$response" "$package_id"::embd_staking::EMBDStakingStorage)
+                es_stake_table_id=$(get_table_id_from_object "$es_storage" "stake_table")
 
                 json='{
                     "package_id": "'$package_id'",
                     "rusd_stable_coin": {
                         "storage": "'$rsc_storage'",
                         "coin_type": "'$rsc_coin_type'",
-                        "admin_cap": "'$rsc_admin_cap'"
+                        "admin_cap": "'$rsc_admin_cap'",
+                        "balance_table_id": "'$rsc_balance_table_id'"
                     },
                     "embd_incentive_token": {
                         "storage": "'$eit_storage'",
                         "coin_type": "'$eit_coin_type'",
-                        "admin_cap": "'$eit_admin_cap'"
+                        "admin_cap": "'$eit_admin_cap'",
+                        "balance_table_id": "'$eit_balance_table_id'"
                     },
                     "embd_staking": {
                         "publisher_object": "'$es_publisher_object'",
                         "publisher_id": "'$es_publisher_id'",
-                        "storage": "'$es_storage'"
+                        "storage": "'$es_storage'",
+                        "stake_table_id": "'$es_stake_table_id'"
                     }
                 }'
                 ;;
@@ -99,7 +109,7 @@ for module in "${modules[@]}"; do
                 # Kasa Manager
                 km_publisher_object=$(get_object_id_from_object_type "$response" "$package_id"::kasa_manager::KasaManagerPublisher)
                 km_publisher_id=$(get_publisher_id_from_object "$km_publisher_object")
-                kasa_table_id=$(sui client object --json $km_storage | jq -r '.content.fields.kasa_table.fields.id.id')
+                km_kasa_table_id=$(get_table_id_from_object "$km_storage" "kasa_table")
 
                 # Sorted Kasas
                 sk_storage=$(get_object_id_from_object_type "$response" "$package_id"::sorted_kasas::SortedKasasStorage)
@@ -108,6 +118,7 @@ for module in "${modules[@]}"; do
                 sp_publisher_object=$(get_object_id_from_object_type "$response" "$package_id"::stability_pool::StabilityPoolPublisher)
                 sp_publisher_id=$(get_publisher_id_from_object "$sp_publisher_object")
                 sp_storage=$(get_object_id_from_object_type "$response" "$package_id"::stability_pool::StabilityPoolStorage)
+                sp_stake_table_id=$(get_table_id_from_object "$sp_storage" "stake_table")
                 
                 # Liquidation Assets Distributor
                 collateral_gains=$(get_object_id_from_object_type "$response" "$package_id"::liquidation_assets_distributor::CollateralGains)
@@ -120,7 +131,7 @@ for module in "${modules[@]}"; do
                     "kasa_manager": {
                         "publisher_object": "'$km_publisher_object'",
                         "publisher_id": "'$km_publisher_id'",
-                        "kasa_table_id": "'$kasa_table_id'"
+                        "kasa_table_id": "'$km_kasa_table_id'"
                     },
                     "sorted_kasas": {
                         "storage": "'$sk_storage'"
@@ -128,7 +139,8 @@ for module in "${modules[@]}"; do
                     "stability_pool": {
                         "publisher_object": "'$sp_publisher_object'",
                         "publisher_id": "'$sp_publisher_id'",
-                        "storage": "'$sp_storage'"
+                        "storage": "'$sp_storage'",
+                        "stake_table_id": "'$sp_stake_table_id'"
                     },
                     "liquidation_assets_distributor": {
                         "collateral_gains": "'$collateral_gains'"
