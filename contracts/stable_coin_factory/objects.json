@@ -1,23 +1,23 @@
 {
-  "package_id": "0x27c017fc114dc4a1be9a08605ae5ea597876f5060ccde8c3d3fe39fd778d2889",
+  "package_id": "0x6ea058c4151f30ea98e3dd5707a65c269cde12f7c4e6fb16b7481d04fc3fc8e1",
   "kasa_storage": {
-    "km_storage": "0x4874875d2884884a76e509cc5fcc048e24c26ae70aa4c0da95a9f34f1fe0ee81"
+    "km_storage": "0xa7ce0096f8a9731d6aa7ba32814677315efd1b5f5d4e5bc0e3b0f997e0824565"
   },
   "kasa_manager": {
-    "publisher_object": "0xf713fa9cb3eec689d5ac08c438a819f040ae30df627080448ce37a8379b37252",
-    "publisher_id": "0x4e88ae1e3328cdf8c3f3fabe763ef42811f60d15a0a3417f5f4db37714e28660",
-    "kasa_table_id": "0x890a8ab75b75c6bd8c976cdcb71d2238bd326265737c9a7d0b1f14a7357cc35e"
+    "publisher_object": "0x2d2ced655b4c9b43731a37a9f3ed4591ac9c3551ee5f948f1afd12a4f76800bc",
+    "publisher_id": "0x6f30d977b39f4084cd18fe651b712dc1e87a1be5bc2528e7e149db0c5342953c",
+    "kasa_table_id": "0x84be5b688c34a646a27450a985155b68bb20c989427edd96a51328b0274cc82d"
   },
   "sorted_kasas": {
-    "storage": "0x9ea53e4ede2d38342ccbe0ff6ea49547b54b96195b1cb4b4390d3d658b977d67"
+    "storage": "0xe24152ef2ec6757d08a8a64366bf983bbf8883ee4a40b35e9d233764cd55804d"
   },
   "stability_pool": {
-    "publisher_object": "0x27d87a5e47fd1a2bd22213b7a7b4e39e1c28bd39184f96a1362e21b740ef927d",
-    "publisher_id": "0xb884b7ff778248a7073585031999f3b9e82c936b48f4c5553329eaa63d265a89",
-    "storage": "0x978ff0a5c566d815a106c554b0561db9929e7a6f212e5da6507473583d21f26a",
-    "stake_table_id": "0x1201861833825e1ed58ab6b227e38f21f4e2a64042f87f30c3505843bd4212f4"
+    "publisher_object": "0xac84740fdb9213a4671d897ebd8d5b834bcdfd48ddf7ba5decaffa24d382e460",
+    "publisher_id": "0x6f603fb2395305894f8911c5ed1abf2e4f17e5808a19d1643c774a8fae76ebd6",
+    "storage": "0xd8ef8f6a95914e762cf6caf658560d8b560ac6f618b0420024a2b678ad87fcf8",
+    "stake_table_id": "0x07bf6026a758cbbf28e5a9f5dc504652f7bbb090f2ac680c40befafb1cc83ca4"
   },
   "liquidation_assets_distributor": {
-    "collateral_gains": "0x26459d3520066805f90327be580aa80a662db6aa36ab7b47e16cfefaf391316b"
+    "collateral_gains": "0x9feb4d225c62514bb46a6d2fce1bb8831efb92a36791e58e9c23459d6caa59a9"
   }
 }
