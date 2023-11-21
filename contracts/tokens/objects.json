@@ -1,18 +1,21 @@
 {
-  "package_id": "0x2f38d3f6fc273cb326127894c1deb3339efec021c19c7d2bdaf28da9b5a1dc04",
+  "package_id": "0xd0c71a97fee3b7525d70113b6bd5b12bed39268371b6ec33b757a5ba19deac0a",
   "rusd_stable_coin": {
-    "storage": "0xefaf8c2f2a7b92e8ebced31a2b6c335158aac4c743f1bdbf13c36829041be206",
-    "coin_type": "0x2f38d3f6fc273cb326127894c1deb3339efec021c19c7d2bdaf28da9b5a1dc04::rusd_stable_coin::RUSD_STABLE_COIN",
-    "admin_cap": "0xb276f8183eec7ab6a0b2e7daaf1b398ab14fe7450058130a50c3bc96ed75c5e9"
+    "storage": "0xc2e4cf1cd18a17e97f2b74de65576c20beba86d71d206f2369b2ef61465174f6",
+    "coin_type": "0xd0c71a97fee3b7525d70113b6bd5b12bed39268371b6ec33b757a5ba19deac0a::rusd_stable_coin::RUSD_STABLE_COIN",
+    "admin_cap": "0xa2ad0595cc4e35f8b8902b276a774fb42f9a13f01d56e6e649a42015b24e370d",
+    "balance_table_id": "0xec39c6f1a8f66f0b3ab28fcbaa98112698040d21854cf4ee829e70900771822d"
   },
   "embd_incentive_token": {
-    "storage": "0x4e09bdd0b47bc3fbcd9e5f9e4c95e6bf0fba6b88d4da3484f38b671b2bc42e66",
-    "coin_type": "0x2f38d3f6fc273cb326127894c1deb3339efec021c19c7d2bdaf28da9b5a1dc04::embd_incentive_token::EMBD_INCENTIVE_TOKEN",
-    "admin_cap": "0x3eb2b22fb9e0bd76190f2e1f2d8e52f6d563e58733b1c4144ff7a487be57d45a"
+    "storage": "0xd36409246f2ad95d58a927e5b22a964766825dbff2fe13b975192fc6be2eae7b",
+    "coin_type": "0xd0c71a97fee3b7525d70113b6bd5b12bed39268371b6ec33b757a5ba19deac0a::embd_incentive_token::EMBD_INCENTIVE_TOKEN",
+    "admin_cap": "0x744ea448687afa84c60bd3882cd7eeae971a92e4aa2d16e0c4ed0b0b82152167",
+    "balance_table_id": "0x274d96c18df144760402d21edd921efd509b46b8078273e5205f90d929202082"
   },
   "embd_staking": {
-    "publisher_object": "0xf23873e39aada8026e7762d9a50e9d5298e81d2a80cee5e231d603dc36176b61",
-    "publisher_id": "0x5cf2ed0611fa8d3e35e2e97b8b45d45d51b5fa3113754b8c6484322d1c4aac8b",
-    "storage": "0x83a04edb2ae8bc18f50f22380ec243640ad09e97a980aafd62f7ad5f1ef1458a"
+    "publisher_object": "0x52b043a0e66bba8c11b900c7fe6013b5f1d72492ebefc8abe35640c022853f99",
+    "publisher_id": "0xfe0ab2b0a0bd7f6b7cd5f80337526499ca1b7e47de6e1aab404b942391812644",
+    "storage": "0x75520817c32f410a4478beec8419f86b894a21de0f415c601e779bed66e1dfe7",
+    "stake_table_id": "0x19434e22a605f3d33fa9ec8ddb7d6dbb65586b468f751d32000e0c3742bb4c70"
   }
 }

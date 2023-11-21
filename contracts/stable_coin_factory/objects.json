@@ -1,22 +1,23 @@
 {
-  "package_id": "0x27a677a55b0c1a9b745aef2f62758118adfcbce264b98fcd6cd378eea6f6e51e",
+  "package_id": "0x27c017fc114dc4a1be9a08605ae5ea597876f5060ccde8c3d3fe39fd778d2889",
   "kasa_storage": {
-    "km_storage": "0x5d26d0fe33ed7c0fa79bd132278eca48e12211264fcd890ecf5b1f95163f5b9f"
+    "km_storage": "0x4874875d2884884a76e509cc5fcc048e24c26ae70aa4c0da95a9f34f1fe0ee81"
   },
   "kasa_manager": {
-    "publisher_object": "0x817a7084d9503c83ecd25dacc2c3ee3b6d9d41665c6a234a2f8466a8a827f807",
-    "publisher_id": "0x5f34850c55bb50dd3f0c6267bbb421f4567dd78e03a07fe64199bb312a49b144",
-    "kasa_table_id": "0xb80680a2fd33e96008eca500b83f9a1ef0c338b0a482f90dd8c881da9ec597c8"
+    "publisher_object": "0xf713fa9cb3eec689d5ac08c438a819f040ae30df627080448ce37a8379b37252",
+    "publisher_id": "0x4e88ae1e3328cdf8c3f3fabe763ef42811f60d15a0a3417f5f4db37714e28660",
+    "kasa_table_id": "0x890a8ab75b75c6bd8c976cdcb71d2238bd326265737c9a7d0b1f14a7357cc35e"
   },
   "sorted_kasas": {
-    "storage": "0x88544ec9510bd0a9a5e8b8e8b5a9564b5cf2a49052e58aa76b5f6f05991f7b61"
+    "storage": "0x9ea53e4ede2d38342ccbe0ff6ea49547b54b96195b1cb4b4390d3d658b977d67"
   },
   "stability_pool": {
-    "publisher_object": "0x87096399a9d2943d5a60c3141943f5e011af59d87ab9ef75373e158ed0fd605e",
-    "publisher_id": "0x3c593766c5a0d28576fd86ea4e659946fd639caee0eb03738acbcf63fae38d88",
-    "storage": "0x3e82d239c021f401a4fd1bf325f5e7271f2cd85c7e576c92aa9d13f77c253002"
+    "publisher_object": "0x27d87a5e47fd1a2bd22213b7a7b4e39e1c28bd39184f96a1362e21b740ef927d",
+    "publisher_id": "0xb884b7ff778248a7073585031999f3b9e82c936b48f4c5553329eaa63d265a89",
+    "storage": "0x978ff0a5c566d815a106c554b0561db9929e7a6f212e5da6507473583d21f26a",
+    "stake_table_id": "0x1201861833825e1ed58ab6b227e38f21f4e2a64042f87f30c3505843bd4212f4"
   },
   "liquidation_assets_distributor": {
-    "collateral_gains": "0x5791a5eb64dd564af5f0cd6b1739ea4d4846c84d44371a0ce01325e09d96eb46"
+    "collateral_gains": "0x26459d3520066805f90327be580aa80a662db6aa36ab7b47e16cfefaf391316b"
   }
 }
