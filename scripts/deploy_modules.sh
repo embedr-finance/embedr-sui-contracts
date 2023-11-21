@@ -49,7 +49,7 @@ for module in "${modules[@]}"; do
 
         # Publish the contract and save response to a variable
         # TODO: Think about the budget in here
-        response=$(sui client publish --json --gas-budget 2000000000)
+        response=$(sui client publish --json --gas-budget 500000000)
 
         # Package ID of the module
         package_id=$(echo "$response" | jq -r '.objectChanges[] | select(.type == "published").packageId')

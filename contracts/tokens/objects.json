@@ -1,21 +1,21 @@
 {
-  "package_id": "0xd0c71a97fee3b7525d70113b6bd5b12bed39268371b6ec33b757a5ba19deac0a",
+  "package_id": "0x38fad5d7d493a9d6ff7504dbbb1a53b3f5ef7b14399b31022e8063bfb36678c6",
   "rusd_stable_coin": {
-    "storage": "0xc2e4cf1cd18a17e97f2b74de65576c20beba86d71d206f2369b2ef61465174f6",
-    "coin_type": "0xd0c71a97fee3b7525d70113b6bd5b12bed39268371b6ec33b757a5ba19deac0a::rusd_stable_coin::RUSD_STABLE_COIN",
-    "admin_cap": "0xa2ad0595cc4e35f8b8902b276a774fb42f9a13f01d56e6e649a42015b24e370d",
-    "balance_table_id": "0xec39c6f1a8f66f0b3ab28fcbaa98112698040d21854cf4ee829e70900771822d"
+    "storage": "0xa7e76b415dbab4486ddcc8d3c560a3bdee5206ca0016f6d3ff26155c65710900",
+    "coin_type": "0x38fad5d7d493a9d6ff7504dbbb1a53b3f5ef7b14399b31022e8063bfb36678c6::rusd_stable_coin::RUSD_STABLE_COIN",
+    "admin_cap": "0xa2083287368809a22df362b3f6229c9c9b65035ed61acd4b4b45db759644be64",
+    "balance_table_id": "0x7622175e2101c2dd1f8f7843f8c45b3f76abc2e5a116da65b0ec1beed184b0d8"
   },
   "embd_incentive_token": {
-    "storage": "0xd36409246f2ad95d58a927e5b22a964766825dbff2fe13b975192fc6be2eae7b",
-    "coin_type": "0xd0c71a97fee3b7525d70113b6bd5b12bed39268371b6ec33b757a5ba19deac0a::embd_incentive_token::EMBD_INCENTIVE_TOKEN",
-    "admin_cap": "0x744ea448687afa84c60bd3882cd7eeae971a92e4aa2d16e0c4ed0b0b82152167",
-    "balance_table_id": "0x274d96c18df144760402d21edd921efd509b46b8078273e5205f90d929202082"
+    "storage": "0x6b2e1de02178a3983dc331a41aa2d5af0460d92405da12304332cc22eafea2c1",
+    "coin_type": "0x38fad5d7d493a9d6ff7504dbbb1a53b3f5ef7b14399b31022e8063bfb36678c6::embd_incentive_token::EMBD_INCENTIVE_TOKEN",
+    "admin_cap": "0xe41aecd4eead7e475297ed31f938575d5f01094f6f673e549383edc455573f53",
+    "balance_table_id": "0xe69d8a97413092cf57ae4a892f896e5fa469a64311d0062e25e4cd6506957070"
   },
   "embd_staking": {
-    "publisher_object": "0x52b043a0e66bba8c11b900c7fe6013b5f1d72492ebefc8abe35640c022853f99",
-    "publisher_id": "0xfe0ab2b0a0bd7f6b7cd5f80337526499ca1b7e47de6e1aab404b942391812644",
-    "storage": "0x75520817c32f410a4478beec8419f86b894a21de0f415c601e779bed66e1dfe7",
-    "stake_table_id": "0x19434e22a605f3d33fa9ec8ddb7d6dbb65586b468f751d32000e0c3742bb4c70"
+    "publisher_object": "0x2083bfde066f30b292f457137e5a559032e4bb4d4da17dcf222fdff5fddb3760",
+    "publisher_id": "0x5e328b7c29447220a98d348779f4377e2e6e2f152607d9f86af9c6b3cecfffcd",
+    "storage": "0x4fa3d3e10e099a5b1c8e68018ae9dcb59e5c12f5aa96fa087a0d5e2b3e87539f",
+    "stake_table_id": "0xd75eae5a63495a037bda14997a5e3f790840ed56bbf3abca1b6aeff6c1cfdf66"
   }
 }

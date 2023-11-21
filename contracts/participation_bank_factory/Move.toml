@@ -1,11 +1,11 @@
 [package]
 name = "EmbedrProtocolParticipationBankFactory"
 version = "0.0.1"
-published-at = "0x2aa4ec5b84cc7016e572cd39fa27e0c9eacd159d518bc7810c620d90caacb970"
+published-at = "0x2d31e166e4efd87efa3f4dc786f72607909d28ed0e496797935eae829ce872ab"
 
 [dependencies]
-MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "framework/devnet" }
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/devnet" }
+MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "framework/testnet" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
 EmbedrProtocolLibrary = { local = "../library" }
 EmbedrProtocolTokens = { local = "../tokens" }
 EmbedrProtocolStableCoinFactory = { local = "../stable_coin_factory" }
@@ -13,4 +13,4 @@ EmbedrProtocolStableCoinFactory = { local = "../stable_coin_factory" }
 [addresses]
 std = "0x1"
 sui = "0x2"
-participation_bank_factory = "0x2aa4ec5b84cc7016e572cd39fa27e0c9eacd159d518bc7810c620d90caacb970"
+participation_bank_factory = "0x2d31e166e4efd87efa3f4dc786f72607909d28ed0e496797935eae829ce872ab"
