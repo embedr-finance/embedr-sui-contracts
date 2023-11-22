@@ -21,12 +21,12 @@ Run tests for each module using the `make test` command. If you want to run test
 
 ### Deploying Contracts
 
-Deploy Embedr Protocol contracts on Sui Devnet using the `make deploy` command.
+Deploy Embedr Protocol contracts on Sui testnet using the `make deploy` command.
 
 This command executes several scripts in the process:
 
 1. Checks if active address for `sui-cli` is funded with enough balance to deploy contracts. If not, it will request tokens from the faucet.
-2. Publishes all contracts to Sui Devnet. This will also update the `Move.toml` files in each contract with the correct addresses and dependencies. An `objects.json` file will also be generated for each contract with the generated object IDs.
+2. Publishes all contracts to Sui testnet. This will also update the `Move.toml` files in each contract with the correct addresses and dependencies. An `objects.json` file will also be generated for each contract with the generated object IDs.
 3. Adds manager role to some of the modules on `rUSD Stable Coin` and `EMBD Incentive Token` contracts.
 
 ## License
