@@ -1,8 +1,8 @@
 PACKAGES := library tokens stable_coin_factory participation_bank_factory
 
 test:
-ifdef module
-	cd contracts/$(module) && sui move test && cd ../..
+ifdef package
+	cd contracts/$(package) && sui move test && cd ../..
 else
 	for package in $(PACKAGES); do \
 		cd contracts/$$package && sui move test && cd ../..; \

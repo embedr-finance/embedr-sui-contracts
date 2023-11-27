@@ -17,7 +17,7 @@ To use the Embedr Protocol, you need to install the `sui-cli`. Follow the instru
 
 ### Running Tests
 
-Run tests for each module using the `make test` command. If you want to run tests for a specific module, you can use the `make test MODULE=<module_name>` command.
+Run tests for each package using the `make test` command. If you want to run tests for a specific package, you can use the `make test package=<package_name>` command.
 
 ### Deploying Contracts
 
