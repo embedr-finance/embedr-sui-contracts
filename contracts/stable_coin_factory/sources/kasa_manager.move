@@ -325,6 +325,39 @@ module stable_coin_factory::kasa_manager {
             option::none()
         );
     }
+
+    public(friend) fun fully_repay_loan(
+        km_publisher: &KasaManagerPublisher,
+        km_storage: &mut KasaManagerStorage,
+        sk_storage: &mut SortedKasasStorage,
+        rsc_storage: &mut RUSDStableCoinStorage,
+        account_address: address,
+        stable_coin: Coin<RUSD_STABLE_COIN>,
+        ctx: &mut TxContext
+    ) {
+        let (kasa_collateral_amount, _) =
+            kasa_storage::get_kasa_amounts(km_storage, account_address);
+        let amount = coin::value(&stable_coin);
+
+        // Update the total debt balance of the protocol
+        kasa_storage::decrease_total_debt_balance(km_storage, amount);
+        // Burn the rUSD from the user
+        rusd_stable_coin::burn(
+            rsc_storage,
+            get_publisher(km_publisher),
+            account_address,
+            stable_coin
+        );
+
+        let collateral = kasa_storage::decrease_total_collateral_balance(
+            km_storage,
+            kasa_collateral_amount,
+            ctx
+        );
+        transfer::public_transfer(collateral, account_address);
+
+        close_kasa(km_storage, sk_storage, account_address);
+    }
     
     // =================== Public Methods ===================
 
@@ -567,6 +600,7 @@ module stable_coin_factory::kasa_manager {
             km_storage,
             account_address,
         );
+        if (current_debt_amount == 0) return;
         sorted_kasas::reinsert(
             km_storage,
             sk_storage,
@@ -895,7 +929,7 @@ module stable_coin_factory::kasa_manager {
     /// # Arguments
     /// 
     /// * `account_address` - the address of the user
-    fun close_kasa(
+    public(friend) fun close_kasa(
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
         account_address: address

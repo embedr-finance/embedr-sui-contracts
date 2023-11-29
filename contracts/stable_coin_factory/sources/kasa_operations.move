@@ -221,7 +221,7 @@ module stable_coin_factory::kasa_operations {
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
-        rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
+        rsc_storage: &mut RUSDStableCoinStorage,
         debt_coin: Coin<RUSD_STABLE_COIN>,
         ctx: &mut TxContext
     ) {
@@ -230,9 +230,11 @@ module stable_coin_factory::kasa_operations {
 
         // Check for existing kasa
         assert!(kasa_storage::has_kasa(km_storage, account_address), ERROR_KASA_NOT_FOUND);
+        let (kasa_collateral_amount, kasa_debt_amount) = kasa_storage::get_kasa_amounts(km_storage, account_address);
 
         // Check for debt amount validity
         assert!(amount != 0, ERROR_INVALID_DEBT_AMOUNT);
+        assert!(kasa_debt_amount - amount >= 0, ERROR_INVALID_DEBT_AMOUNT);
 
         // Check for collateral ratio validity
         // TODO: Check if we need this
@@ -250,13 +252,26 @@ module stable_coin_factory::kasa_operations {
         //     ERROR_LOW_COLLATERAL_RATIO
         // );
 
-        kasa_manager::decrease_debt(
-            km_publisher,
-            km_storage,
-            sk_storage,
-            rusd_stable_coin_storage,
-            account_address,
-            debt_coin
-        );
+        // Kasa will be deleted if debt amount is zero
+        if (kasa_debt_amount - amount == 0) {
+            kasa_manager::fully_repay_loan(
+                km_publisher,
+                km_storage,
+                sk_storage,
+                rsc_storage,
+                account_address,
+                debt_coin,
+                ctx,
+            );
+        } else {
+            kasa_manager::decrease_debt(
+                km_publisher,
+                km_storage,
+                sk_storage,
+                rsc_storage,
+                account_address,
+                debt_coin
+            );
+        }
     }
 }
