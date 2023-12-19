@@ -1,17 +1,5 @@
-/// RUSD Stable Coin is responsible for the issuance of the stable coin for the Embedr Protocol
-/// 
-/// # Related Modules
-/// 
-/// * `Kasa Manager` - `Kasa Manager` mints and burns stable coins
-/// * `Stability Pool` - `Stability Pool` updates the account balance of the user on deposit/withdrawal
-/// 
-/// # Module Features
-/// 
-/// 1. Adding and removing manager IDs for gatekeeping minting/burning
-///     stable coins and updating balances
-/// 2. Minting and burning stable coins
-/// 3. Updating stable coin balances
-module tokens::rusd_stable_coin {
+/// EMBD Incentive Token is responsible for the issuance of EMBD tokens for the Embedr Protocol
+module tokens::embd_incentive_token {
     use std::option;
 
     use sui::object::{Self, UID, ID};
@@ -30,30 +18,31 @@ module tokens::rusd_stable_coin {
 
     // =================== Storage ===================
 
-    /// OTW to create the stable coin
-    struct RUSD_STABLE_COIN has drop {}
+    /// OTW to create the token
+    struct EMBD_INCENTIVE_TOKEN has drop {}
 
     /// Shared object
-    struct RUSDStableCoinStorage has key {
+    struct EMBDIncentiveTokenStorage has key {
         id: UID,
-        supply: Supply<RUSD_STABLE_COIN>,
+        supply: Supply<EMBD_INCENTIVE_TOKEN>,
         balances: Table<address, u64>,
-        managers: VecSet<ID> // List of minters for this stable coin
+        managers: VecSet<ID> // List of minters for this token
     }
 
     /// Admin capability object for the stable coin
-    struct RUSDStableCoinAdminCap has key { id: UID }
+    struct EMBDIncentiveTokenAdminCap has key { id: UID }
 
     // =================== Initializer ===================
 
-    fun init(witness: RUSD_STABLE_COIN, ctx: &mut TxContext) {
+    fun init(witness: EMBD_INCENTIVE_TOKEN, ctx: &mut TxContext) {
         // Create the stable coin
-        let (treasury, metadata) = coin::create_currency<RUSD_STABLE_COIN>(
+        let (treasury, metadata)
+            = coin::create_currency<EMBD_INCENTIVE_TOKEN>(
                 witness, 
                 9,
-                b"rUSD",
-                b"rUSD Stable Coin",
-                b"Stable coin for the Embedr Protocol",
+                b"EMBD",
+                b"EMBD Incentive Token",
+                b"Incentive token for the Embedr Protocol",
                 option::none(),
                 ctx
             );
@@ -63,7 +52,7 @@ module tokens::rusd_stable_coin {
 
         // Share the storage object with the network
         transfer::share_object(
-            RUSDStableCoinStorage {
+            EMBDIncentiveTokenStorage {
                 id: object::new(ctx),
                 supply,
                 balances: table::new(ctx),
@@ -72,7 +61,7 @@ module tokens::rusd_stable_coin {
         );
 
         // Transfer the admin cap to the sender
-        transfer::transfer(RUSDStableCoinAdminCap { id: object::new(ctx) }, tx_context::sender(ctx) );
+        transfer::transfer(EMBDIncentiveTokenAdminCap { id: object::new(ctx) }, tx_context::sender(ctx) );
 
         // Freeze the metadata object, since we cannot update without the TreasuryCap
         transfer::public_freeze_object(metadata);
@@ -80,21 +69,19 @@ module tokens::rusd_stable_coin {
 
     // =================== Entries ===================
 
-    /// Mints new stable coins and transfers them to the recipient
+    /// Mints new tokens and transfers them to the recipient
     /// 
     /// # Arguments
     /// 
-    /// * `storage` - The storage object
-    /// * `publisher` - The publisher object of the package that is calling this function
-    /// * `recipient` - The recipient of the new coins
-    /// * `amount` - The amount of coins to mint
+    /// * `recipient` - recipient of the new coins
+    /// * `amount` - amount of tokens to mint
     public fun mint(
-        storage: &mut RUSDStableCoinStorage,
         publisher: &Publisher,
+        storage: &mut EMBDIncentiveTokenStorage,
         recipient: address,
         amount: u64,
         ctx: &mut TxContext
-    ): Coin<RUSD_STABLE_COIN> {
+    ): Coin<EMBD_INCENTIVE_TOKEN> {
         // Check if the publisher is allowed to mint
         assert!(is_authorized(storage, object::id(publisher)), ERROR_UNAUTHORIZED);
 
@@ -115,17 +102,17 @@ module tokens::rusd_stable_coin {
         )
     }
 
-    /// Burns the given amount of stable coins
+    /// Burns the given amount of tokens
     /// 
     /// # Arguments
     /// 
-    /// * `storage` - The storage object
-    /// * `asset` - The asset to burn
+    /// * `recipient` - recipient of the new tokens
+    /// * `asset` - asset to burn
     public fun burn(
-        storage: &mut RUSDStableCoinStorage,
         publisher: &Publisher,
+        storage: &mut EMBDIncentiveTokenStorage,
         recipient: address,
-        asset: Coin<RUSD_STABLE_COIN>
+        asset: Coin<EMBD_INCENTIVE_TOKEN>
     ) {
         // Check if the publisher is allowed to burn
         assert!(is_authorized(storage, object::id(publisher)), ERROR_UNAUTHORIZED);
@@ -143,12 +130,14 @@ module tokens::rusd_stable_coin {
         );
     }
 
-    /// Transfers the given amount of stable coins to the recipient
+    /// Transfers the given amount of tokens to the recipient
     /// 
     /// # Arguments
+    /// 
+    /// * `recipient` - recipient of the new tokens
     entry public fun transfer(
-        storage: &mut RUSDStableCoinStorage,
-        asset: Coin<RUSD_STABLE_COIN>,
+        storage: &mut EMBDIncentiveTokenStorage,
+        asset: Coin<EMBD_INCENTIVE_TOKEN>,
         recipient: address,
         ctx: &mut TxContext
     ) {
@@ -165,9 +154,16 @@ module tokens::rusd_stable_coin {
         transfer::public_transfer(asset, recipient);
     }
 
+    /// Updates the balance of the given account
+    /// 
+    /// # Arguments
+    /// 
+    /// * `recipient` - address of the recipient
+    /// * `amount` - amount to update the balance by
+    /// * `is_increase` - whether to increase or decrease the balance
     public fun update_account_balance(
-        storage: &mut RUSDStableCoinStorage,
         publisher: &Publisher,
+        storage: &mut EMBDIncentiveTokenStorage,
         recipient: address,
         amount: u64,
         is_increase: bool
@@ -182,9 +178,8 @@ module tokens::rusd_stable_coin {
     /// 
     /// # Arguments
     /// 
-    /// * `storage` - The storage object
     /// * `id` - The ID to add
-    entry public fun add_manager(_: &RUSDStableCoinAdminCap, storage: &mut RUSDStableCoinStorage, id: ID) {
+    entry public fun add_manager(_: &EMBDIncentiveTokenAdminCap, storage: &mut EMBDIncentiveTokenStorage, id: ID) {
         vec_set::insert(&mut storage.managers, id);
     }
 
@@ -192,15 +187,14 @@ module tokens::rusd_stable_coin {
     /// 
     /// # Arguments
     /// 
-    /// * `storage` - The storage object
     /// * `id` - The ID to remove
-    entry public fun remove_manager(_: &RUSDStableCoinAdminCap, storage: &mut RUSDStableCoinStorage, id: ID) {
+    entry public fun remove_manager(_: &EMBDIncentiveTokenAdminCap, storage: &mut EMBDIncentiveTokenStorage, id: ID) {
         vec_set::remove(&mut storage.managers, &id);
     }
 
     // =================== Queries ===================
 
-    /// Returns the current supply of the stable coin
+    /// Returns the current supply of the tokens
     /// 
     /// # Arguments
     /// 
@@ -209,7 +203,7 @@ module tokens::rusd_stable_coin {
     /// # Returns
     /// 
     /// * `u64` - the current supply
-    public fun get_supply(storage: &RUSDStableCoinStorage): u64 {
+    public fun get_supply(storage: &EMBDIncentiveTokenStorage): u64 {
         balance::supply_value(&storage.supply)
     }
 
@@ -217,22 +211,21 @@ module tokens::rusd_stable_coin {
     /// 
     /// # Arguments
     /// 
-    /// * `storage` - The storage object
-    /// * `address` - The address to check
+    /// * `address` - address to check
     /// 
     /// # Returns
     /// 
     /// * `u64` - the current balance
-    public fun get_balance(storage: &RUSDStableCoinStorage, address: address): u64 {
-        if (!table::contains(&storage.balances, address)) {
+    public fun get_balance(storage: &EMBDIncentiveTokenStorage, recipient: address): u64 {
+        if (!table::contains(&storage.balances, recipient)) {
             return 0
         };
-        *table::borrow(&storage.balances, address)
+        *table::borrow(&storage.balances, recipient)
     }
 
     // =================== Helpers ===================
 
-    /// Checks if the given ID is a manager for this stable coin
+    /// Checks if the given ID is a manager for this module
     /// 
     /// # Arguments
     /// 
@@ -242,7 +235,7 @@ module tokens::rusd_stable_coin {
     /// # Returns
     /// 
     /// * `true` if the ID is a manager
-    public fun is_authorized(storage: &RUSDStableCoinStorage, id: ID): bool {
+    public fun is_authorized(storage: &EMBDIncentiveTokenStorage, id: ID): bool {
         vec_set::contains(&storage.managers, &id)
     }
 
@@ -250,10 +243,9 @@ module tokens::rusd_stable_coin {
     /// 
     /// # Arguments
     /// 
-    /// * `storage` - The storage object
-    /// * `recipient` - The address of the recipient
-    /// * `amount` - The amount to increase the balance by
-    fun increase_account_balance(storage: &mut RUSDStableCoinStorage, recipient: address, amount: u64) {
+    /// * `recipient` - address of the recipient
+    /// * `amount` - amount to increase the balance by
+    fun increase_account_balance(storage: &mut EMBDIncentiveTokenStorage, recipient: address, amount: u64) {
         if(table::contains(&storage.balances, recipient)) {
             let existing_balance = table::remove(&mut storage.balances, recipient);
             table::add(&mut storage.balances, recipient, existing_balance + amount);
@@ -266,25 +258,70 @@ module tokens::rusd_stable_coin {
     /// 
     /// # Arguments
     /// 
-    /// * `storage` - The storage object
-    /// * `recipient` - The address of the recipient
-    /// * `amount` - The amount to decrease the balance by
-    fun decrease_account_balance(storage: &mut RUSDStableCoinStorage, recipient: address, amount: u64) {
+    /// * `recipient` - address of the recipient
+    /// * `amount` - amount to decrease the balance by
+    fun decrease_account_balance(storage: &mut EMBDIncentiveTokenStorage, recipient: address, amount: u64) {
         let existing_balance = table::remove(&mut storage.balances, recipient);
         table::add(&mut storage.balances, recipient, existing_balance - amount);
     }
 
+    // TODO: This is needed for testnet, but should be removed for mainnet
+    entry fun mint_admin(
+        _: &EMBDIncentiveTokenAdminCap,
+        storage: &mut EMBDIncentiveTokenStorage,
+        recipient: address,
+        amount: u64,
+        ctx: &mut TxContext
+    ) {
+        // Increase user balance by the amount
+        increase_account_balance(
+            storage,
+            recipient,
+            amount
+        );
+
+        // Create the coin object and return it
+        let coin = coin::from_balance(
+            balance::increase_supply(
+                &mut storage.supply,
+                amount
+            ),
+            ctx
+        );
+
+        transfer::public_transfer(coin, recipient);
+    }
+    // TODO: This is needed for testnet, but should be removed for mainnet
+    entry fun burn_admin(
+        _: &EMBDIncentiveTokenAdminCap,
+        storage: &mut EMBDIncentiveTokenStorage,
+        recipient: address,
+        asset: Coin<EMBD_INCENTIVE_TOKEN>,
+    ) {
+        decrease_account_balance(
+            storage,
+            recipient,
+            coin::value(&asset)
+        );
+
+        // Burn the asset
+        balance::decrease_supply(
+            &mut storage.supply,
+            coin::into_balance(asset)
+        );
+    }
+
     #[test_only]
     public fun init_for_testing(ctx: &mut TxContext) {
-        init(RUSD_STABLE_COIN {}, ctx);
+        init(EMBD_INCENTIVE_TOKEN {}, ctx);
     }
 
     #[test_only]
     public fun mint_for_testing(
-        storage: &mut RUSDStableCoinStorage,
+        storage: &mut EMBDIncentiveTokenStorage,
         amount: u64,
         ctx: &mut TxContext
-    ): Coin<RUSD_STABLE_COIN> {
+    ): Coin<EMBD_INCENTIVE_TOKEN> {
         coin::from_balance(balance::increase_supply(&mut storage.supply, amount), ctx)
     }
 }

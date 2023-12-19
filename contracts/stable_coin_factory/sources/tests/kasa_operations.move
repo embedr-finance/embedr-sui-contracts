@@ -2,7 +2,7 @@
 module stable_coin_factory::kasa_operations_tests {
     use sui::test_scenario::{Self as test, next_tx, Scenario, ctx};
     use sui::test_utils::{assert_eq};
-    use sui::coin::{mint_for_testing};
+    use sui::coin::{Self, mint_for_testing, burn_for_testing, Coin};
     use sui::sui::{SUI};
 
     use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage};
@@ -21,6 +21,21 @@ module stable_coin_factory::kasa_operations_tests {
             rusd_stable_coin::init_for_testing(ctx(test));
             sorted_kasas::init_for_testing(ctx(test));
         };
+        next_tx(test, admin);
+        {
+            let km_publisher = test::take_shared<KasaManagerPublisher>(test);
+            let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
+            let rsc_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
+            let id = kasa_manager::get_publisher_id(&km_publisher);
+            rusd_stable_coin::add_manager(
+                &rsc_admin_cap,
+                &mut rsc_storage,
+                id
+            );
+            test::return_shared(km_publisher);
+            test::return_shared(rsc_storage);
+            test::return_to_address(admin, rsc_admin_cap);
+        };
     }
 
     fun setup_open_kasa(test: &mut Scenario, collateral_amount: u64, debt_amount: u64) {
@@ -32,13 +47,6 @@ module stable_coin_factory::kasa_operations_tests {
         let rsc_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
 
         let collateral = mint_for_testing<SUI>(collateral_amount, ctx(test));
-
-        let id = kasa_manager::get_publisher_id(&km_publisher);
-        rusd_stable_coin::add_manager(
-            &rsc_admin_cap,
-            &mut rsc_storage,
-            id
-        );
 
         kasa_operations::open_kasa(
             &km_publisher,
@@ -76,13 +84,6 @@ module stable_coin_factory::kasa_operations_tests {
             let rsc_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
 
             let collateral = mint_for_testing<SUI>(1000_000000000, ctx(test));
-
-            let id = kasa_manager::get_publisher_id(&km_publisher);
-            rusd_stable_coin::add_manager(
-                &rsc_admin_cap,
-                &mut rsc_storage,
-                id
-            );
 
             kasa_operations::open_kasa(
                 &km_publisher,
@@ -513,7 +514,51 @@ module stable_coin_factory::kasa_operations_tests {
 
     // =================== Repay Loan ===================
 
-    // TODO: Add happy path test
+    #[test]
+    fun test_repay_loan_happy_path() {
+        let scenario = scenario();
+        let (admin, user) = people();
+        let test = &mut scenario;
+
+        start_kasa_manager(test);
+
+        next_tx(test, user);
+        {
+            setup_open_kasa(test, 1000_000000000, 5000_000000000);
+        };
+        next_tx(test, @0x1234);
+        {
+            setup_open_kasa(test, 1000_000000000, 5000_000000000);
+        };
+        next_tx(test, user);
+        {
+            let km_publisher = test::take_shared<KasaManagerPublisher>(test);
+            let km_storage = test::take_shared<KasaManagerStorage>(test);
+            let sk_storage = test::take_shared<SortedKasasStorage>(test);
+            let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
+            let stable_coin = test::take_from_sender<Coin<RUSD_STABLE_COIN>>(test);
+            kasa_operations::repay_loan(
+                &km_publisher,
+                &mut km_storage,
+                &mut sk_storage,
+                &mut rsc_storage,
+                stable_coin,
+                ctx(test)
+            );
+            test::return_shared(km_publisher);
+            test::return_shared(km_storage);
+            test::return_shared(sk_storage);
+            test::return_shared(rsc_storage);
+
+        };
+        next_tx(test, user);
+        {
+            let collateral = test::take_from_sender<Coin<SUI>>(test);
+            assert_eq(coin::value(&collateral), 1000_000000000);
+            test::return_to_sender(test, collateral);
+        };
+        test::end(scenario);
+    }
 
     #[test]
     #[expected_failure(abort_code = kasa_operations::ERROR_KASA_NOT_FOUND)]

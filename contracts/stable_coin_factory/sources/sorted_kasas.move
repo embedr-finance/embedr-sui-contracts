@@ -1,3 +1,15 @@
+/// Sorted Kasas is responsible for maintaining a sorted list of kasas based on their nominal collateral ratio.
+/// Kasa nominal collateral ratio changes over time, so the list must be updated accordingly.
+/// 
+/// # Related Modules
+/// 
+/// * `Kasa Manager` - `Kasa Manager` calls methods in this module to insert, remove, and reinsert kasas in the list.
+/// * `Kasa Operations` - `Kasa Operations` 
+/// 
+/// There is a single responsibility for this module:
+/// 
+/// Manage a sorted list of kasas based on their nominal collateral ratio
+/// Execute insert, remove, and reinsert operations on the list
 module stable_coin_factory::sorted_kasas {
     use std::option::{Self, Option};
 
@@ -49,7 +61,7 @@ module stable_coin_factory::sorted_kasas {
         });
     }
 
-    // =================== Entries ===================
+    // =================== Friend Methods ===================
 
     public(friend) fun insert(
         kasa_manager_storage: &mut KasaManagerStorage,
@@ -90,8 +102,7 @@ module stable_coin_factory::sorted_kasas {
         id: address,
         nicr: u256,
         prev_id: Option<address>,
-        next_id: Option<address>,
-        _ctx: &mut TxContext
+        next_id: Option<address>
     ) {
         // TODO: Make sure only kasa manager module can call this contract
 
@@ -117,39 +128,39 @@ module stable_coin_factory::sorted_kasas {
 
     // =================== Queries ===================
 
-    public fun check_insert_position(
-        kasa_manager_storage: &mut KasaManagerStorage,
-        sorted_kasas_storage: &mut SortedKasasStorage,
-        nicr: u256,
-        prev_id: Option<address>,
-        next_id: Option<address>,
-        _ctx: &mut TxContext
-    ): bool {
-        check_node_position(
-            kasa_manager_storage,
-            sorted_kasas_storage,
-            nicr,
-            prev_id,
-            next_id
-        )
-    }
+    // public fun check_insert_position(
+    //     kasa_manager_storage: &mut KasaManagerStorage,
+    //     sorted_kasas_storage: &mut SortedKasasStorage,
+    //     nicr: u256,
+    //     prev_id: Option<address>,
+    //     next_id: Option<address>,
+    //     _ctx: &mut TxContext
+    // ): bool {
+    //     check_node_position(
+    //         kasa_manager_storage,
+    //         sorted_kasas_storage,
+    //         nicr,
+    //         prev_id,
+    //         next_id
+    //     )
+    // }
 
-    public fun find_insert_position(
-        kasa_manager_storage: &mut KasaManagerStorage,
-        sorted_kasas_storage: &mut SortedKasasStorage,
-        nicr: u256,
-        prev_id: Option<address>,
-        next_id: Option<address>,
-        _ctx: &mut TxContext
-    ): (Option<address>, Option<address>) {
-        find_node_position(
-            kasa_manager_storage,
-            sorted_kasas_storage,
-            nicr,
-            prev_id,
-            next_id
-        )
-    }
+    // public fun find_insert_position(
+    //     kasa_manager_storage: &mut KasaManagerStorage,
+    //     sorted_kasas_storage: &mut SortedKasasStorage,
+    //     nicr: u256,
+    //     prev_id: Option<address>,
+    //     next_id: Option<address>,
+    //     _ctx: &mut TxContext
+    // ): (Option<address>, Option<address>) {
+    //     find_node_position(
+    //         kasa_manager_storage,
+    //         sorted_kasas_storage,
+    //         nicr,
+    //         prev_id,
+    //         next_id
+    //     )
+    // }
 
     public fun get_size(sorted_kasas_storage: &SortedKasasStorage): u64 {
         sorted_kasas_storage.size
@@ -171,23 +182,23 @@ module stable_coin_factory::sorted_kasas {
         table::borrow(&sorted_kasas_storage.node_table, id).prev_id
     }
 
-    // =================== Helpers ===================
-
-    fun contains(sorted_kasas_storage: &mut SortedKasasStorage, id: address): bool {
+    public fun contains(sorted_kasas_storage: &mut SortedKasasStorage, id: address): bool {
         table::contains(&sorted_kasas_storage.node_table, id)
     }
 
-    fun is_full(sorted_kasas_storage: &mut SortedKasasStorage): bool {
+    public fun is_full(sorted_kasas_storage: &mut SortedKasasStorage): bool {
         sorted_kasas_storage.size == sorted_kasas_storage.max_size
     }
 
-    fun is_empty(sorted_kasas_storage: &mut SortedKasasStorage): bool {
+    public fun is_empty(sorted_kasas_storage: &mut SortedKasasStorage): bool {
         sorted_kasas_storage.size == 0
     }
 
-    // fun get_max_size(sorted_kasas_storage: &mut SortedKasasStorage): u64 {
-    //     sorted_kasas_storage.max_size
-    // }
+    public fun get_max_size(sorted_kasas_storage: &mut SortedKasasStorage): u64 {
+        sorted_kasas_storage.max_size
+    }
+
+    // =================== Helpers ===================
 
     fun insert_node(
         kasa_manager_storage: &mut KasaManagerStorage,

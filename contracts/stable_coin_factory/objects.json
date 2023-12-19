@@ -1,19 +1,23 @@
 {
-  "package_id": "0x67abbcd0aae85f978b38dca89d82e34e825aa7b70406c22bfd82e1a9dd32f274",
+  "package_id": "0xbb0e2667c0e445f1e1570b2fd91855ee2299e10c7b9558ca2a5df35436296ec3",
   "kasa_storage": {
-    "km_storage": "0x19d567ed227c8cde31797c851f567c08010ac0dd4afdf826be1bc0fc65df1585"
+    "km_storage": "0xaf048a440f2b069b3c375667f4a141e9ddf5c5cba42159b6383db21d5d003b47"
   },
   "kasa_manager": {
-    "publisher": "0xd5d7a3b2086c6dbec23336abd9f60d8b5ebaaf9e0c1258d5ad2e0fdfbaed8dde"
+    "publisher_object": "0xdbe660abbd162f00fe38bb6931251a84bc5cc318d8796b9d40d332a93edd9337",
+    "publisher_id": "0x86ab8744c742d9843770fa02b7db1aaea3ae01dde84822c87a14ed92bc523af3",
+    "kasa_table_id": "0x53d8df5180648fb95a2aa8a37217a68643e85fcfd0def44c8aa33dcc19eea04b"
   },
   "sorted_kasas": {
-    "storage": "0x403e39aaa9496e913543259e6e65b1f844526fb2547ed50bef46d342123fa6cf"
+    "storage": "0xc57aa00ed4a8984d64444bf5fa4e8e6c408f8b09bf8723d1f7f5227995b19cd8"
   },
   "stability_pool": {
-    "publisher": "0x1927792237b97521abb9e3997e7717a74ee2e0115e7ddd4bda34be9e0e72dcae",
-    "storage": "0x9c6e02cf3d6dbfad19cb5af9a440333fec8a9491cae1a5e7ef9b18ce4e918306"
+    "publisher_object": "0xeab755402063f0b4b5441feabbdf1b4077268e14697d92c9c38185213e1efb56",
+    "publisher_id": "0xc68a3e23d83379e880d587099c08019ae19487ae46007eec0eb898407d75ddf2",
+    "storage": "0x2496cd7ad88510fa7090cb4fa617d381871c1f4b576d50fb35a3cd3a8272b5d7",
+    "stake_table_id": "0xf1a02c1bce75789029faed5d592b19d3f27b5e3061cafaaaf07f0348896fa946"
   },
   "liquidation_assets_distributor": {
-    "collateral_gains": "0x4cfd8b3cfdfbeb54182908967af49e76fae85d56b5e23acb2ac512e80b74a440"
+    "collateral_gains": "0x3e944d1f768b8a0027a4437caa83ebbb29a41c3c5efc994e45ad90acba8e763e"
   }
 }

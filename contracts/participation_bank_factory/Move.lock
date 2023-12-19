@@ -2,11 +2,12 @@
 
 [move]
 version = 0
-manifest_digest = "4FF7437EFCDC6D5CA85E8BDAB3705DF61ACAB6877EE6C0BCFFFE83BC8268B428"
-deps_digest = "F9B494B64F0615AED0E98FC12A85B85ECD2BC5185C22D30E7F67786BB52E507C"
+manifest_digest = "83B3BFC326D52B55F04BFA8C1B5525A0A06610AA0C6B01EE49DBE261CB3AE17C"
+deps_digest = "397E6A9F7A624706DBDFEE056CE88391A15876868FD18A88504DA74EB458D697"
 
 dependencies = [
   { name = "EmbedrProtocolLibrary" },
+  { name = "EmbedrProtocolStableCoinFactory" },
   { name = "EmbedrProtocolTokens" },
   { name = "MoveStdlib" },
   { name = "Sui" },
@@ -17,6 +18,17 @@ name = "EmbedrProtocolLibrary"
 source = { local = "../library" }
 
 dependencies = [
+  { name = "MoveStdlib" },
+  { name = "Sui" },
+]
+
+[[move.package]]
+name = "EmbedrProtocolStableCoinFactory"
+source = { local = "../stable_coin_factory" }
+
+dependencies = [
+  { name = "EmbedrProtocolLibrary" },
+  { name = "EmbedrProtocolTokens" },
   { name = "MoveStdlib" },
   { name = "Sui" },
 ]

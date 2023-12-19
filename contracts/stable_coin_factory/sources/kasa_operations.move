@@ -1,15 +1,31 @@
+/// Kasa Operations module is responsible for all the operations related to kasas
+/// This module can be used by users as a proxy to interact with the kasas
+/// 
+/// # Related Modules
+/// 
+/// * `Kasa Manager` - `Kasa Operations` calls `Kasa Manager` to perform Kasa operations
+/// * `Sorted Kasas` - `Kasa Operations` calls `Sorted Kasas` to insert or reinsert a kasa to the sorted kasas list
+/// 
+/// There is a single responsibility for this module:
+/// 
+/// With each operation, `Kasa Operations` will check for the validity of the operation such as:
+/// 
+/// 1. Making sure the collateral ratio is valid
+/// 2. Making sure the minimum debt amount is met for opening a Kasa
+/// 3. Making sure Kasa exists for some operations
+/// ...
+/// 
+/// After checking various conditions, `Kasa Operations` will call `Kasa Manager` to perform operations
 module stable_coin_factory::kasa_operations {
-    use std::option::{Self, Option};
-
     use sui::tx_context::{Self, TxContext};
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
 
     use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage};
     use stable_coin_factory::kasa_manager::{Self, KasaManagerPublisher};
-    use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
+    use stable_coin_factory::sorted_kasas::{SortedKasasStorage};
     use tokens::rusd_stable_coin::{RUSDStableCoinStorage, RUSD_STABLE_COIN};
-    use library::kasa::{is_icr_valid, calculate_nominal_collateral_ratio};
+    use library::kasa::{is_icr_valid};
     // use library::utils::logger;
 
     const COLLATERAL_PRICE: u64 = 1800_000000000;
@@ -27,9 +43,15 @@ module stable_coin_factory::kasa_operations {
     /// Error for kasa not found
     const ERROR_KASA_NOT_FOUND: u64 = 5;
 
-    // =================== Entries ===================
+    // =================== Public Methods ===================
 
-    entry public fun open_kasa(
+    /// Open a new kasa for an user
+    /// 
+    /// # Arguments
+    /// 
+    /// * `collateral` - the collateral coin object to be deposited
+    /// * `debt_amount` - the amount of debt to be borrowed
+    public fun open_kasa(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
@@ -40,6 +62,8 @@ module stable_coin_factory::kasa_operations {
     ) {
         let account_address = tx_context::sender(ctx);
         let collateral_amount = coin::value(&collateral);
+
+        // TODO: Check for minumum debt amount
 
         // Check for existing kasa
         assert!(!kasa_storage::has_kasa(km_storage, account_address), ERROR_EXISTING_KASA);
@@ -62,26 +86,21 @@ module stable_coin_factory::kasa_operations {
         kasa_manager::create_kasa(
             km_publisher,
             km_storage,
+            sk_storage,
             rsc_storage,
             account_address,
             collateral,
             debt_amount,
             ctx
         );
-
-        // TODO: Get prev_id and next_id as a parameter
-        sorted_kasas::insert(
-            km_storage,
-            sk_storage,
-            account_address,
-            calculate_nominal_collateral_ratio(collateral_amount, debt_amount),
-            option::none(),
-            option::none(),
-            ctx
-        )
     }
 
-    entry public fun deposit_collateral(
+    /// Deposit collateral to an existing kasa
+    /// 
+    /// # Arguments
+    /// 
+    /// * `collateral` - the collateral coin object to be deposited
+    public fun deposit_collateral(
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
         collateral: Coin<SUI>,
@@ -97,21 +116,18 @@ module stable_coin_factory::kasa_operations {
 
         kasa_manager::increase_collateral(
             km_storage,
+            sk_storage,
             account_address,
             collateral
         );
-
-        reinsert_kasa_to_list(
-            km_storage,
-            sk_storage,
-            account_address,
-            option::none(),
-            option::none(),
-            ctx
-        );
     }
 
-    entry public fun withdraw_collateral(
+    /// Withdraw collateral from an existing kasa
+    /// 
+    /// # Arguments
+    /// 
+    /// * `amount` - the amount of collateral to be withdrawn
+    public fun withdraw_collateral(
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
         amount: u64,
@@ -142,22 +158,19 @@ module stable_coin_factory::kasa_operations {
 
         kasa_manager::decrease_collateral(
             km_storage,
+            sk_storage,
             account_address,
             amount,
             ctx
         );
-
-        reinsert_kasa_to_list(
-            km_storage,
-            sk_storage,
-            account_address,
-            option::none(),
-            option::none(),
-            ctx
-        );
     }
 
-    entry public fun borrow_loan(
+    /// Borrow debt from an existing kasa
+    /// 
+    /// # Arguments
+    /// 
+    /// * `amount` - the amount of debt to be borrowed
+    public fun borrow_loan(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
@@ -191,27 +204,24 @@ module stable_coin_factory::kasa_operations {
         kasa_manager::increase_debt(
             km_publisher,
             km_storage,
+            sk_storage,
             rusd_stable_coin_storage,
             account_address,
             amount,
             ctx
         );
-
-        reinsert_kasa_to_list(
-            km_storage,
-            sk_storage,
-            account_address,
-            option::none(),
-            option::none(),
-            ctx
-        );
     }
 
-    entry public fun repay_loan(
+    /// Repay debt from an existing kasa
+    /// 
+    /// # Arguments
+    /// 
+    /// * `debt_coin` - the debt coin object to be repaid
+    public fun repay_loan(
         km_publisher: &KasaManagerPublisher,
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
-        rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
+        rsc_storage: &mut RUSDStableCoinStorage,
         debt_coin: Coin<RUSD_STABLE_COIN>,
         ctx: &mut TxContext
     ) {
@@ -220,9 +230,11 @@ module stable_coin_factory::kasa_operations {
 
         // Check for existing kasa
         assert!(kasa_storage::has_kasa(km_storage, account_address), ERROR_KASA_NOT_FOUND);
+        let (kasa_collateral_amount, kasa_debt_amount) = kasa_storage::get_kasa_amounts(km_storage, account_address);
 
         // Check for debt amount validity
         assert!(amount != 0, ERROR_INVALID_DEBT_AMOUNT);
+        assert!(kasa_debt_amount - amount >= 0, ERROR_INVALID_DEBT_AMOUNT);
 
         // Check for collateral ratio validity
         // TODO: Check if we need this
@@ -240,49 +252,26 @@ module stable_coin_factory::kasa_operations {
         //     ERROR_LOW_COLLATERAL_RATIO
         // );
 
-        kasa_manager::decrease_debt(
-            km_publisher,
-            km_storage,
-            rusd_stable_coin_storage,
-            account_address,
-            debt_coin
-        );
-
-        reinsert_kasa_to_list(
-            km_storage,
-            sk_storage,
-            account_address,
-            option::none(),
-            option::none(),
-            ctx
-        )
-    }
-
-    // =================== Helpers ===================
-
-    fun reinsert_kasa_to_list(
-        km_storage: &mut KasaManagerStorage,
-        sk_storage: &mut SortedKasasStorage,
-        account_address: address,
-        prev_id: Option<address>,
-        next_id: Option<address>,
-        ctx: &mut TxContext
-    ) {
-        let (current_collateral_amount, current_debt_amount) = kasa_storage::get_kasa_amounts(
-            km_storage,
-            account_address,
-        );
-        sorted_kasas::reinsert(
-            km_storage,
-            sk_storage,
-            account_address,
-            calculate_nominal_collateral_ratio(
-                current_collateral_amount,
-                current_debt_amount
-            ),
-            prev_id,
-            next_id,
-            ctx
-        )
+        // Kasa will be deleted if debt amount is zero
+        if (kasa_debt_amount - amount == 0) {
+            kasa_manager::fully_repay_loan(
+                km_publisher,
+                km_storage,
+                sk_storage,
+                rsc_storage,
+                account_address,
+                debt_coin,
+                ctx,
+            );
+        } else {
+            kasa_manager::decrease_debt(
+                km_publisher,
+                km_storage,
+                sk_storage,
+                rsc_storage,
+                account_address,
+                debt_coin
+            );
+        }
     }
 }

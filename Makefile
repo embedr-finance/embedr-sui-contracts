@@ -1,19 +1,19 @@
-PACKAGES := library tokens stable_coin_factory 
-
-# fund-active-wallet:
-# 	curl --location --request POST 'https://faucet.devnet.sui.io/gas' --header 'Content-Type: application/json' --data-raw '{"FixedAmountRequest": {"recipient": "$(shell sui client active-address)"}}'
+PACKAGES := library tokens stable_coin_factory participation_bank_factory
 
 test:
+ifdef package
+	cd contracts/$(package) && sui move test && cd ../..
+else
 	for package in $(PACKAGES); do \
 		cd contracts/$$package && sui move test && cd ../..; \
 	done
+endif
 
-# build:
-# 	for package in $(PACKAGES); do \
-# 		cd contracts/$$package && sui move build && cd ../..; \
-# 	done
+deploy:
+	@bash scripts/request_test_tokens.sh
 
-# deploy:
-# 	for package in $(PACKAGES); do \
-# 		cd contracts/$$package && sui client publish --gas-budget 20000000 && cd ../..; \
-# 	done
+	@bash scripts/deploy_modules.sh
+
+	@bash scripts/add_manager_rusd_stable_coin.sh
+
+	@bash scripts/add_manager_embd_incentive_token.sh

@@ -2,14 +2,18 @@ module library::kasa {
     use library::math::{d_fdiv_u256, d_fmul_u256};
     // use library::utils::logger;
 
+    /// Nominal precision for collateral ratio calculations
     const NOMINAL_PRECISION: u256 = 100000000000000000000; // 1e20
 
-    /// Minimum collateral ratio for a single Kasa
+    /// Minimum collateral ratio for a single Kasa - 110%
     const MINIMUM_COLLATERAL_RATIO: u256 = 1100000000;
 
-    /// Critical system collateral ratio
+    /// Critical system collateral ratio - 150%
     /// If the system collateral ratio falls below this value, the system enters recovery mode
     const CRITICAL_SYSTEM_COLLATERAL_RATIO: u256 = 1500000000;
+
+    /// The minimum amount of debt needed to open a Kasa
+    const MINIMUM_NET_DEBT: u256 = 1800_000000000;
 
     /// Calculates the collateral ratio for a given collateral amount, debt amount and collateral price.
     /// 
@@ -45,7 +49,7 @@ module library::kasa {
     /// 
     /// # Returns
     /// 
-    /// The nominal collateral ratio as a percentage.
+    /// The nominal collateral ratio
     public fun calculate_nominal_collateral_ratio(
         collateral_amount: u64,
         debt_amount: u64,
@@ -65,6 +69,10 @@ module library::kasa {
     /// * `collateral_amount` - The amount of collateral tokens.
     /// * `debt_amount` - The amount of debt tokens.
     /// * `collateral_price` - The price of the collateral token in USD.
+    /// 
+    /// # Returns
+    /// 
+    /// * `bool` - Whether the collateral ratio is valid.
     public fun is_icr_valid(
         is_recovery_mode: bool,
         collateral_amount: u64,
@@ -81,5 +89,9 @@ module library::kasa {
 
     public fun get_critical_system_collateral_ratio(): u256 {
         CRITICAL_SYSTEM_COLLATERAL_RATIO
+    }
+
+    public fun get_minimum_net_debt(): u256 {
+        MINIMUM_NET_DEBT
     }
 }

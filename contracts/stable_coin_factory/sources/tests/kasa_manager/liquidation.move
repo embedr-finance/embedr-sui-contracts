@@ -1,5 +1,5 @@
 #[test_only]
-module stable_coin_factory::kasa_manager_tests {
+module stable_coin_factory::kasa_manager_liquidation_tests {
     use sui::test_scenario::{Self as test, next_tx};
     use sui::test_utils::{assert_eq};
     use sui::coin::{Self, Coin};
@@ -8,7 +8,7 @@ module stable_coin_factory::kasa_manager_tests {
     use stable_coin_factory::test_helpers::{init_stable_coin_factory, open_kasa, deposit_to_stability_pool};
     use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage};
     use stable_coin_factory::kasa_manager::{Self, KasaManagerPublisher};
-    use stable_coin_factory::sorted_kasas::SortedKasasStorage;
+    use stable_coin_factory::sorted_kasas::{SortedKasasStorage};
     use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage};
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage};
