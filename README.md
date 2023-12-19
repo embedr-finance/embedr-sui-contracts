@@ -1,5 +1,8 @@
 # Embedr Protocol
 
+> [!WARNING]
+> This project is still in development and is not ready for production use. Use at your own risk.
+
 ## Overview
 
 Embedr Protocol is a decentralized lending/borrowing protocol built on the [Sui Network](https://sui.io/). Smart contracts are written with the [Move language](https://move-book.com/).
