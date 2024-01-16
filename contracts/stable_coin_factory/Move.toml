@@ -8,8 +8,10 @@ MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/s
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
 EmbedrProtocolLibrary = { local = "../library" }
 EmbedrProtocolTokens = { local = "../tokens" }
+SupraOracle = { local = "../Oracles" }
 
 [addresses]
 std = "0x1"
 sui = "0x2"
 stable_coin_factory = "0xbb0e2667c0e445f1e1570b2fd91855ee2299e10c7b9558ca2a5df35436296ec3"
+crowdfund = "0x0"

@@ -18,7 +18,9 @@ module SupraOracle::SupraOracleValue {
     native public fun extract_price(_price: &Price) : (u32, u128, u16, u128, u64);
 
     public fun get_collateral_price() {
+
         
+
     }
 
     
