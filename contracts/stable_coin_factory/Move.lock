@@ -8,7 +8,6 @@ dependencies = [
   { name = "EmbedrProtocolTokens" },
   { name = "MoveStdlib" },
   { name = "Sui" },
-
 ]
 
 [[move.package]]
@@ -41,5 +40,3 @@ source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testn
 dependencies = [
   { name = "MoveStdlib" },
 ]
-
-
