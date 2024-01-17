@@ -2,15 +2,13 @@
 
 [move]
 version = 0
-manifest_digest = "20EC1A17D0FABDD80A777716C6AE374C2CB1C5BDCB48B2E209A6E65952738A88"
-deps_digest = "397E6A9F7A624706DBDFEE056CE88391A15876868FD18A88504DA74EB458D697"
 
 dependencies = [
   { name = "EmbedrProtocolLibrary" },
   { name = "EmbedrProtocolTokens" },
   { name = "MoveStdlib" },
   { name = "Sui" },
-  { name = "SupraOracle" },
+
 ]
 
 [[move.package]]
@@ -44,10 +42,4 @@ dependencies = [
   { name = "MoveStdlib" },
 ]
 
-[[move.package]]
-name = "SupraOracle"
-source = { local = "../Oracles" }
 
-dependencies = [
-  { name = "Sui" },
-]

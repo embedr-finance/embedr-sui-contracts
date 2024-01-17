@@ -26,7 +26,6 @@ module stable_coin_factory::kasa_operations {
     use stable_coin_factory::sorted_kasas::{SortedKasasStorage};
     use tokens::rusd_stable_coin::{RUSDStableCoinStorage, RUSD_STABLE_COIN};
     use library::kasa::{is_icr_valid};
-    use SupraOracle::SupraOracleValue::{ OracleHolder, Price, get_collateral_price}; 
     // use library::utils::logger;
 
     const COLLATERAL_PRICE: u64 = 1800_000000000;
