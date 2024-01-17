@@ -2,12 +2,12 @@
 
 [move]
 version = 0
-manifest_digest = "268BE1AA1C98C5C5D8FBD16BFD2B973DBDB475F6F7A3718BAAA8392A3F684156"
+manifest_digest = "AA83E4D275904B03B88C790A4B46D5D2236AA8844EDA1A31F7ECDDA845D97D45"
 deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
 
 dependencies = [
-  { name = "MoveStdlib" },
   { name = "Sui" },
+  { name = "supra_utils" },
 ]
 
 [[move.package]]
@@ -20,4 +20,12 @@ source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testn
 
 dependencies = [
   { name = "MoveStdlib" },
+]
+
+[[move.package]]
+name = "supra_utils"
+source = { local = "../supra_utils" }
+
+dependencies = [
+  { name = "Sui" },
 ]
