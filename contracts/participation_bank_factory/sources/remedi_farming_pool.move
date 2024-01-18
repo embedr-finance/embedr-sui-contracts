@@ -207,6 +207,16 @@ module participation_bank_factory::remedi_farming_pool {
 
         // Geri odenen borclarin faiz olmayan kismi ilk once senior poolu mu dolduracak? 10K borc verildiyse ilk olarak senior tranche 3K mi alacak?
         // Bu geri odenen para kullanicilarin ana tranche bakiyelerine mi eklenecek? Alinan faiz kullanicilarin "claim" edebildigi sekilde mi olacak?
+
+
+        // Eger kullanici gelen taksit odemeleri sirasinda ana tranche bakiyesini cekerse, gelen ana para odemeleri kullanicinin reward alabileecegi kisma akacak.
+
+        // TODO: Normalde kullanici uzun bir sure sisteme dokunmadigi zaman gelen ana para odemeleri kullanicinin tranchelerine doluyor.
+        // Eger bir noktada bunun olmasini istemeyip, parasini cekilebilir bir odul seklinde almak isterse,
+        // aktif olan borc icinde bunu degistirebilecegi bir secenek lazim.
+
+        // TODO: Repayment structure nasil olacak? Gelen ana para odemeleri bulk halinde mi tranchelere dagitilacak yoksa her seferde bunun hesabi yapilacak mi?
+        // Dipnot: Bir bulk halinde yapilmasina daha cok yakiniz.
     }
 
 
