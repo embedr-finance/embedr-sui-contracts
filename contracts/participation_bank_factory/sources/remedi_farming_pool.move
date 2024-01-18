@@ -13,6 +13,8 @@ module participation_bank_factory::remedi_farming_pool {
 
     const VERSION: u64 = 1;
 
+    const INSTALLMENT_DURATION: u64 = 180; // 6 months
+
     /// This struct will be used to store the balance of
     /// the users for each tranche
     /// 
