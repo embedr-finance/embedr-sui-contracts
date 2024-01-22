@@ -1,11 +1,9 @@
 /// Oracles module is responsible for fetching various token prices via multiple oracle services
 /// 
-///  # Related Modules
-/// 
 /// There is one main operation in this module:
 /// 
-/// Creates two functions for take sui token price from supra oracle and pyth oracle.
 /// Implements two methods to fetch SUI price from Supra and Pyth oracles
+/// Call either one of those methods in a single `get_sui_price` method
 module oracles::oracle {
     use sui::object::{Self, UID};
     use sui::tx_context::{Self, TxContext};
