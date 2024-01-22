@@ -1,14 +1,11 @@
-/// Oracles package is responsible for live price of sui token
+/// Oracles module is responsible for fetching various token prices via multiple oracle services
 /// 
 ///  # Related Modules
 /// 
-/// `kasa.manager` - `kasa.operations` - `kasa.storage` modules calls the method in this module for taking live price of sui token.
-/// 
-/// 
-/// There are one main operation in this module:
+/// There is one main operation in this module:
 /// 
 /// Creates two functions for take sui token price from supra oracle and pyth oracle.
-/// Call that two functions in one method. 
+/// Implements two methods to fetch SUI price from Supra and Pyth oracles
 module oracles::oracle {
     use sui::object::{Self, UID};
     use sui::tx_context::{Self, TxContext};
