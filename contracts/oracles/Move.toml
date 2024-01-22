@@ -3,8 +3,9 @@ name = "oracles"
 version = "0.0.1"
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
-SupraOracle = { local = "dependencies/supra_oracle/supra_holder" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "09b2081498366df936abae26eea4b2d5cafb2788" }
+SupraOracle = { local = "dependencies/supra/supra_holder" }
+Pyth = {local = "dependencies/pyth/Pyth"}
 
 [addresses]
 oracles = "0x0"

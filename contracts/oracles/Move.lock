@@ -2,21 +2,31 @@
 
 [move]
 version = 0
-manifest_digest = "0E556A4584C68FA859C1BE5F5AB6A662636C747432D4972E06C68AA18D5FA0D9"
-deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
+manifest_digest = "289A2D422FD2CBA4EADD8CD05AE51276E014AA0D4184CB0FEB62D37FE4409E97"
+deps_digest = "060AD7E57DFB13104F21BE5F5C3759D03F0553FC3229247D9A7A6B45F50D03A3"
 
 dependencies = [
+  { name = "Pyth" },
   { name = "Sui" },
   { name = "SupraOracle" },
 ]
 
 [[move.package]]
 name = "MoveStdlib"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/move-stdlib" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "09b2081498366df936abae26eea4b2d5cafb2788", subdir = "crates/sui-framework/packages/move-stdlib" }
+
+[[move.package]]
+name = "Pyth"
+source = { local = "dependencies/pyth/Pyth" }
+
+dependencies = [
+  { name = "Sui" },
+  { name = "Wormhole" },
+]
 
 [[move.package]]
 name = "Sui"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/sui-framework" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "09b2081498366df936abae26eea4b2d5cafb2788", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
   { name = "MoveStdlib" },
@@ -24,7 +34,7 @@ dependencies = [
 
 [[move.package]]
 name = "SupraOracle"
-source = { local = "dependencies/supra_oracle/supra_holder" }
+source = { local = "dependencies/supra/supra_holder" }
 
 dependencies = [
   { name = "Sui" },
@@ -32,8 +42,16 @@ dependencies = [
 ]
 
 [[move.package]]
+name = "Wormhole"
+source = { local = "dependencies/pyth/wormhole" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
 name = "supra_utils"
-source = { local = "dependencies/supra_oracle/supra_utils" }
+source = { local = "dependencies/supra/supra_utils" }
 
 dependencies = [
   { name = "Sui" },
@@ -41,7 +59,7 @@ dependencies = [
 
 [[move.package]]
 name = "supra_validator"
-source = { local = "dependencies/supra_oracle/supra_validator" }
+source = { local = "dependencies/supra/supra_validator" }
 
 dependencies = [
   { name = "Sui" },

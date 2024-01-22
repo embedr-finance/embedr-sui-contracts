@@ -11,6 +11,12 @@ module oracles::oracle {
 
     use SupraOracle::SupraSValueFeed::{Self, OracleHolder};
 
+    use pyth::pyth:: {Self, get_price};
+    use pyth::state:: {Self, State};
+    use pyth::price_info:: {Self, PriceInfoObject};
+    use pyth::price:: {Self, Price};
+    use pyth::i64:: {Self, I64};
+
     // Supra_oracle sui pair code
     const SUPRA_SUI_USD_PAIR: u32 = 90;
     // Reduce to 9 decimal
@@ -20,6 +26,7 @@ module oracles::oracle {
     struct Storage has key, store {
         id: UID,
         supra_price: u256,
+        pyth_price:u256
     }
 
      // =================== Initializer ===================
@@ -29,6 +36,7 @@ module oracles::oracle {
             Storage {
                 id:object::new(ctx),
                 supra_price:0,
+                pyth_price:0
             }
         );
     }
@@ -45,6 +53,19 @@ module oracles::oracle {
             = SupraSValueFeed::get_price(oracle_holder, SUPRA_SUI_USD_PAIR);
         // Assign the sui live price into our share object as u256 and 9 decimal
         storage.supra_price = (sui_usd_price as u256) / SUI_FRACTION;   
+    }
+
+    /// Take a live price of sui token from SupraOracle
+    /// 
+    /// # Arguments
+    /// 
+    /// `oracle_holder` - the share object of SupraOracle
+    /// `storage` - the share object for return the price of sui token
+    public fun set_pyth_price(oracle_holder: &OracleHolder, storage: &mut Storage) {
+        // Take sui token price
+        
+        // Assign the sui live price into our share object as u256 and 9 decimal
+       
     }
 
     /// Get sui token live price from SupraOracle and pyth
