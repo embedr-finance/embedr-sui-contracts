@@ -2,7 +2,7 @@
 
 [move]
 version = 0
-manifest_digest = "289A2D422FD2CBA4EADD8CD05AE51276E014AA0D4184CB0FEB62D37FE4409E97"
+manifest_digest = "F2175C36994CDD646858C0E839B868B19D097583D804591A5177F90B9AA9305B"
 deps_digest = "060AD7E57DFB13104F21BE5F5C3759D03F0553FC3229247D9A7A6B45F50D03A3"
 
 dependencies = [
@@ -17,7 +17,7 @@ source = { git = "https://github.com/MystenLabs/sui.git", rev = "09b2081498366df
 
 [[move.package]]
 name = "Pyth"
-source = { local = "dependencies/pyth/Pyth" }
+source = { local = "dependencies/pyth/pyth" }
 
 dependencies = [
   { name = "Sui" },
