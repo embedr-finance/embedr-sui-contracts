@@ -9,6 +9,7 @@ Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-fram
 EmbedrProtocolLibrary = { local = "../library" }
 EmbedrProtocolTokens = { local = "../tokens" }
 oracles = {local = "../oracles"}
+SupraOracle = { local = "../oracles/dependencies/supra_oracle/supra_holder" }
 
 [addresses]
 std = "0x1"

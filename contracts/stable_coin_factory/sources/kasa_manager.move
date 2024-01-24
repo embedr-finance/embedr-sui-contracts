@@ -35,7 +35,8 @@ module stable_coin_factory::kasa_manager {
     use tokens::rusd_stable_coin::{Self, RUSD_STABLE_COIN, RUSDStableCoinStorage};
     use library::kasa::{get_minimum_collateral_ratio, calculate_nominal_collateral_ratio, get_minimum_net_debt};
     use library::math::{min, mul_div, scalar};
-    use oracles::oracle::{Self, get_sui_price};
+    use oracles::oracle::{get_sui_price};
+    use SupraOracle::SupraSValueFeed::{Self, OracleHolder};
     // use library::utils::logger;
 
     friend stable_coin_factory::kasa_operations;
