@@ -181,7 +181,7 @@ module stable_coin_factory::kasa_operations {
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
         rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
-         oracle_holder: &OracleHolder,
+        oracle_holder: &OracleHolder,
         amount: u64,
         ctx: &mut TxContext
     ) {
