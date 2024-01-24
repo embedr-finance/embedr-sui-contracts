@@ -158,6 +158,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
             test::return_to_address(admin, rsc_admin_cap);
+            test::return_shared(oracle_holder);
             
         };
         test::end(scenario);
