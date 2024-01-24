@@ -375,11 +375,12 @@ module stable_coin_factory::kasa_manager {
         sp_storage: &mut StabilityPoolStorage,
         collateral_gains: &mut CollateralGains,
         rsc_storage: &mut RUSDStableCoinStorage,
+        oracle_holder: &OracleHolder,
         ctx: &mut TxContext
     ) {
         // TODO: Take a look at the stake logic - what does it do?
 
-        let collateral_price = 1600_000000000; // FIXME: Change this to the actual price
+        let collateral_price = (get_sui_price(oracle_holder) as u64); // FIXME: Change this to the actual price
 
         let stability_pool_stake_amount = stability_pool::get_total_stake_amount(sp_storage);
         // TODO: Uncomment this later
@@ -448,6 +449,7 @@ module stable_coin_factory::kasa_manager {
         sk_storage: &mut SortedKasasStorage,
         rsc_storage: &mut RUSDStableCoinStorage,
         liquidation_snapshots: &LiquidationSnapshots,
+        oracle_holder: &OracleHolder,
         stable_coin: Coin<RUSD_STABLE_COIN>,
         first_redemption_hint: Option<address>,
         upper_partial_redemption_hint: Option<address>,
@@ -461,7 +463,7 @@ module stable_coin_factory::kasa_manager {
         // TODO: Require max valid fee percentage -> IMPLEMENT FEES
         // TODO: Disable this method for 14 days after release
 
-        let collateral_price = 1800_000000000; // FIXME: Change this to the actual price
+        let collateral_price = (get_sui_price(oracle_holder) as u64); // FIXME: Change this to the actual price
 
         let user_stable_coin_balance = rusd_stable_coin::get_balance(rsc_storage, account_address);
 
