@@ -2,21 +2,31 @@
 
 [move]
 version = 0
-manifest_digest = "0E556A4584C68FA859C1BE5F5AB6A662636C747432D4972E06C68AA18D5FA0D9"
-deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
+manifest_digest = "5AE01994158408E1E3E77052840FDA77DC6B7CF23BBA873C98AE655D6873DFB2"
+deps_digest = "060AD7E57DFB13104F21BE5F5C3759D03F0553FC3229247D9A7A6B45F50D03A3"
 
 dependencies = [
+  { name = "Pyth" },
   { name = "Sui" },
   { name = "SupraOracle" },
 ]
 
 [[move.package]]
 name = "MoveStdlib"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/move-stdlib" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "testnet", subdir = "crates/sui-framework/packages/move-stdlib" }
+
+[[move.package]]
+name = "Pyth"
+source = { local = "dependencies/pyth/pyth" }
+
+dependencies = [
+  { name = "Sui" },
+  { name = "Wormhole" },
+]
 
 [[move.package]]
 name = "Sui"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/sui-framework" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "testnet", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
   { name = "MoveStdlib" },
@@ -24,7 +34,7 @@ dependencies = [
 
 [[move.package]]
 name = "SupraOracle"
-source = { local = "dependencies/supra_oracle/supra_holder" }
+source = { local = "dependencies/supra/supra_holder" }
 
 dependencies = [
   { name = "Sui" },
@@ -32,8 +42,16 @@ dependencies = [
 ]
 
 [[move.package]]
+name = "Wormhole"
+source = { local = "dependencies/pyth/wormhole" }
+
+dependencies = [
+  { name = "Sui" },
+]
+
+[[move.package]]
 name = "supra_utils"
-source = { local = "dependencies/supra_oracle/supra_utils" }
+source = { local = "dependencies/supra/supra_utils" }
 
 dependencies = [
   { name = "Sui" },
@@ -41,9 +59,14 @@ dependencies = [
 
 [[move.package]]
 name = "supra_validator"
-source = { local = "dependencies/supra_oracle/supra_validator" }
+source = { local = "dependencies/supra/supra_validator" }
 
 dependencies = [
   { name = "Sui" },
   { name = "supra_utils" },
 ]
+
+[move.toolchain-version]
+compiler-version = "1.17.0"
+edition = "legacy"
+flavor = "sui"
