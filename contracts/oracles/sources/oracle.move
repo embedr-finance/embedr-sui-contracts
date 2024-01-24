@@ -39,7 +39,7 @@ module oracles::oracle {
     /// 
     /// `oracle_holder` - the share object of SupraOracle
     /// `storage` - the share object for return the price of sui token
-    public fun set_supra_price(oracle_holder: &OracleHolder) : u256 {
+    public fun get_supra_sui_price(oracle_holder: &OracleHolder) : u256 {
         // Take sui token price
         let (sui_usd_price, _, _, _) 
             = SupraSValueFeed::get_price(oracle_holder, SUPRA_SUI_USD_PAIR);
@@ -54,6 +54,6 @@ module oracles::oracle {
     /// `oracle_holder` - the share object of SupraOracle
     /// `storage` - the share object for return the price of sui token
     public fun get_sui_price(oracle_holder: &OracleHolder) : u256 {
-        set_supra_price(oracle_holder)
+        get_supra_sui_price(oracle_holder)
     }
 }
