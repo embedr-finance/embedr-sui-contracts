@@ -64,7 +64,7 @@ module oracles::oracle {
     /// 
     /// `oracle_holder` - the share object of SupraOracle
     /// `storage` - the share object for return the price of sui token
-    public fun set_pyth_price(state:&State, price_info:&PriceInfoObject, clock:&Clock, storage: &mut Storage) {
+    public fun set_pyth_price(state: &State, price_info: &PriceInfoObject, clock: &Clock, storage: &mut Storage) {
         // Take Price object from pyth::get_price
         let pyth_sui_price = get_price(state, price_info, clock);
         // Get I64 object from price::get_price
@@ -79,8 +79,15 @@ module oracles::oracle {
     ///
     /// `oracle_holder` - the share object of SupraOracle
     /// `storage` - the share object for return the price of sui token
-    public fun get_sui_price(oracle_holder: &OracleHolder, storage: &mut Storage) : u256 {
+    public fun get_sui_price(
+        oracle_holder: &OracleHolder,
+        state: &State, 
+        price_info: &PriceInfoObject, 
+        clock: &Clock, 
+        storage: &mut Storage
+        ): u256 {
         set_supra_price(oracle_holder, storage);
+        set_pyth_price(state, price_info, clock, storage);
         storage.supra_price
     }
 }
