@@ -41,4 +41,9 @@ module SupraOracle::SupraSValueFeed {
         supra_oracle
     }
 
+    public fun delete_oracleholder(oracleholder: OracleHolder) {
+        let OracleHolder {id} = oracleholder;
+        object::delete(id);
+    }
+
 }
