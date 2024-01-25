@@ -1,6 +1,6 @@
 #[test_only]
 module stable_coin_factory::kasa_manager_liquidation_tests {
-    use sui::test_scenario::{Self as test, next_tx};
+    use sui::test_scenario::{Self as test, next_tx, ctx};
     use sui::test_utils::{assert_eq};
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
@@ -13,7 +13,7 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage};
     use library::test_utils::{people, scenario};
-    use SupraOracle::SupraSValueFeed::{Self, OracleHolder};
+    use SupraOracle::SupraSValueFeed::{Self, OracleHolder, return_oracleholder};
     // use library::utils::logger;
 
     #[test]
@@ -44,7 +44,7 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
             let sp_storage = test::take_shared<StabilityPoolStorage>(test);
             let collateral_gains = test::take_shared<CollateralGains>(test);
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
-            let oracle_holder = test::take_shared<OracleHolder>(test);
+            let oracle_holder = return_oracleholder(ctx(test));
             
 
             let balance = rusd_stable_coin::get_balance(&rsc_storage, user);
@@ -83,7 +83,7 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
             test::return_shared(sp_storage);
             test::return_shared(collateral_gains);
             test::return_shared(rsc_storage);
-            test::return_shared(oracle_holder);
+            test::return_to_sender(test, oracle_holder);
         };
         next_tx(test, @0x2222);
         {
@@ -132,7 +132,7 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
             let sp_storage = test::take_shared<StabilityPoolStorage>(test);
             let collateral_gains = test::take_shared<CollateralGains>(test);
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
-            let oracle_holder = test::take_shared<OracleHolder>(test);
+            let oracle_holder = return_oracleholder(ctx(test));
 
             kasa_manager::liquidate(
                 &km_publisher,
@@ -161,7 +161,7 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
             test::return_shared(sp_storage);
             test::return_shared(collateral_gains);
             test::return_shared(rsc_storage);
-            test::return_shared(oracle_holder);
+            test::return_to_sender(test, oracle_holder);
         };
         test::end(scenario);
     }
