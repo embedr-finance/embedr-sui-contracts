@@ -11,7 +11,7 @@ module stable_coin_factory::kasa_operations_tests {
     use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSDStableCoinAdminCap, RUSD_STABLE_COIN};
     use library::test_utils::{people, scenario};
-    use SupraOracle::SupraSValueFeed::{Self, OracleHolder, return_oracleholder};
+    use SupraOracle::SupraSValueFeed::{Self, OracleHolder, return_oracleholder, delete_oracleholder};
 
     fun start_kasa_manager(test: &mut Scenario) {
         let (admin, _) = people();
@@ -66,7 +66,7 @@ module stable_coin_factory::kasa_operations_tests {
         test::return_shared(sk_storage);
         test::return_shared(rsc_storage);
         test::return_to_address(admin, rsc_admin_cap);
-        test::return_to_sender(test, oracle_holder);
+        delete_oracleholder(oracle_holder);
     }
 
     // =================== Open Kasa ===================
@@ -114,7 +114,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
             test::return_to_address(admin, rsc_admin_cap);
-            test::return_to_sender(test, oracle_holder);
+            delete_oracleholder(oracle_holder);
         };
         test::end(scenario);
     }
@@ -158,7 +158,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
             test::return_to_address(admin, rsc_admin_cap);
-            test::return_to_sender(test, oracle_holder);
+            delete_oracleholder(oracle_holder);
             
         };
         test::end(scenario);
@@ -353,7 +353,7 @@ module stable_coin_factory::kasa_operations_tests {
             );
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
-            test::return_to_sender(test, oracle_holder);
+            delete_oracleholder(oracle_holder);
         };
         test::end(scenario);
     }
@@ -387,7 +387,7 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
-            test::return_to_sender(test, oracle_holder);
+            delete_oracleholder(oracle_holder);
         };
         test::end(scenario);
     }
@@ -421,7 +421,7 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
-            test::return_to_sender(test, oracle_holder);
+            delete_oracleholder(oracle_holder);
         };
         test::end(scenario);
     }
@@ -462,7 +462,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
-            test::return_to_sender(test, oracle_holder);
+            delete_oracleholder(oracle_holder);
         };
         test::end(scenario);
     }
@@ -501,7 +501,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
-            test::return_to_sender(test, oracle_holder);
+            delete_oracleholder(oracle_holder);
         };
         test::end(scenario);
     }
@@ -540,7 +540,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
-            test::return_to_sender(test, oracle_holder);
+            delete_oracleholder(oracle_holder);
         };
         test::end(scenario);
     }

@@ -14,7 +14,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSD_STABLE_COIN};
     use library::test_utils::{people, scenario};
-    use SupraOracle::SupraSValueFeed::{Self, OracleHolder, return_oracleholder};
+    use SupraOracle::SupraSValueFeed::{Self, OracleHolder, return_oracleholder, delete_oracleholder};
     // use library::utils::logger;
 
     const COLLATERAL_PRICE: u64 = 1800_000000000;
@@ -170,7 +170,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
             test::return_shared(rsc_storage);
             test::return_shared(liquidation_snapshots);
             test::return_to_sender(test, stable_coin);
-            test::return_to_sender(test, oracle_holder);
+            delete_oracleholder(oracle_holder);
         };
         test::end(scenario);
     }
@@ -338,7 +338,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
             test::return_shared(rsc_storage);
             test::return_shared(liquidation_snapshots);
             test::return_to_sender(test, stable_coin);
-            test::return_to_sender(test, oracle_holder);
+            delete_oracleholder(oracle_holder);
         };
         next_tx(test, user4);
         {
