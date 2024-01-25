@@ -12,7 +12,7 @@ module stable_coin_factory::test_helpers {
     use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSDStableCoinAdminCap, RUSD_STABLE_COIN};
     use library::test_utils::people;
-    use SupraOracle::SupraSValueFeed::{Self, OracleHolder};
+    use SupraOracle::SupraSValueFeed::{Self, OracleHolder, return_oracleholder};
 
     public fun init_stable_coin_factory(test: &mut Scenario) {
         let (admin, _) = people();
@@ -57,7 +57,7 @@ module stable_coin_factory::test_helpers {
         let km_storage = test::take_shared<KasaManagerStorage>(test);
         let sk_storage = test::take_shared<SortedKasasStorage>(test);
         let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
-        let oracle_holder = test::take_shared<OracleHolder>(test);
+        let oracle_holder = return_oracleholder(ctx(test));
         
 
         next_tx(test, account_address);
@@ -79,7 +79,7 @@ module stable_coin_factory::test_helpers {
         test::return_shared(km_storage);
         test::return_shared(sk_storage);
         test::return_shared(rsc_storage);
-        test::return_shared(oracle_holder);
+        test::return_to_sender(test, oracle_holder);
     }
 
     public fun deposit_to_stability_pool(test: &mut Scenario, account_address: address, amount: u64) {
