@@ -12,7 +12,7 @@ module stable_coin_factory::kasa_operations_tests {
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSDStableCoinAdminCap, RUSD_STABLE_COIN};
     use library::test_utils::{people, scenario};
     use SupraOracle::SupraSValueFeed::{Self, OracleHolder, return_oracleholder, delete_oracleholder};
-
+ 
     fun start_kasa_manager(test: &mut Scenario) {
         let (admin, _) = people();
         next_tx(test, admin);

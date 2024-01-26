@@ -9,7 +9,8 @@ module oracles::oracle {
     use sui::tx_context::{Self, TxContext};
     use sui::transfer;
 
-    use SupraOracle::SupraSValueFeed::{Self, OracleHolder};
+    use SupraOracle::SupraSValueFeed::{Self, OracleHolder, get_price};
+    // use SupraOracleTest::SupraSValueFeed2::{Self, OracleHolder};
 
     // Supra_oracle sui pair code
     const SUPRA_SUI_USD_PAIR: u32 = 90;
@@ -42,7 +43,7 @@ module oracles::oracle {
     public fun get_supra_sui_price(oracle_holder: &OracleHolder) : u64 {
         // Take sui token price
         let (sui_usd_price, _, _, _) 
-            = SupraSValueFeed::get_price(oracle_holder, SUPRA_SUI_USD_PAIR);
+            = get_price(oracle_holder, SUPRA_SUI_USD_PAIR);
         // Assign the sui live price into our share object as u256 and 9 decimal
         (sui_usd_price as u64) / SUI_FRACTION 
     

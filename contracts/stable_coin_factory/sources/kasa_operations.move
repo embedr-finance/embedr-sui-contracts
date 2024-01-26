@@ -28,6 +28,7 @@ module stable_coin_factory::kasa_operations {
     use library::kasa::{is_icr_valid};
     use oracles::oracle::{get_sui_price};
     use SupraOracle::SupraSValueFeed::{Self, OracleHolder};
+   
     // use library::utils::logger;
 
     const COLLATERAL_PRICE: u64 = 1800_000000000;
@@ -63,7 +64,7 @@ module stable_coin_factory::kasa_operations {
         debt_amount: u64,
         ctx: &mut TxContext
     ) { 
-        // let collateral_price = get_sui_price(oracle_holder);
+         // let collateral_price = get_sui_price(oracle_holder);
         let account_address = tx_context::sender(ctx);
         let collateral_amount = coin::value(&collateral);
 
