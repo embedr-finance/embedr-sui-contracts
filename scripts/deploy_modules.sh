@@ -6,7 +6,7 @@ RED=$(tput setaf 1)
 BOLD=$(tput bold)
 NC=$(tput sgr0)
 
-modules=("library" "tokens" "stable_coin_factory" "participation_bank_factory")
+modules=("library" "tokens" "oracles" "stable_coin_factory" "participation_bank_factory")
 
 update_toml_field() {
     file="Move.toml"
@@ -60,7 +60,7 @@ for module in "${modules[@]}"; do
         case $module in
             "library")
                 json='{"package_id": "'$package_id'"}'
-                ;;
+            ;;
             "tokens")
                 # rUSD Stable Coin
                 rsc_coin_type="$package_id::rusd_stable_coin::RUSD_STABLE_COIN"
@@ -101,7 +101,7 @@ for module in "${modules[@]}"; do
                         "stake_table_id": "'$es_stake_table_id'"
                     }
                 }'
-                ;;
+            ;;
             "stable_coin_factory")
                 # Kasa Storage
                 km_storage=$(get_object_id_from_object_type "$response" "$package_id"::kasa_storage::KasaManagerStorage)
@@ -146,7 +146,7 @@ for module in "${modules[@]}"; do
                         "collateral_gains": "'$collateral_gains'"
                     }
                 }'
-                ;;
+            ;;
             "participation_bank_factory")
                 # Revenue Farming Pool
                 rfp_publisher_object=$(get_object_id_from_object_type "$response" "$package_id"::revenue_farming_pool::RevenueFarmingPoolPublisher)
@@ -163,6 +163,9 @@ for module in "${modules[@]}"; do
                         "admin_cap": "'$rfp_admin_cap'"
                     }
                 }'
+            ;;
+            "oracles")
+                json='{"package_id": "'$package_id'"}'
             ;;
         esac
 
