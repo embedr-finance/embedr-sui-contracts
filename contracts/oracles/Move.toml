@@ -1,11 +1,11 @@
 [package]
-name = "oracles"
+name = "EmbedrProtocolOracles"
 version = "0.0.1"
-published-at = "0x0"
+published-at = "0x6e2a5847a127ede8510d6c984bdf07063e359429b99e2ab3bc5182d7871753ec"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
 SupraOracle = { local = "dependencies/supra_oracle/supra_holder" }
 
 [addresses]
-oracles = "0x0"
+oracles = "0x6e2a5847a127ede8510d6c984bdf07063e359429b99e2ab3bc5182d7871753ec"
