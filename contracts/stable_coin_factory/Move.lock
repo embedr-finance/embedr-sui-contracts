@@ -2,16 +2,16 @@
 
 [move]
 version = 0
-manifest_digest = "09A978A734AA14B1DF33ED976FD3EB1E548A2A3A018E2CE405F1016B47017FFD"
+manifest_digest = "E0F9EA2589BB0F958A079369671F8314E23A0B984D96374E5CFE04CE866A8D0C"
 deps_digest = "52B406A7A21811BEF51751CF88DA0E76DAEFFEAC888D4F4060B1A72BBE7D8D35"
 
 dependencies = [
   { name = "EmbedrProtocolLibrary" },
+  { name = "EmbedrProtocolOracles" },
   { name = "EmbedrProtocolTokens" },
   { name = "MoveStdlib" },
   { name = "Sui" },
   { name = "SupraOracle" },
-  { name = "oracles" },
 ]
 
 [[move.package]]
@@ -21,6 +21,15 @@ source = { local = "../library" }
 dependencies = [
   { name = "MoveStdlib" },
   { name = "Sui" },
+]
+
+[[move.package]]
+name = "EmbedrProtocolOracles"
+source = { local = "../oracles" }
+
+dependencies = [
+  { name = "Sui" },
+  { name = "SupraOracle" },
 ]
 
 [[move.package]]
@@ -35,11 +44,11 @@ dependencies = [
 
 [[move.package]]
 name = "MoveStdlib"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/move-stdlib" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "testnet-v1.14.2", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
 name = "Sui"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/sui-framework" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "testnet-v1.14.2", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
   { name = "MoveStdlib" },
@@ -47,7 +56,7 @@ dependencies = [
 
 [[move.package]]
 name = "SupraOracle"
-source = { local = "../oracles/dependencies/supra_oracle/supra_holder" }
+source = { git = "https://github.com/Entropy-Foundation/dora-interface", rev = "51c1875d86f20abe2a22e8d2ae7a3a2a2a56d5a1", subdir = "sui/testnet/supra_holder" }
 
 dependencies = [
   { name = "Sui" },
@@ -55,17 +64,8 @@ dependencies = [
 ]
 
 [[move.package]]
-name = "oracles"
-source = { local = "../oracles" }
-
-dependencies = [
-  { name = "Sui" },
-  { name = "SupraOracle" },
-]
-
-[[move.package]]
 name = "supra_utils"
-source = { local = "../oracles/dependencies/supra_oracle/supra_utils" }
+source = { git = "https://github.com/Entropy-Foundation/dora-interface", rev = "51c1875d86f20abe2a22e8d2ae7a3a2a2a56d5a1", subdir = "sui/testnet/supra_utils" }
 
 dependencies = [
   { name = "Sui" },
@@ -73,14 +73,9 @@ dependencies = [
 
 [[move.package]]
 name = "supra_validator"
-source = { local = "../oracles/dependencies/supra_oracle/supra_validator" }
+source = { git = "https://github.com/Entropy-Foundation/dora-interface", rev = "51c1875d86f20abe2a22e8d2ae7a3a2a2a56d5a1", subdir = "sui/testnet/supra_validator" }
 
 dependencies = [
   { name = "Sui" },
   { name = "supra_utils" },
 ]
-
-[move.toolchain-version]
-compiler-version = "1.17.0"
-edition = "legacy"
-flavor = "sui"

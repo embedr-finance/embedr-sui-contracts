@@ -1,7 +1,7 @@
 [package]
 name = "EmbedrProtocolStableCoinFactory"
 version = "0.0.1"
-published-at = "0x0"
+published-at = "0xe7309c678f9752d2ee7c773ada8f869bb8d197d5d332e2967746a94145792170"
 
 [dependencies]
 MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "testnet-v1.14.2" }
@@ -14,4 +14,4 @@ EmbedrProtocolOracles = { local = "../oracles" }
 [addresses]
 std = "0x1"
 sui = "0x2"
-stable_coin_factory = "0x0"
+stable_coin_factory = "0xe7309c678f9752d2ee7c773ada8f869bb8d197d5d332e2967746a94145792170"
