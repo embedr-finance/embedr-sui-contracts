@@ -1,6 +1,9 @@
 module SupraOracle::SupraSValueFeed {
 
-    use sui::object::UID;
+    use sui::object::{Self, UID};
+    use sui::transfer;
+    use sui::tx_context::{Self, TxContext};
+    
 
     struct OracleHolder has key, store { id: UID }
 
@@ -28,4 +31,19 @@ module SupraOracle::SupraSValueFeed {
     ///     3. round-difference : u64
     ///     4. `"base" as compared to "quote"` : u8 (Where 0=>LESS, 1=>GREATER, 2=>EQUAL)
     native public fun get_derived_price(oracle_holder: &OracleHolder, pair_id1: u32, pair_id2: u32, operation: u8): (u128, u16, u64, u8);
+
+
+     #[test_only]
+    public fun return_oracleholder(ctx:&mut TxContext) : OracleHolder {
+        let supra_oracle = OracleHolder {
+           id: object::new(ctx)
+        };
+        supra_oracle
+    }
+
+    public fun delete_oracleholder(oracleholder: OracleHolder) {
+        let OracleHolder {id} = oracleholder;
+        object::delete(id);
+    }
+
 }

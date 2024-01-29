@@ -2,7 +2,7 @@
 
 [move]
 version = 0
-manifest_digest = "0E556A4584C68FA859C1BE5F5AB6A662636C747432D4972E06C68AA18D5FA0D9"
+manifest_digest = "68CB281D253AE1423CFBCB6E20B88810847B750095D1C7580375327623F8E6DF"
 deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
 
 dependencies = [
@@ -12,11 +12,11 @@ dependencies = [
 
 [[move.package]]
 name = "MoveStdlib"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/move-stdlib" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "testnet-v1.14.2", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
 name = "Sui"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/sui-framework" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "testnet-v1.14.2", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
   { name = "MoveStdlib" },
@@ -24,7 +24,7 @@ dependencies = [
 
 [[move.package]]
 name = "SupraOracle"
-source = { local = "dependencies/supra_oracle/supra_holder" }
+source = { git = "https://github.com/Entropy-Foundation/dora-interface", rev = "51c1875d86f20abe2a22e8d2ae7a3a2a2a56d5a1", subdir = "sui/testnet/supra_holder" }
 
 dependencies = [
   { name = "Sui" },
@@ -33,7 +33,7 @@ dependencies = [
 
 [[move.package]]
 name = "supra_utils"
-source = { local = "dependencies/supra_oracle/supra_utils" }
+source = { git = "https://github.com/Entropy-Foundation/dora-interface", rev = "51c1875d86f20abe2a22e8d2ae7a3a2a2a56d5a1", subdir = "sui/testnet/supra_utils" }
 
 dependencies = [
   { name = "Sui" },
@@ -41,7 +41,7 @@ dependencies = [
 
 [[move.package]]
 name = "supra_validator"
-source = { local = "dependencies/supra_oracle/supra_validator" }
+source = { git = "https://github.com/Entropy-Foundation/dora-interface", rev = "51c1875d86f20abe2a22e8d2ae7a3a2a2a56d5a1", subdir = "sui/testnet/supra_validator" }
 
 dependencies = [
   { name = "Sui" },

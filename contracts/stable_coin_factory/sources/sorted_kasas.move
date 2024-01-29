@@ -1,4 +1,5 @@
 /// Sorted Kasas is responsible for maintaining a sorted list of kasas based on their nominal collateral ratio.
+/// 
 /// Kasa nominal collateral ratio changes over time, so the list must be updated accordingly.
 /// 
 /// # Related Modules

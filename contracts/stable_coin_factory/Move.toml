@@ -1,15 +1,17 @@
 [package]
 name = "EmbedrProtocolStableCoinFactory"
 version = "0.0.1"
-published-at = "0xbb0e2667c0e445f1e1570b2fd91855ee2299e10c7b9558ca2a5df35436296ec3"
+published-at = "0xe7309c678f9752d2ee7c773ada8f869bb8d197d5d332e2967746a94145792170"
 
 [dependencies]
-MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "framework/testnet" }
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
+MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "testnet-v1.14.2" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "testnet-v1.14.2" }
+SupraOracle = { git = "https://github.com/Entropy-Foundation/dora-interface", subdir = "sui/testnet/supra_holder", rev = "51c1875d86f20abe2a22e8d2ae7a3a2a2a56d5a1" }
 EmbedrProtocolLibrary = { local = "../library" }
 EmbedrProtocolTokens = { local = "../tokens" }
+EmbedrProtocolOracles = { local = "../oracles" }
 
 [addresses]
 std = "0x1"
 sui = "0x2"
-stable_coin_factory = "0xbb0e2667c0e445f1e1570b2fd91855ee2299e10c7b9558ca2a5df35436296ec3"
+stable_coin_factory = "0xe7309c678f9752d2ee7c773ada8f869bb8d197d5d332e2967746a94145792170"

@@ -26,6 +26,10 @@ module stable_coin_factory::kasa_operations {
     use stable_coin_factory::sorted_kasas::{SortedKasasStorage};
     use tokens::rusd_stable_coin::{RUSDStableCoinStorage, RUSD_STABLE_COIN};
     use library::kasa::{is_icr_valid};
+
+    use oracles::oracle::get_sui_price;
+    use SupraOracle::SupraSValueFeed::OracleHolder;
+   
     // use library::utils::logger;
 
     const COLLATERAL_PRICE: u64 = 1800_000000000;
@@ -56,12 +60,15 @@ module stable_coin_factory::kasa_operations {
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
         rsc_storage: &mut RUSDStableCoinStorage,
+        oracle_holder: &OracleHolder,
         collateral: Coin<SUI>,
         debt_amount: u64,
         ctx: &mut TxContext
-    ) {
+    ) { 
         let account_address = tx_context::sender(ctx);
         let collateral_amount = coin::value(&collateral);
+        
+        let collateral_price = get_sui_price(oracle_holder);
 
         // TODO: Check for minumum debt amount
 
@@ -78,7 +85,7 @@ module stable_coin_factory::kasa_operations {
                 false, // FIXME: Normal mode for now
                 collateral_amount,
                 debt_amount,
-                COLLATERAL_PRICE
+                collateral_price  // FIXME: Change this to the actual price
             ),
             ERROR_LOW_COLLATERAL_RATIO
         );
@@ -130,10 +137,13 @@ module stable_coin_factory::kasa_operations {
     public fun withdraw_collateral(
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
+        oracle_holder: &OracleHolder,
         amount: u64,
         ctx: &mut TxContext
     ) {
         let account_address = tx_context::sender(ctx);
+        
+        let collateral_price = get_sui_price(oracle_holder);
 
         // Check for existing kasa
         assert!(kasa_storage::has_kasa(km_storage, account_address), ERROR_KASA_NOT_FOUND);
@@ -151,7 +161,7 @@ module stable_coin_factory::kasa_operations {
                 false, // FIXME: Normal mode for now
                 kasa_collateral_amount - amount,
                 kasa_debt_amount,
-                COLLATERAL_PRICE
+                COLLATERAL_PRICE  // FIXME: Change this to the actual price
             ),
             ERROR_LOW_COLLATERAL_RATIO
         );
@@ -175,10 +185,13 @@ module stable_coin_factory::kasa_operations {
         km_storage: &mut KasaManagerStorage,
         sk_storage: &mut SortedKasasStorage,
         rusd_stable_coin_storage: &mut RUSDStableCoinStorage,
+        oracle_holder: &OracleHolder,
         amount: u64,
         ctx: &mut TxContext
     ) {
         let account_address = tx_context::sender(ctx);
+        
+        let collateral_price = get_sui_price(oracle_holder);
 
         // Check for existing kasa
         assert!(kasa_storage::has_kasa(km_storage, account_address), ERROR_KASA_NOT_FOUND);
@@ -196,7 +209,7 @@ module stable_coin_factory::kasa_operations {
                 false, // FIXME: Normal mode for now
                 kasa_collateral_amount,
                 kasa_debt_amount + amount,
-                COLLATERAL_PRICE
+                collateral_price // FIXME: Change this to the actual price
             ),
             ERROR_LOW_COLLATERAL_RATIO
         );
