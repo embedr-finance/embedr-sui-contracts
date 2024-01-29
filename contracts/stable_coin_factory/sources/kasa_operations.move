@@ -26,8 +26,9 @@ module stable_coin_factory::kasa_operations {
     use stable_coin_factory::sorted_kasas::{SortedKasasStorage};
     use tokens::rusd_stable_coin::{RUSDStableCoinStorage, RUSD_STABLE_COIN};
     use library::kasa::{is_icr_valid};
-    use oracles::oracle::{get_sui_price};
-    use SupraOracle::SupraSValueFeed::{Self, OracleHolder};
+
+    use oracles::oracle::get_sui_price;
+    use SupraOracle::SupraSValueFeed::OracleHolder;
    
     // use library::utils::logger;
 
@@ -64,9 +65,10 @@ module stable_coin_factory::kasa_operations {
         debt_amount: u64,
         ctx: &mut TxContext
     ) { 
-        let collateral_price = get_sui_price(oracle_holder);
         let account_address = tx_context::sender(ctx);
         let collateral_amount = coin::value(&collateral);
+        
+        let collateral_price = get_sui_price(oracle_holder);
 
         // TODO: Check for minumum debt amount
 
@@ -140,6 +142,7 @@ module stable_coin_factory::kasa_operations {
         ctx: &mut TxContext
     ) {
         let account_address = tx_context::sender(ctx);
+        
         let collateral_price = get_sui_price(oracle_holder);
 
         // Check for existing kasa
@@ -187,6 +190,7 @@ module stable_coin_factory::kasa_operations {
         ctx: &mut TxContext
     ) {
         let account_address = tx_context::sender(ctx);
+        
         let collateral_price = get_sui_price(oracle_holder);
 
         // Check for existing kasa

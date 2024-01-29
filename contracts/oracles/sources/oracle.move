@@ -10,7 +10,6 @@ module oracles::oracle {
     use sui::transfer;
 
     use SupraOracle::SupraSValueFeed::{Self, OracleHolder, get_price};
-    // use SupraOracleTest::SupraSValueFeed2::{Self, OracleHolder};
 
     // Supra_oracle sui pair code
     const SUPRA_SUI_USD_PAIR: u32 = 90;
@@ -18,10 +17,10 @@ module oracles::oracle {
     const SUI_FRACTION: u64 = 100_000_000;
     
     // share object for take live price of sui token
-    struct Storage has key, store {
-        id: UID,
-        supra_price: u256,
-    }
+    // struct Storage has key, store {
+    //     id: UID,
+    //     supra_price: u256,
+    // }
 
      // =================== Initializer ===================
 
