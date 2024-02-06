@@ -21,6 +21,8 @@ module stable_coin_factory::kasa_operations {
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
 
+    use std::debug;
+
     use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage};
     use stable_coin_factory::kasa_manager::{Self, KasaManagerPublisher};
     use stable_coin_factory::sorted_kasas::{SortedKasasStorage};
@@ -69,7 +71,6 @@ module stable_coin_factory::kasa_operations {
         let collateral_amount = coin::value(&collateral);
         
         let collateral_price = get_sui_price(oracle_holder);
-
         // TODO: Check for minumum debt amount
 
         // Check for existing kasa

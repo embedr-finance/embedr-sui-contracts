@@ -52,7 +52,7 @@ module stable_coin_factory::kasa_operations_tests {
         let rsc_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
         let oracle_holder = test::take_shared<OracleHolder>(test);
         svalue_feed_holder::add_pair_data(
-            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
+            &mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
 
         let collateral = mint_for_testing<SUI>(collateral_amount, ctx(test));
 
@@ -94,7 +94,7 @@ module stable_coin_factory::kasa_operations_tests {
             let rsc_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
             let oracle_holder = test::take_shared<OracleHolder>(test);
                 svalue_feed_holder::add_pair_data(
-            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
+            &mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
 
             let collateral = mint_for_testing<SUI>(1000_000000000, ctx(test));
 
@@ -149,7 +149,7 @@ module stable_coin_factory::kasa_operations_tests {
             let rsc_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
             let oracle_holder = test::take_shared<OracleHolder>(test);
              svalue_feed_holder::add_pair_data(
-                &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
+                &mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
 
             let collateral = mint_for_testing<SUI>(1000_000000000, ctx(test));
             kasa_operations::open_kasa(
@@ -354,7 +354,7 @@ module stable_coin_factory::kasa_operations_tests {
             let sk_storage = test::take_shared<SortedKasasStorage>(test);
             let oracle_holder = test::take_shared<OracleHolder>(test);
                 svalue_feed_holder::add_pair_data(
-            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
+            &mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
 
             kasa_operations::withdraw_collateral(
                 &mut km_storage,
@@ -389,7 +389,7 @@ module stable_coin_factory::kasa_operations_tests {
             let sk_storage = test::take_shared<SortedKasasStorage>(test);
             let oracle_holder = test::take_shared<OracleHolder>(test);
                 svalue_feed_holder::add_pair_data(
-            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
+            &mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
 
             kasa_operations::withdraw_collateral(
                 &mut km_storage,
@@ -425,7 +425,7 @@ module stable_coin_factory::kasa_operations_tests {
             let sk_storage = test::take_shared<SortedKasasStorage>(test);
             let oracle_holder = test::take_shared<OracleHolder>(test);
                 svalue_feed_holder::add_pair_data(
-            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
+            &mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
 
             kasa_operations::withdraw_collateral(
                 &mut km_storage,
@@ -465,7 +465,7 @@ module stable_coin_factory::kasa_operations_tests {
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let oracle_holder = test::take_shared<OracleHolder>(test);
                 svalue_feed_holder::add_pair_data(
-            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
+            &mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
 
             kasa_operations::borrow_loan(
                 &km_publisher,
@@ -506,7 +506,7 @@ module stable_coin_factory::kasa_operations_tests {
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let oracle_holder = test::take_shared<OracleHolder>(test);
                 svalue_feed_holder::add_pair_data(
-            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
+            &mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
 
             kasa_operations::borrow_loan(
                 &km_publisher,
@@ -547,7 +547,7 @@ module stable_coin_factory::kasa_operations_tests {
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let oracle_holder = test::take_shared<OracleHolder>(test);
                 svalue_feed_holder::add_pair_data(
-            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
+            &mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
 
             kasa_operations::borrow_loan(
                 &km_publisher,

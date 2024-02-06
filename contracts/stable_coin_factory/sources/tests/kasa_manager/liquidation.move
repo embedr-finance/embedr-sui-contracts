@@ -29,7 +29,6 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
         {
             svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
         };
-
         next_tx(test, user);
         {   
             open_kasa(test, user, 3_000000000, 4500_000000000);
@@ -149,7 +148,7 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
             let collateral_gains = test::take_shared<CollateralGains>(test);
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let oracle_holder = test::take_shared<OracleHolder>(test);
-            svalue_feed_holder::add_pair_data(&mut oracle_holder, 90, 774133333333333333, 18, 1704693072240, 6489821);
+            svalue_feed_holder::add_pair_data(&mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
 
             kasa_manager::liquidate(
                 &km_publisher,

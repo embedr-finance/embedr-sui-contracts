@@ -58,7 +58,8 @@ module stable_coin_factory::test_helpers {
         let sk_storage = test::take_shared<SortedKasasStorage>(test);
         let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
         let oracle_holder = test::take_shared<OracleHolder>(test);
-        svalue_feed_holder::add_pair_data(&mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
+            svalue_feed_holder::add_pair_data(
+                &mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
 
         
         
