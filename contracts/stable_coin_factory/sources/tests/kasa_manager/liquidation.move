@@ -25,6 +25,11 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
 
         init_stable_coin_factory(test);
 
+        next_tx(test, admin);
+        {
+            svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
+        };
+
         next_tx(test, user);
         {   
             open_kasa(test, user, 3_000000000, 4500_000000000);
@@ -119,6 +124,10 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
 
         init_stable_coin_factory(test);
 
+        next_tx(test, admin);
+        {
+            svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
+        };
         next_tx(test, user);
         {   
             open_kasa(test, user, 3_000000000, 4500_000000000);

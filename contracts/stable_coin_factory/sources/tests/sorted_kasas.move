@@ -8,6 +8,7 @@ module stable_coin_factory::sorted_kasas_tests {
     use stable_coin_factory::test_helpers::{init_stable_coin_factory, open_kasa};
     use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
     use library::test_utils::{people, scenario};
+    use supra_holder:: svalue_feed_holder :: {Self, OracleHolder};
     // use library::utils::logger;
 
     #[test]
@@ -21,6 +22,11 @@ module stable_coin_factory::sorted_kasas_tests {
         let test = &mut scenario;
 
         init_stable_coin_factory(test);
+
+        next_tx(test, admin);
+        {
+            svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
+        };
 
         next_tx(test, admin);
         {   

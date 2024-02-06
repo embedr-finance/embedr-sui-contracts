@@ -24,6 +24,11 @@ module stable_coin_factory::kasa_manager_redemption_tests {
         let user2 = @0x2222;
         let user3 = @0x3333;
         let user4 = @0x4444;
+        
+        next_tx(test, admin);
+        {
+            svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
+        };
         next_tx(test, admin);
         {
             open_kasa(test, admin, 100000_000000000, 100000_000000000);
@@ -68,6 +73,11 @@ module stable_coin_factory::kasa_manager_redemption_tests {
 
         init_stable_coin_factory(test);
         setup_kasas(test);
+
+        next_tx(test, user2);
+        {
+            svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
+        };
 
         next_tx(test, user4);
         {
@@ -191,6 +201,11 @@ module stable_coin_factory::kasa_manager_redemption_tests {
         let user4 = @0x4444;
 
         init_stable_coin_factory(test);
+        
+        next_tx(test, user2);
+        {
+            svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
+        };
         setup_kasas(test);
         
         next_tx(test, user4);
