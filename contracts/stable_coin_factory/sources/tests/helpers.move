@@ -57,7 +57,9 @@ module stable_coin_factory::test_helpers {
         let km_storage = test::take_shared<KasaManagerStorage>(test);
         let sk_storage = test::take_shared<SortedKasasStorage>(test);
         let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
-        let oracle_holder = return_oracleholder(ctx(test));
+        let oracle_holder = test::take_shared<OracleHolder>(test);
+        svalue_feed_holder::add_pair_data(&mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
+
         
         
 
@@ -80,7 +82,7 @@ module stable_coin_factory::test_helpers {
         test::return_shared(km_storage);
         test::return_shared(sk_storage);
         test::return_shared(rsc_storage);
-        delete_oracleholder(oracle_holder);
+        test::return_shared(oracle_holder);
     }
 
     public fun deposit_to_stability_pool(test: &mut Scenario, account_address: address, amount: u64) {
