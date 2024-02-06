@@ -11,7 +11,7 @@ module stable_coin_factory::kasa_operations_tests {
     use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSDStableCoinAdminCap, RUSD_STABLE_COIN};
     use library::test_utils::{people, scenario};
-    use SupraOracle::SupraSValueFeed::{Self, OracleHolder, return_oracleholder, delete_oracleholder};
+    use supra_holder:: svalue_feed_holder::{Self, OracleHolder};
  
     fun start_kasa_manager(test: &mut Scenario) {
         let (admin, _) = people();
@@ -21,6 +21,10 @@ module stable_coin_factory::kasa_operations_tests {
             kasa_manager::init_for_testing(ctx(test));
             rusd_stable_coin::init_for_testing(ctx(test));
             sorted_kasas::init_for_testing(ctx(test));
+        };
+        next_tx(test, admin);
+        {
+        svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
         };
         next_tx(test, admin);
         {
@@ -46,7 +50,9 @@ module stable_coin_factory::kasa_operations_tests {
         let sk_storage = test::take_shared<SortedKasasStorage>(test);
         let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
         let rsc_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
-        let oracle_holder = return_oracleholder(ctx(test));
+        let oracle_holder = test::take_shared<OracleHolder>(test);
+        svalue_feed_holder::add_pair_data(
+            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
 
         let collateral = mint_for_testing<SUI>(collateral_amount, ctx(test));
 
@@ -66,7 +72,7 @@ module stable_coin_factory::kasa_operations_tests {
         test::return_shared(sk_storage);
         test::return_shared(rsc_storage);
         test::return_to_address(admin, rsc_admin_cap);
-        delete_oracleholder(oracle_holder);
+        test::return_shared(oracle_holder);
     }
 
     // =================== Open Kasa ===================
@@ -86,7 +92,9 @@ module stable_coin_factory::kasa_operations_tests {
             let sk_storage = test::take_shared<SortedKasasStorage>(test);
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let rsc_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
-            let oracle_holder = return_oracleholder(ctx(test));
+            let oracle_holder = test::take_shared<OracleHolder>(test);
+                svalue_feed_holder::add_pair_data(
+            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
 
             let collateral = mint_for_testing<SUI>(1000_000000000, ctx(test));
 
@@ -114,7 +122,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
             test::return_to_address(admin, rsc_admin_cap);
-            delete_oracleholder(oracle_holder);
+            test::return_shared(oracle_holder);
         };
         test::end(scenario);
     }
@@ -139,7 +147,9 @@ module stable_coin_factory::kasa_operations_tests {
             let sk_storage = test::take_shared<SortedKasasStorage>(test);
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let rsc_admin_cap = test::take_from_address<RUSDStableCoinAdminCap>(test, admin);
-            let oracle_holder = return_oracleholder(ctx(test));
+            let oracle_holder = test::take_shared<OracleHolder>(test);
+             svalue_feed_holder::add_pair_data(
+                &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
 
             let collateral = mint_for_testing<SUI>(1000_000000000, ctx(test));
             kasa_operations::open_kasa(
@@ -158,7 +168,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
             test::return_to_address(admin, rsc_admin_cap);
-            delete_oracleholder(oracle_holder);
+            test::return_shared(oracle_holder);
             
         };
         test::end(scenario);
@@ -342,7 +352,9 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let km_storage = test::take_shared<KasaManagerStorage>(test);
             let sk_storage = test::take_shared<SortedKasasStorage>(test);
-            let oracle_holder = return_oracleholder(ctx(test));
+            let oracle_holder = test::take_shared<OracleHolder>(test);
+                svalue_feed_holder::add_pair_data(
+            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
 
             kasa_operations::withdraw_collateral(
                 &mut km_storage,
@@ -353,7 +365,7 @@ module stable_coin_factory::kasa_operations_tests {
             );
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
-            delete_oracleholder(oracle_holder);
+             test::return_shared(oracle_holder);(oracle_holder);
         };
         test::end(scenario);
     }
@@ -375,7 +387,9 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let km_storage = test::take_shared<KasaManagerStorage>(test);
             let sk_storage = test::take_shared<SortedKasasStorage>(test);
-            let oracle_holder = return_oracleholder(ctx(test));
+            let oracle_holder = test::take_shared<OracleHolder>(test);
+                svalue_feed_holder::add_pair_data(
+            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
 
             kasa_operations::withdraw_collateral(
                 &mut km_storage,
@@ -387,7 +401,7 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
-            delete_oracleholder(oracle_holder);
+             test::return_shared(oracle_holder);(oracle_holder);
         };
         test::end(scenario);
     }
@@ -409,7 +423,9 @@ module stable_coin_factory::kasa_operations_tests {
         {
             let km_storage = test::take_shared<KasaManagerStorage>(test);
             let sk_storage = test::take_shared<SortedKasasStorage>(test);
-            let oracle_holder = return_oracleholder(ctx(test));
+            let oracle_holder = test::take_shared<OracleHolder>(test);
+                svalue_feed_holder::add_pair_data(
+            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
 
             kasa_operations::withdraw_collateral(
                 &mut km_storage,
@@ -421,7 +437,7 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
-            delete_oracleholder(oracle_holder);
+             test::return_shared(oracle_holder);(oracle_holder);
         };
         test::end(scenario);
     }
@@ -447,7 +463,9 @@ module stable_coin_factory::kasa_operations_tests {
             let km_storage = test::take_shared<KasaManagerStorage>(test);
             let sk_storage = test::take_shared<SortedKasasStorage>(test);
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
-            let oracle_holder = return_oracleholder(ctx(test));
+            let oracle_holder = test::take_shared<OracleHolder>(test);
+                svalue_feed_holder::add_pair_data(
+            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
 
             kasa_operations::borrow_loan(
                 &km_publisher,
@@ -462,7 +480,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
-            delete_oracleholder(oracle_holder);
+             test::return_shared(oracle_holder);(oracle_holder);
         };
         test::end(scenario);
     }
@@ -486,7 +504,9 @@ module stable_coin_factory::kasa_operations_tests {
             let km_storage = test::take_shared<KasaManagerStorage>(test);
             let sk_storage = test::take_shared<SortedKasasStorage>(test);
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
-            let oracle_holder = return_oracleholder(ctx(test));
+            let oracle_holder = test::take_shared<OracleHolder>(test);
+                svalue_feed_holder::add_pair_data(
+            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
 
             kasa_operations::borrow_loan(
                 &km_publisher,
@@ -501,7 +521,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
-            delete_oracleholder(oracle_holder);
+             test::return_shared(oracle_holder);(oracle_holder);
         };
         test::end(scenario);
     }
@@ -525,7 +545,9 @@ module stable_coin_factory::kasa_operations_tests {
             let km_storage = test::take_shared<KasaManagerStorage>(test);
             let sk_storage = test::take_shared<SortedKasasStorage>(test);
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
-            let oracle_holder = return_oracleholder(ctx(test));
+            let oracle_holder = test::take_shared<OracleHolder>(test);
+                svalue_feed_holder::add_pair_data(
+            &mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
 
             kasa_operations::borrow_loan(
                 &km_publisher,
@@ -540,7 +562,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
-            delete_oracleholder(oracle_holder);
+             test::return_shared(oracle_holder);(oracle_holder);
         };
         test::end(scenario);
     }
