@@ -365,7 +365,7 @@ module stable_coin_factory::kasa_operations_tests {
             );
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
-             test::return_shared(oracle_holder);(oracle_holder);
+            test::return_shared(oracle_holder);
         };
         test::end(scenario);
     }
@@ -401,7 +401,7 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
-             test::return_shared(oracle_holder);(oracle_holder);
+            test::return_shared(oracle_holder);
         };
         test::end(scenario);
     }
@@ -437,7 +437,7 @@ module stable_coin_factory::kasa_operations_tests {
 
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
-             test::return_shared(oracle_holder);(oracle_holder);
+            test::return_shared(oracle_holder);
         };
         test::end(scenario);
     }
@@ -480,7 +480,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
-             test::return_shared(oracle_holder);(oracle_holder);
+            test::return_shared(oracle_holder);
         };
         test::end(scenario);
     }
@@ -521,7 +521,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
-             test::return_shared(oracle_holder);(oracle_holder);
+            test::return_shared(oracle_holder);
         };
         test::end(scenario);
     }
@@ -562,7 +562,7 @@ module stable_coin_factory::kasa_operations_tests {
             test::return_shared(km_storage);
             test::return_shared(sk_storage);
             test::return_shared(rsc_storage);
-             test::return_shared(oracle_holder);(oracle_holder);
+            test::return_shared(oracle_holder);
         };
         test::end(scenario);
     }
