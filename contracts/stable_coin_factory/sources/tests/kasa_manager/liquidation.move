@@ -13,10 +13,8 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage};
     use library::test_utils::{people, scenario};
-    //use supra_holder::svalue_feed_holder:: {Self};
-    // use oracles::svalue_feed_holder:: {Self, create_oracle_holder_for_test, OracleHolder};
-    use supra_holder:: svalue_feed_holder :: {Self, OracleHolder};
-   
+    use supra_holder:: svalue_feed_holder::{Self, OracleHolder};
+
     // use library::utils::logger;
 
     #[test]
