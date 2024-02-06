@@ -9,7 +9,9 @@ module oracles::oracle {
     use sui::tx_context::{Self, TxContext};
     use sui::transfer;
 
-    use SupraOracle::SupraSValueFeed::{Self, OracleHolder, get_price};
+   // use SupraOracle::SupraSValueFeed::{Self, OracleHolder, get_price};
+
+    use supra_holder::svalue_feed_holder::{Self, OracleHolder, get_price};
 
     // Supra_oracle sui pair code
     const SUPRA_SUI_USD_PAIR: u32 = 90;

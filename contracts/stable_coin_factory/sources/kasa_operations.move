@@ -28,7 +28,7 @@ module stable_coin_factory::kasa_operations {
     use library::kasa::{is_icr_valid};
 
     use oracles::oracle::get_sui_price;
-    use SupraOracle::SupraSValueFeed::OracleHolder;
+    use supra_holder::svalue_feed_holder::OracleHolder;
    
     // use library::utils::logger;
 

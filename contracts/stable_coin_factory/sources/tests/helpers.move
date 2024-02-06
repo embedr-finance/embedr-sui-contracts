@@ -12,7 +12,7 @@ module stable_coin_factory::test_helpers {
     use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSDStableCoinAdminCap, RUSD_STABLE_COIN};
     use library::test_utils::people;
-    use SupraOracle::SupraSValueFeed::{Self, OracleHolder, return_oracleholder, delete_oracleholder};
+     use supra_holder:: svalue_feed_holder :: {Self, OracleHolder};
 
     public fun init_stable_coin_factory(test: &mut Scenario) {
         let (admin, _) = people();
