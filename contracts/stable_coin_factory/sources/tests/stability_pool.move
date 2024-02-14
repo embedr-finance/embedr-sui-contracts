@@ -20,11 +20,6 @@ module stable_coin_factory::stability_pool_tests {
         init_stable_coin_factory(test);
 
         next_tx(test, user);
-        {
-            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
-        };
-
-        next_tx(test, user);
         {   
             open_kasa(test, user, 1000_000000000, 5000_000000000);
         };
@@ -67,11 +62,6 @@ module stable_coin_factory::stability_pool_tests {
         let test = &mut scenario;
 
         init_stable_coin_factory(test);
-
-        next_tx(test, user);
-        {
-            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
-        };
 
         next_tx(test, user);
         {   
