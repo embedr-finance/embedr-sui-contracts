@@ -1,4 +1,4 @@
-module supra_holder::svalue_feed_holder {
+module supra_holder::SupraSValueFeed {
 
     use std::vector;
     use supra_utils::utils;

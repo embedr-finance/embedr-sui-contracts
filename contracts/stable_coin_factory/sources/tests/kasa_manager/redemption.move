@@ -14,7 +14,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSD_STABLE_COIN};
     use library::test_utils::{people, scenario};
-    use supra_holder:: svalue_feed_holder :: {Self, OracleHolder};
+    use supra_holder:: SupraSValueFeed :: {Self, OracleHolder};
     // use library::utils::logger;
 
     const COLLATERAL_PRICE: u64 = 1800_000000000;
@@ -27,7 +27,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
         
         next_tx(test, admin);
         {
-            svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
+            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
         };
         next_tx(test, admin);
         {
@@ -57,7 +57,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
         };
         next_tx(test, admin);
         {
-        svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
+        SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
         };
     }
 
@@ -76,7 +76,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
 
         next_tx(test, user2);
         {
-            svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
+            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
         };
 
         next_tx(test, user4);
@@ -88,7 +88,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let liquidation_snapshots = test::take_shared<LiquidationSnapshots>(test);
             let oracle_holder = test::take_shared<OracleHolder>(test);
-            svalue_feed_holder::add_pair_data(&mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
+            SupraSValueFeed::add_pair_data(&mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
 
             let stable_coin = test::take_from_sender<Coin<RUSD_STABLE_COIN>>(test);
 
@@ -204,7 +204,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
 
         next_tx(test, user2);
         {
-            svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
+            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
         };
         setup_kasas(test);
         
@@ -217,7 +217,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let liquidation_snapshots = test::take_shared<LiquidationSnapshots>(test);
             let oracle_holder = test::take_shared<OracleHolder>(test);
-            svalue_feed_holder::add_pair_data(&mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
+            SupraSValueFeed::add_pair_data(&mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
 
             let stable_coin = test::take_from_sender<Coin<RUSD_STABLE_COIN>>(test);
 

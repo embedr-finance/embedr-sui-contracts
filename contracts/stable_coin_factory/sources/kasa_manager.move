@@ -37,7 +37,7 @@ module stable_coin_factory::kasa_manager {
     use library::math::{min, mul_div, scalar};
 
     use oracles::oracle::get_sui_price;
-    use supra_holder::svalue_feed_holder::OracleHolder;
+    use supra_holder::SupraSValueFeed::OracleHolder;
   
     // use library::utils::logger;
 

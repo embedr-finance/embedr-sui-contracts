@@ -8,7 +8,7 @@ module stable_coin_factory::stability_pool_tests {
     use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage, StabilityPoolPublisher};
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use tokens::rusd_stable_coin::{Self, RUSD_STABLE_COIN, RUSDStableCoinStorage};
-    use supra_holder:: svalue_feed_holder :: {Self, OracleHolder};
+    use supra_holder:: SupraSValueFeed :: {Self, OracleHolder};
     use library::test_utils::{people, scenario};
 
     #[test]
@@ -21,7 +21,7 @@ module stable_coin_factory::stability_pool_tests {
 
         next_tx(test, user);
         {
-            svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
+            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
         };
 
         next_tx(test, user);
@@ -70,7 +70,7 @@ module stable_coin_factory::stability_pool_tests {
 
         next_tx(test, user);
         {
-            svalue_feed_holder::create_oracle_holder_for_test(test::ctx(test));
+            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
         };
 
         next_tx(test, user);

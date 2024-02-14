@@ -11,7 +11,7 @@ module oracles::oracle {
 
    // use SupraOracle::SupraSValueFeed::{Self, OracleHolder, get_price};
 
-    use supra_holder::svalue_feed_holder::{Self, OracleHolder, get_price};
+    use supra_holder::SupraSValueFeed::{Self, OracleHolder, get_price};
 
     // Supra_oracle sui pair code
     const SUPRA_SUI_USD_PAIR: u32 = 90;
