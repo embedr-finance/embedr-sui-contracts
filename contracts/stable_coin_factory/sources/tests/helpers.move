@@ -66,9 +66,7 @@ module stable_coin_factory::test_helpers {
         let sk_storage = test::take_shared<SortedKasasStorage>(test);
         let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
         let oracle_holder = test::take_shared<OracleHolder>(test);
-       // SupraSValueFeed::add_pair_data(&mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
-
-    
+        
         next_tx(test, account_address);
         {
             let collateral = mint_for_testing<SUI>(collateral_amount, ctx(test));

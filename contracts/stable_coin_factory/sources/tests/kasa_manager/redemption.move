@@ -51,7 +51,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
             // ICR = 10 * 1800 / 10000 = 1.8
             open_kasa(test, user3, 10_000000000, 10000_000000000);
         };
-        
+
     }
 
     #[test]
@@ -190,10 +190,6 @@ module stable_coin_factory::kasa_manager_redemption_tests {
 
         init_stable_coin_factory(test);
 
-        next_tx(test, user2);
-        {
-            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
-        };
         setup_kasas(test);
         
         next_tx(test, user4);
@@ -205,8 +201,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let liquidation_snapshots = test::take_shared<LiquidationSnapshots>(test);
             let oracle_holder = test::take_shared<OracleHolder>(test);
-            SupraSValueFeed::add_pair_data(&mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
-
+    
             let stable_coin = test::take_from_sender<Coin<RUSD_STABLE_COIN>>(test);
 
             let kasa_count = kasa_storage::get_kasa_count(&km_storage);
