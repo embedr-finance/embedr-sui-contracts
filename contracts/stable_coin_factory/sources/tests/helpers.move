@@ -52,12 +52,12 @@ module stable_coin_factory::test_helpers {
         };
     }
 
-    public fun open_kasa(test: &mut Scenario, account_address: address, collateral_amount: u64, debt_amount: u64, sui_price: u128, time: u128) {
+    public fun open_kasa(test: &mut Scenario, account_address: address, collateral_amount: u64, debt_amount: u64) {
         let km_publisher = test::take_shared<KasaManagerPublisher>(test);
         let km_storage = test::take_shared<KasaManagerStorage>(test);
         let sk_storage = test::take_shared<SortedKasasStorage>(test);
         let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
-        let oracle_holder = update_oracle_price(test, sui_price, time);
+        let oracle_holder = test::take_shared<OracleHolder>(test);
     
         next_tx(test, account_address);
         {
