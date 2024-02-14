@@ -37,7 +37,7 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
         {
             deposit_to_stability_pool(test, @0x2222, 10000_000000000);
         };
-        
+
         next_tx(test, admin);
         {
             let km_publisher = test::take_shared<KasaManagerPublisher>(test);
@@ -47,7 +47,7 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
             let collateral_gains = test::take_shared<CollateralGains>(test);
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let oracle_holder = test::take_shared<OracleHolder>(test);
-            SupraSValueFeed::add_pair_data(&mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
+           // SupraSValueFeed::add_pair_data(&mut oracle_holder, 90, 1600_000000000000000000, 18, 1704693072240, 6489821);
             
 
             let balance = rusd_stable_coin::get_balance(&rsc_storage, user);
@@ -115,10 +115,6 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
 
         init_stable_coin_factory(test);
 
-        next_tx(test, admin);
-        {
-            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
-        };
         next_tx(test, user);
         {   
             open_kasa(test, user, 3_000000000, 4500_000000000);

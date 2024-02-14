@@ -51,6 +51,13 @@ module stable_coin_factory::test_helpers {
             test::return_shared(rsc_storage);
             test::return_to_address(admin, rsc_admin_cap);
         };
+        next_tx(test, admin);
+        {
+            let oracle_holder = test::take_shared<OracleHolder>(test);
+            SupraSValueFeed::add_pair_data(
+                &mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
+            test::return_shared(oracle_holder);
+        };
     }
 
     public fun open_kasa(test: &mut Scenario, account_address: address, collateral_amount: u64, debt_amount: u64) {
@@ -59,6 +66,8 @@ module stable_coin_factory::test_helpers {
         let sk_storage = test::take_shared<SortedKasasStorage>(test);
         let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
         let oracle_holder = test::take_shared<OracleHolder>(test);
+       // SupraSValueFeed::add_pair_data(&mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
+
     
         next_tx(test, account_address);
         {

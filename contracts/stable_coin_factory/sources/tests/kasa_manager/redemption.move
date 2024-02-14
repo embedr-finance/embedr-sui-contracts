@@ -27,10 +27,6 @@ module stable_coin_factory::kasa_manager_redemption_tests {
         
         next_tx(test, admin);
         {
-            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
-        };
-        next_tx(test, admin);
-        {
             open_kasa(test, admin, 100000_000000000, 100000_000000000);
         };
         next_tx(test, admin);
@@ -55,10 +51,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
             // ICR = 10 * 1800 / 10000 = 1.8
             open_kasa(test, user3, 10_000000000, 10000_000000000);
         };
-        next_tx(test, admin);
-        {
-        SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
-        };
+        
     }
 
     #[test]
@@ -73,11 +66,6 @@ module stable_coin_factory::kasa_manager_redemption_tests {
 
         init_stable_coin_factory(test);
         setup_kasas(test);
-
-        next_tx(test, user2);
-        {
-            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
-        };
 
         next_tx(test, user4);
         {
