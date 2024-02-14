@@ -7,7 +7,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
     use sui::coin::{Self, Coin};
     use sui::sui::SUI;
 
-    use stable_coin_factory::test_helpers::{init_stable_coin_factory, open_kasa};
+    use stable_coin_factory::test_helpers::{init_stable_coin_factory, open_kasa, update_oracle_price};
     use stable_coin_factory::kasa_storage::{Self, KasaManagerStorage, LiquidationSnapshots};
     use stable_coin_factory::kasa_manager::{Self, KasaManagerPublisher};
     use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
@@ -76,7 +76,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
             let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
             let liquidation_snapshots = test::take_shared<LiquidationSnapshots>(test);
             let oracle_holder = test::take_shared<OracleHolder>(test);
-            SupraSValueFeed::add_pair_data(&mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
+            update_oracle_price(test, &mut oracle_holder, 1800, 100000000);
 
             let stable_coin = test::take_from_sender<Coin<RUSD_STABLE_COIN>>(test);
 
