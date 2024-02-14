@@ -22,12 +22,7 @@ module stable_coin_factory::sorted_kasas_tests {
         let test = &mut scenario;
 
         init_stable_coin_factory(test);
-
-        next_tx(test, admin);
-        {
-            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
-        };
-
+        
         next_tx(test, admin);
         {   
             open_kasa(test, user, 3_000000000, 1000_000000000);
