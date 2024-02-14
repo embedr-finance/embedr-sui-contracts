@@ -14,7 +14,7 @@ module stable_coin_factory::kasa_manager_redemption_tests {
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSD_STABLE_COIN};
     use library::test_utils::{people, scenario};
-    use supra_holder:: SupraSValueFeed :: {Self, OracleHolder};
+    use supra_holder:: SupraSValueFeed::{Self, OracleHolder};
     // use library::utils::logger;
 
     const COLLATERAL_PRICE: u64 = 1800_000000000;

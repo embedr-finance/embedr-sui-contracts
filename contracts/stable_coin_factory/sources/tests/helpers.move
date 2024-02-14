@@ -114,11 +114,9 @@ module stable_coin_factory::test_helpers {
         };
     }
 
-    public fun update_oracle_price(test: &mut Scenario, sui_price: u128, time: u128) : OracleHolder {
+    public fun update_oracle_price(test: &mut Scenario, oracle: &mut OracleHolder, sui_price: u128, time: u128) {
         let live_price = (sui_price * 1_000_000_000_000_000_000);
-        let oracle_holder = test::take_shared<OracleHolder>(test);
             SupraSValueFeed::add_pair_data(
-            &mut oracle_holder, 90, live_price, 18, time, 6489821);
-            oracle_holder
+            oracle, 90, live_price, 18, time, 6489821);      
     }
 }
