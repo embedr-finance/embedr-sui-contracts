@@ -25,10 +25,6 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
 
         init_stable_coin_factory(test);
 
-        next_tx(test, admin);
-        {
-            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
-        };
         next_tx(test, user);
         {   
             open_kasa(test, user, 3_000000000, 4500_000000000);
@@ -40,10 +36,6 @@ module stable_coin_factory::kasa_manager_liquidation_tests {
         next_tx(test, @0x2222);
         {
             deposit_to_stability_pool(test, @0x2222, 10000_000000000);
-        };
-        next_tx(test, user);
-        {
-        SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
         };
         
         next_tx(test, admin);
