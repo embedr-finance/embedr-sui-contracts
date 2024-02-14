@@ -8,9 +8,7 @@ module oracles::oracle {
     use sui::object::{Self, UID};
     use sui::tx_context::{Self, TxContext};
     use sui::transfer;
-
-   // use SupraOracle::SupraSValueFeed::{Self, OracleHolder, get_price};
-
+    
     use supra_holder::SupraSValueFeed::{Self, OracleHolder, get_price};
 
     // Supra_oracle sui pair code
