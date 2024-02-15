@@ -1,11 +1,19 @@
 module supra_utils::utils {
 
-    /// unstable append of second vector into first vector
-    native public fun destructive_reverse_append<Element: drop>(first: &mut vector<Element>, second: vector<Element>);
+    /// Undefined expression
+    const EUNDEFIND_EXP: u64 = 1;
 
-    /// Flatten and concatenate the vectors
-    native public fun vector_flatten_concat<Element: copy + drop>(lhs: &mut vector<Element>, other: vector<vector<Element>>);
-
-    // Calculates the power of a base raised to an exponent. The result of `base` raised to the power of `exponent`
-    native public fun calculate_power(base: u128, exponent: u16): u128;
+    /// Calculates the power of a base raised to an exponent. The result of `base` raised to the power of `exponent`
+    public fun calculate_power(base: u128, exponent: u16): u256 {
+        let result: u256 = 1;
+        let base: u256 = (base as u256);
+        assert!((base | (exponent as u256)) != 0, EUNDEFIND_EXP);
+        if (base == 0) { return 0 };
+        while(exponent != 0) {
+            if ((exponent & 0x1) == 1) { result = result * base; };
+            base = base * base;
+            exponent = (exponent >> 1);
+        };
+        result
+    }
 }

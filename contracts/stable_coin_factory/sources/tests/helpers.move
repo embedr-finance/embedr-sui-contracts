@@ -12,7 +12,7 @@ module stable_coin_factory::test_helpers {
     use stable_coin_factory::sorted_kasas::{Self, SortedKasasStorage};
     use tokens::rusd_stable_coin::{Self, RUSDStableCoinStorage, RUSDStableCoinAdminCap, RUSD_STABLE_COIN};
     use library::test_utils::people;
-    use SupraOracle::SupraSValueFeed::{Self, OracleHolder, return_oracleholder, delete_oracleholder};
+    use supra_holder:: SupraSValueFeed::{Self, OracleHolder};
 
     public fun init_stable_coin_factory(test: &mut Scenario) {
         let (admin, _) = people();
@@ -24,6 +24,7 @@ module stable_coin_factory::test_helpers {
             liquidation_assets_distributor::init_for_testing(ctx(test));
             rusd_stable_coin::init_for_testing(ctx(test));
             sorted_kasas::init_for_testing(ctx(test));
+            SupraSValueFeed::create_oracle_holder_for_test(test::ctx(test));
         };
         next_tx(test, admin);
         {
@@ -50,6 +51,13 @@ module stable_coin_factory::test_helpers {
             test::return_shared(rsc_storage);
             test::return_to_address(admin, rsc_admin_cap);
         };
+        next_tx(test, admin);
+        {
+            let oracle_holder = test::take_shared<OracleHolder>(test);
+            SupraSValueFeed::add_pair_data(
+                &mut oracle_holder, 90, 1800_000000000000000000, 18, 1704693072240, 6489821);
+            test::return_shared(oracle_holder);
+        };
     }
 
     public fun open_kasa(test: &mut Scenario, account_address: address, collateral_amount: u64, debt_amount: u64) {
@@ -57,10 +65,8 @@ module stable_coin_factory::test_helpers {
         let km_storage = test::take_shared<KasaManagerStorage>(test);
         let sk_storage = test::take_shared<SortedKasasStorage>(test);
         let rsc_storage = test::take_shared<RUSDStableCoinStorage>(test);
-        let oracle_holder = return_oracleholder(ctx(test));
+        let oracle_holder = test::take_shared<OracleHolder>(test);
         
-        
-
         next_tx(test, account_address);
         {
             let collateral = mint_for_testing<SUI>(collateral_amount, ctx(test));
@@ -80,7 +86,7 @@ module stable_coin_factory::test_helpers {
         test::return_shared(km_storage);
         test::return_shared(sk_storage);
         test::return_shared(rsc_storage);
-        delete_oracleholder(oracle_holder);
+        test::return_shared(oracle_holder);
     }
 
     public fun deposit_to_stability_pool(test: &mut Scenario, account_address: address, amount: u64) {
@@ -106,5 +112,11 @@ module stable_coin_factory::test_helpers {
             test::return_shared(rsc_storage);
             test::return_to_sender(test, stable_coin);
         };
+    }
+
+    public fun update_oracle_price(test: &mut Scenario, oracle: &mut OracleHolder, sui_price: u128, time: u128) {
+        let live_price = (sui_price * 1_000_000_000_000_000_000);
+            SupraSValueFeed::add_pair_data(
+            oracle, 90, live_price, 18, time, 6489821);      
     }
 }

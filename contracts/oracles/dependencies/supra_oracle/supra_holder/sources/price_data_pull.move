@@ -1,7 +1,7 @@
-module SupraOracle::price_data_pull {
+module supra_holder::price_data_pull {
 
     use sui::tx_context::TxContext;
-    use SupraOracle::SupraSValueFeed::OracleHolder;
+    use supra_holder::SupraSValueFeed::OracleHolder;
     use supra_validator::validator::DkgState;
 
     struct PriceData has copy, drop { }

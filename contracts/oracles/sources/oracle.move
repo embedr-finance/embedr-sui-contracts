@@ -8,13 +8,13 @@ module oracles::oracle {
     use sui::object::{Self, UID};
     use sui::tx_context::{Self, TxContext};
     use sui::transfer;
-
-    use SupraOracle::SupraSValueFeed::{Self, OracleHolder, get_price};
+    
+    use supra_holder::SupraSValueFeed::{Self, OracleHolder, get_price};
 
     // Supra_oracle sui pair code
     const SUPRA_SUI_USD_PAIR: u32 = 90;
     // Reduce to 9 decimal
-    const SUI_FRACTION: u64 = 100_000_000;
+    const SUI_FRACTION: u128 = 1_000_000_000;
     
     // share object for take live price of sui token
     // struct Storage has key, store {
@@ -44,8 +44,8 @@ module oracles::oracle {
         let (sui_usd_price, _, _, _) 
             = get_price(oracle_holder, SUPRA_SUI_USD_PAIR);
         // Assign the sui live price into our share object as u256 and 9 decimal
-        (sui_usd_price as u64) / SUI_FRACTION 
-    
+        ((sui_usd_price  / SUI_FRACTION) as u64) 
+
     }
     /// Get sui token live price from SupraOracle and pyth
     /// 

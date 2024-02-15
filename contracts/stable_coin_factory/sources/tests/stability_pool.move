@@ -8,6 +8,7 @@ module stable_coin_factory::stability_pool_tests {
     use stable_coin_factory::stability_pool::{Self, StabilityPoolStorage, StabilityPoolPublisher};
     use stable_coin_factory::liquidation_assets_distributor::CollateralGains;
     use tokens::rusd_stable_coin::{Self, RUSD_STABLE_COIN, RUSDStableCoinStorage};
+    use supra_holder:: SupraSValueFeed :: {Self, OracleHolder};
     use library::test_utils::{people, scenario};
 
     #[test]

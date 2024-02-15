@@ -4,8 +4,8 @@ version = "0.0.1"
 published-at = "0x245f4ed7e3f34727615da26e2cb45b051321a73c43ee6e7f441ff4feeca0a897"
 
 [dependencies]
-MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "testnet-v1.14.2" }
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "testnet-v1.14.2" }
+MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "framework/testnet" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
 EmbedrProtocolLibrary = { local = "../library" }
 
 [addresses]
